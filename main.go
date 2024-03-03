@@ -6,15 +6,27 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-var dungeon DungeonMap
-
 type Entity interface {
 	Pos() (int, int)
 	SetPos(int, int)
 	Rune() rune
 }
 
+// wrap these into GameState?  Will have handleCommand()?
+var dungeon DungeonMap
 var player Player
+
+var messages []string
+
+// -----------------------------------------------------------------------
+func logMessage(s string) {
+	messages = append(messages, s)
+}
+
+// -----------------------------------------------------------------------
+func clearMessages() {
+	messages = nil
+}
 
 // -----------------------------------------------------------------------
 func movePlayer(dx int, dy int, d *DungeonMap, p *Player) {
@@ -31,9 +43,10 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player) {
 	case '+':
 		// open the door
 		d.SetTile(destX, destY, '`')
+		logMessage("You open the door.")
 		break
 	default:
-		// log message: that way is blocked
+		logMessage("That way is blocked.")
 		break
 	}
 }
@@ -65,9 +78,17 @@ func main() {
 		disp.DrawMap(&dungeon)
 		disp.DrawEntity(&player)
 
+		// draw messages if we have any
+		if len(messages) > 0 {
+			for i, msg := range messages {
+				disp.DrawText(0, i, msg)
+			}
+			clearMessages()
+		}
+
 		disp.Screen.Show()
 
-		// Get the Game Command from user (blocks until input)
+		// get the Game Command from user (blocks until input)
 		cmd = disp.Command()
 
 		// handle user's command
