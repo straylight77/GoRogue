@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gdamore/tcell/v2"
@@ -92,7 +93,7 @@ func (d *Display) DrawText(x1, y1 int, text string) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawDebug() {
+func (d *Display) DrawDebug(p *Player) {
 	maxX, maxY := 80, 25
 	for x := 0; x < maxX; x++ {
 		d.Screen.SetContent(x, maxY, tcell.RuneHLine, nil, d.DebugStyle)
@@ -107,6 +108,8 @@ func (d *Display) DrawDebug() {
 	textv := "01234567890123456789012345"
 	drawTextWrap(d.Screen, 81, 0, 82, 27, d.DebugStyle, textv)
 
+	drawTextWrap(d.Screen, 84, 1, 100, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
+	drawTextWrap(d.Screen, 84, 2, 100, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))
 }
 
 // -----------------------------------------------------------------------------
@@ -129,6 +132,8 @@ func (d *Display) DrawBox(x1, y1 int, w, h int) {
 	d.Screen.SetContent(x1, y1+h, tcell.RuneLLCorner, nil, d.DefStyle)
 	d.Screen.SetContent(x1+w, y1+h, tcell.RuneLRCorner, nil, d.DefStyle)
 }
+
+// === Util Functions ==========================================================
 
 // -----------------------------------------------------------------------------
 func drawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {

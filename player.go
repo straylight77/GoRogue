@@ -1,7 +1,10 @@
 package main
 
+import "fmt"
+
 type Player struct {
-	X, Y int
+	X, Y  int
+	moves int
 }
 
 // -----------------------------------------------------------------------
@@ -18,4 +21,9 @@ func (p *Player) Pos() (int, int) {
 // -----------------------------------------------------------------------
 func (p *Player) Rune() rune {
 	return rune('@')
+}
+
+// -----------------------------------------------------------------------
+func (p *Player) InfoString() string {
+	return fmt.Sprintf("Level: 1  Gold: 4       Hp: 11 (20)  Str: 16(16)  Arm: 4   Exp: 2/14")
 }

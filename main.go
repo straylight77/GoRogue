@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -54,12 +52,13 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player) {
 // -----------------------------------------------------------------------
 func main() {
 	var cmd tcell.Key
-	var moves int
 
+	// initialization and setup
 	disp := Display{}
 	disp.Init()
 	defer disp.Quit()
 
+	// create a dungeon level
 	dungeon.Clear()
 	dungeon.CreateRoom(7, 7, 8, 5)
 	dungeon.CreateRoom(27, 15, 10, 6)
@@ -72,9 +71,8 @@ func main() {
 	for !done {
 
 		// Draw
-		disp.DrawDebug()
-		info := fmt.Sprintf("Level: 1  Gold: 4       Hp: 11 (20)  Str: 16(16)  Arm: 4   Exp: 2/14")
-		disp.DrawText(0, 24, info)
+		disp.DrawDebug(&player)
+		disp.DrawText(0, 24, player.InfoString())
 		disp.DrawMap(&dungeon)
 		disp.DrawEntity(&player)
 
@@ -111,6 +109,6 @@ func main() {
 
 		}
 
-		moves++
+		player.moves++
 	}
 }
