@@ -101,7 +101,7 @@ func (d *Display) DrawText(x1, y1 int, text string) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawDebug(p *Player) {
+func (d *Display) DrawDebug(p *Player, ml *MonsterList) {
 	maxX, maxY := 80, 25
 	for x := 0; x < maxX; x++ {
 		d.Screen.SetContent(x, maxY, tcell.RuneHLine, nil, d.DebugStyle)
@@ -116,9 +116,12 @@ func (d *Display) DrawDebug(p *Player) {
 	textv := "01234567890123456789012345"
 	drawTextWrap(d.Screen, 81, 0, 82, 27, d.DebugStyle, textv)
 
-	drawTextWrap(d.Screen, 84, 1, 100, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
-	drawTextWrap(d.Screen, 84, 2, 100, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))
-	drawTextWrap(d.Screen, 84, 3, 100, 3, d.DebugStyle, fmt.Sprintf("Depth: %d", p.depth))
+	drawTextWrap(d.Screen, 84, 1, 200, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
+	drawTextWrap(d.Screen, 84, 2, 200, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))
+	for i, m := range *ml {
+		msg := fmt.Sprintf("%d: %v", i, m.DebugString())
+		drawTextWrap(d.Screen, 84, 4+i, 200, 4+i, d.DebugStyle, msg)
+	}
 }
 
 // -----------------------------------------------------------------------------

@@ -29,9 +29,7 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	// check for monsters
 	m := mlist.MonsterAt(destX, destY)
 	if m != nil {
-		m.HP-- // placeholder combat for now
-		msg := fmt.Sprintf("You attack the %v (hp=%d).", m.Name, m.HP)
-		logMessage(msg)
+		logMessage(p.Attack(m))
 		return
 	}
 
@@ -76,6 +74,7 @@ func main() {
 	for !done {
 
 		// draw the world
+		disp.Screen.Clear()
 		disp.DrawMap(&dungeon)
 		disp.DrawMessages(messages)
 		disp.DrawText(0, 24, player.InfoString())
@@ -84,7 +83,7 @@ func main() {
 			disp.DrawEntity(m)
 		}
 		disp.DrawEntity(&player)
-		disp.DrawDebug(&player)
+		disp.DrawDebug(&player, &monsters)
 
 		disp.Screen.Show()
 
@@ -109,5 +108,14 @@ func main() {
 		}
 
 		player.moves++
+
+		// do other world updates
+		for i, m := range monsters {
+			if m.HP <= 0 {
+				monsters.Remove(i)
+				logMessage(fmt.Sprintf("You defeated the %s!", m.Name))
+			}
+		}
+
 	}
 }

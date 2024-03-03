@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /*************************************************************************
  * MonsterLib
  *
@@ -55,4 +57,8 @@ func NewMonster(n string, sym rune, hp int) *Monster {
 	}
 	newMonster.Symbol = sym
 	return newMonster
+}
+
+func (m *Monster) DebugString() string {
+	return fmt.Sprintf("%s x=%d y=%d hp=%d", m.Name, m.X, m.Y, m.HP)
 }
