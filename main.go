@@ -6,12 +6,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-type Entity interface {
-	Pos() (int, int)
-	SetPos(int, int)
-	Rune() rune
-}
-
 // wrap these into GameState?  Will have handleCommand()?
 var dungeon DungeonMap
 var player Player
@@ -70,6 +64,7 @@ func main() {
 	disp := Display{}
 	disp.Init()
 	defer disp.Quit()
+	player.Symbol = '@'
 
 	// create a dungeon level
 	dungeon.GenerateLevel(1, &player)
