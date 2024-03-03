@@ -1,76 +1,36 @@
 package main
 
-import (
-	"log"
-
-	"github.com/gdamore/tcell/v2"
-)
-
-func drawText(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
-	row := y1
-	col := x1
-	for _, r := range []rune(text) {
-		s.SetContent(col, row, r, nil, style)
-		col++
-		if col >= x2 {
-			row++
-			col = x1
-		}
-		if row > y2 {
-			break
-		}
-	}
-}
+import "fmt"
 
 func main() {
+	var cmd rune
+	var moves int
 
-	// Initialize screen
-	s, err := tcell.NewScreen()
-	if err != nil {
-		log.Fatalf("%+v", err)
-	}
-	if err := s.Init(); err != nil {
-		log.Fatalf("%+v", err)
-	}
+	disp := Display{}
+	disp.Init()
+	defer disp.Quit()
 
-	defStyle := tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
+	done := false
+	for !done {
 
-	s.SetStyle(defStyle)
-	s.Clear()
-
-	quit := func() {
-		// You have to catch panics in a defer, clean up, and
-		// re-raise them - otherwise your application can
-		// die without leaving any diagnostic trace.
-		maybePanic := recover()
-		s.Fini()
-		if maybePanic != nil {
-			panic(maybePanic)
-		}
-	}
-	defer quit()
-
-	// ---------
-
-	for {
 		// Draw
-		drawText(s, 5, 5, 15, 15, defStyle, "Hello world!")
+		drawBorder(disp.Screen, disp.DefStyle)
+		disp.drawText(2, 2, fmt.Sprintf("frames: %d", moves))
+		//drawText(disp.Screen, 2, 3, 30, 30, defStyle, fmt.Sprintf("cmd: %v", cmd))
+		disp.drawText(5, 5, "Hello world! This is a long string.")
+		disp.drawText(135, 7, "This one goes off the screen but it's okay.")
+		disp.Screen.Show()
 
-		// Update screen
-		s.Show()
+		// Get the Game Command from user (blocks until input)
+		cmd = disp.Command()
 
-		// Poll event
-		ev := s.PollEvent()
-
-		// Process event
-		switch ev := ev.(type) {
-		case *tcell.EventResize:
-			s.Sync()
-		case *tcell.EventKey:
-			if ev.Key() == tcell.KeyEscape || ev.Key() == tcell.KeyCtrlC {
-				return
-			}
+		// handle user's command
+		switch cmd {
+		case 'X':
+			done = true
+			break
 		}
 
+		moves++
 	}
 }
