@@ -43,11 +43,11 @@ func (d *Display) Quit() {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) Command() rune {
+func (d *Display) Command() tcell.Key {
 
 	ev := d.Screen.PollEvent()
 
-	var cmd rune // game command that the main loop will handle
+	var cmd tcell.Key // game command that the main loop will handle
 
 	// Process event
 	switch ev := ev.(type) {
@@ -60,10 +60,16 @@ func (d *Display) Command() rune {
 		} else if ev.Key() == tcell.KeyCtrlR {
 			d.Screen.Sync()
 		} else {
-			cmd = ev.Rune()
+			cmd = ev.Key()
 		}
 	}
 	return cmd
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawEntity(e Entity) {
+	x, y := e.Pos()
+	d.Screen.SetContent(x, y, e.Rune(), nil, d.DefStyle)
 }
 
 // -----------------------------------------------------------------------------

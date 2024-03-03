@@ -7,9 +7,9 @@ const (
 )
 
 type DungeonTile struct {
-	ch      rune
-	visible bool
+	sym     rune
 	blocks  bool
+	visible bool
 }
 
 type DungeonMap [MapMaxX][MapMaxY]rune
@@ -21,6 +21,16 @@ func (m *DungeonMap) Clear() {
 			m[x][y] = ' '
 		}
 	}
+}
+
+// -----------------------------------------------------------------------
+func (m *DungeonMap) SetTile(x, y int, r rune) {
+	m[x][y] = r
+}
+
+// -----------------------------------------------------------------------
+func (m *DungeonMap) Tile(x, y int) rune {
+	return m[x][y]
 }
 
 // -----------------------------------------------------------------------
