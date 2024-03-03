@@ -83,6 +83,16 @@ func (d *Display) DrawMap(m *DungeonMap) {
 }
 
 // -----------------------------------------------------------------------------
+func (d *Display) DrawMessages(messages []string) {
+	if len(messages) > 0 {
+		for i, msg := range messages {
+			d.DrawText(0, i, msg)
+		}
+		clearMessages()
+	}
+}
+
+// -----------------------------------------------------------------------------
 func (d *Display) DrawText(x1, y1 int, text string) {
 	row := y1
 	col := x1
@@ -110,6 +120,7 @@ func (d *Display) DrawDebug(p *Player) {
 
 	drawTextWrap(d.Screen, 84, 1, 100, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
 	drawTextWrap(d.Screen, 84, 2, 100, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))
+	drawTextWrap(d.Screen, 84, 3, 100, 3, d.DebugStyle, fmt.Sprintf("Depth: %d", p.depth))
 }
 
 // -----------------------------------------------------------------------------
@@ -133,9 +144,8 @@ func (d *Display) DrawBox(x1, y1 int, w, h int) {
 	d.Screen.SetContent(x1+w, y1+h, tcell.RuneLRCorner, nil, d.DefStyle)
 }
 
-// === Util Functions ==========================================================
+// ============================================================================
 
-// -----------------------------------------------------------------------------
 func drawTextWrap(s tcell.Screen, x1, y1, x2, y2 int, style tcell.Style, text string) {
 	row := y1
 	col := x1

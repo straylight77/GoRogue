@@ -6,6 +6,13 @@ const (
 	MapMaxX, MapMaxY = 80, 24
 )
 
+const (
+	NORTH = iota
+	EAST
+	SOUTH
+	WEST
+)
+
 type DungeonTile struct {
 	sym     rune
 	blocks  bool
@@ -34,7 +41,43 @@ func (m *DungeonMap) Tile(x, y int) rune {
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) {
+func (m *DungeonMap) GenerateLevel(lvl int, p *Player) {
+	var x, y int
+
+	m.Clear()
+	x, y = m.CreateRoom(42, 3, 12, 8)
+	x, y = m.CreatePath(x, y, WEST, 15)
+	m.CreateRoom(27, 15, 10, 6)
+	x, y = m.CreatePath(x, y, SOUTH, 10)
+
+	p.SetPos(45, 5)
+	p.depth++
+}
+
+// -----------------------------------------------------------------------
+func (m *DungeonMap) CreatePath(x1, y1 int, dir int, length int) (int, int) {
+	dx, dy := getDirectionCoords(dir)
+	x, y := x1, y1
+	for i := length; i > 0; i-- {
+
+		switch m[x][y] {
+		case tcell.RuneBullet:
+			break //ignore floor tiles
+		case tcell.RuneHLine,
+			tcell.RuneVLine:
+			m.SetTile(x, y, '+')
+
+		default:
+			m[x][y] = tcell.RuneBoard
+		}
+		x += dx
+		y += dy
+	}
+	return x, y
+}
+
+// -----------------------------------------------------------------------
+func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 	h -= 1
 	w -= 1
 
@@ -59,4 +102,23 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) {
 	m[x1][y1+h] = tcell.RuneLLCorner
 	m[x1+w][y1+h] = tcell.RuneLRCorner
 
+	// return the coords of the room center
+	return x1 + (w / 2), y1 + (h / 2)
+}
+
+// ============================================================================
+
+func getDirectionCoords(dir int) (int, int) {
+	dx, dy := 0, 0
+	switch dir {
+	case NORTH:
+		dy = -1
+	case SOUTH:
+		dy = 1
+	case EAST:
+		dx = 1
+	case WEST:
+		dx = -1
+	}
+	return dx, dy
 }

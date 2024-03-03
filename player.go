@@ -5,6 +5,7 @@ import "fmt"
 type Player struct {
 	X, Y  int
 	moves int
+	depth int
 }
 
 // -----------------------------------------------------------------------
