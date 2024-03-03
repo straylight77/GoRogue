@@ -56,9 +56,7 @@ func (d *Display) Command() tcell.Key {
 		d.Screen.Clear()
 		d.Screen.Sync()
 	case *tcell.EventKey:
-		if ev.Key() == tcell.KeyEscape {
-			cmd = 'X'
-		} else if ev.Key() == tcell.KeyCtrlR {
+		if ev.Key() == tcell.KeyCtrlR {
 			d.Screen.Sync()
 		} else {
 			cmd = ev.Key()

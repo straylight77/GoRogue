@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -13,6 +15,7 @@ type Entity interface {
 // wrap these into GameState?  Will have handleCommand()?
 var dungeon DungeonMap
 var player Player
+var monsters MonsterList
 
 // -----------------------------------------------------------------------
 var messages []string
@@ -26,10 +29,17 @@ func clearMessages() {
 }
 
 // -----------------------------------------------------------------------
-func movePlayer(dx int, dy int, d *DungeonMap, p *Player) {
+func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	destX, destY := p.X+dx, p.Y+dy
 
 	// check for monsters
+	m := mlist.MonsterAt(destX, destY)
+	if m != nil {
+		m.HP-- // placeholder combat for now
+		msg := fmt.Sprintf("You attack the %v (hp=%d).", m.Name, m.HP)
+		logMessage(msg)
+		return
+	}
 
 	// check dungeon tile
 	destTile := d[destX][destY]
@@ -64,14 +74,21 @@ func main() {
 	// create a dungeon level
 	dungeon.GenerateLevel(1, &player)
 
+	m1 := NewMonster("bat", 'B', 3)
+	monsters.Add(m1, 50, 8)
+
 	done := false
 	for !done {
 
 		// draw the world
 		disp.DrawMap(&dungeon)
-		disp.DrawEntity(&player)
 		disp.DrawMessages(messages)
 		disp.DrawText(0, 24, player.InfoString())
+
+		for _, m := range monsters {
+			disp.DrawEntity(m)
+		}
+		disp.DrawEntity(&player)
 		disp.DrawDebug(&player)
 
 		disp.Screen.Show()
@@ -81,16 +98,19 @@ func main() {
 
 		// handle user's command
 		switch cmd {
-		case 'X':
+		case tcell.KeyEscape,
+			tcell.KeyCtrlC:
 			done = true
 		case tcell.KeyLeft:
-			movePlayer(-1, 0, &dungeon, &player)
+			movePlayer(-1, 0, &dungeon, &player, &monsters)
 		case tcell.KeyRight:
-			movePlayer(1, 0, &dungeon, &player)
+			movePlayer(1, 0, &dungeon, &player, &monsters)
 		case tcell.KeyUp:
-			movePlayer(0, -1, &dungeon, &player)
+			movePlayer(0, -1, &dungeon, &player, &monsters)
 		case tcell.KeyDown:
-			movePlayer(0, 1, &dungeon, &player)
+			movePlayer(0, 1, &dungeon, &player, &monsters)
+		default:
+			logMessage(fmt.Sprintf("I don't know that command (%v)", cmd))
 		}
 
 		player.moves++
