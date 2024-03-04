@@ -34,17 +34,13 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	}
 
 	// check dungeon tile
-	destTile := d[destX][destY]
-	switch destTile {
+	destTile := d.TileAt(destX, destY)
+	switch {
 
-	case TileFloor, // consider these tiles as "walkable"
-		TilePath,
-		TileDoorOp,
-		TileStairsDn,
-		TileStairsUp:
+	case destTile.IsWalkable():
 		p.SetPos(destX, destY)
 
-	case TileDoorCl: // open the door
+	case destTile.IsType(TileDoorCl): // open the door
 		d.SetTile(destX, destY, TileDoorOp)
 		logMessage("You open the door.")
 

@@ -65,16 +65,13 @@ type Monster struct {
 }
 
 func NewMonster(id int) *Monster {
-
 	mt := MonsterLib[id]
-
 	m := &Monster{
 		Name: mt.Name,
 		HP:   mt.HP,
 	}
 	m.Symbol = mt.Symbol
 	return m
-
 }
 
 func CreateMonster(n string, sym rune, hp int) *Monster {

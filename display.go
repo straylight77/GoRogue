@@ -3,11 +3,12 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
 
-var TileRunes = map[int]rune{
+var TileRunes = map[TileType]rune{
 	TileEmpty:    ' ',
 	TileWallH:    '-',
 	TileWallV:    '|',
@@ -88,7 +89,8 @@ func (d *Display) DrawEntity(e Entity) {
 func (d *Display) DrawMap(m *DungeonMap) {
 	for x, col := range m {
 		for y, t := range col {
-			d.Screen.SetContent(x, y, TileRunes[t], nil, d.DefStyle)
+			r := TileRunes[t.typ]
+			d.Screen.SetContent(x, y, r, nil, d.DefStyle)
 		}
 	}
 }
@@ -96,9 +98,8 @@ func (d *Display) DrawMap(m *DungeonMap) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawMessages(messages []string) {
 	if len(messages) > 0 {
-		for i, msg := range messages {
-			d.DrawText(0, i, msg)
-		}
+		entireStr := strings.Join(messages, " ")
+		drawTextWrap(d.Screen, 0, 0, 80, 3, d.DefStyle, entireStr)
 		clearMessages()
 	}
 }
