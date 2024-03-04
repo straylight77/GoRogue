@@ -39,7 +39,9 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 
 	case TileFloor, // consider these tiles as "walkable"
 		TilePath,
-		TileDoorOp:
+		TileDoorOp,
+		TileStairsDn,
+		TileStairsUp:
 		p.SetPos(destX, destY)
 
 	case TileDoorCl: // open the door
@@ -62,10 +64,7 @@ func main() {
 	player.Symbol = '@'
 
 	// create a dungeon level
-	dungeon.GenerateLevel(1, &player)
-
-	m1 := NewMonster("bat", 'B', 3)
-	monsters.Add(m1, 50, 8)
+	dungeon.GenerateLevel(player.depth, &player, &monsters)
 
 	done := false
 	for !done {

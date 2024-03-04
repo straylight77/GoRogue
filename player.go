@@ -10,15 +10,10 @@ type Player struct {
 
 // -----------------------------------------------------------------------
 func (p *Player) Attack(m *Monster) string {
-
 	dmg := 1
 	m.HP -= dmg
-	return fmt.Sprintf(
-		"You hit the %v for %d damage.",
-		m.Name,
-		dmg,
-	)
-
+	msg := fmt.Sprintf("You hit the %v for %d damage.", m.Name, dmg)
+	return msg
 }
 
 // -----------------------------------------------------------------------

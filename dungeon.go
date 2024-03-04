@@ -5,7 +5,8 @@ const (
 )
 
 const (
-	TileWallH = iota
+	TileEmpty = iota
+	TileWallH
 	TileWallV
 	TileWallUL
 	TileWallUR
@@ -15,6 +16,8 @@ const (
 	TilePath
 	TileDoorCl
 	TileDoorOp
+	TileStairsDn
+	TileStairsUp
 )
 
 const (
@@ -36,7 +39,7 @@ type DungeonMap [MapMaxX][MapMaxY]int
 func (m *DungeonMap) Clear() {
 	for x, col := range m {
 		for y := range col {
-			m[x][y] = ' '
+			m[x][y] = TileEmpty
 		}
 	}
 }
@@ -52,7 +55,7 @@ func (m *DungeonMap) Tile(x, y int) int {
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) GenerateLevel(lvl int, p *Player) {
+func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
 	var x, y int
 
 	m.Clear()
@@ -60,6 +63,12 @@ func (m *DungeonMap) GenerateLevel(lvl int, p *Player) {
 	x, y = m.CreatePath(x, y, WEST, 15)
 	m.CreateRoom(27, 15, 10, 6)
 	x, y = m.CreatePath(x, y, SOUTH, 10)
+
+	m[45][5] = TileStairsUp
+	m[31][18] = TileStairsDn
+
+	monsters.Add(NewMonster(0), 50, 8)
+	monsters.Add(NewMonster(1), 29, 17)
 
 	p.SetPos(45, 5)
 	p.depth++

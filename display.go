@@ -8,16 +8,19 @@ import (
 )
 
 var TileRunes = map[int]rune{
-	TileWallH:  '-',
-	TileWallV:  '|',
-	TileWallUL: '-',
-	TileWallUR: '-',
-	TileWallLL: '-',
-	TileWallLR: '-',
-	TileFloor:  '.',
-	TilePath:   '#',
-	TileDoorOp: '`',
-	TileDoorCl: '+',
+	TileEmpty:    ' ',
+	TileWallH:    '-',
+	TileWallV:    '|',
+	TileWallUL:   '-',
+	TileWallUR:   '-',
+	TileWallLL:   '-',
+	TileWallLR:   '-',
+	TileFloor:    '.',
+	TilePath:     '#',
+	TileDoorOp:   '`',
+	TileDoorCl:   '+',
+	TileStairsUp: '<',
+	TileStairsDn: '>',
 }
 
 type Display struct {

@@ -6,6 +6,21 @@ import "fmt"
  * MonsterLib
  *
  */
+type MonsterTemplate struct {
+	Name     string
+	Symbol   rune
+	HP       int
+	AC       int
+	Dmg      int
+	XP       int
+	MinDepth int
+	MaxDepth int
+}
+
+var MonsterLib = []MonsterTemplate{
+	{"bat", 'B', 3, 17, 1, 1, 1, 7},
+	{"kestrel", 'K', 4, 13, 2, 1, 1, 5},
+}
 
 /*************************************************************************
  * MonsterList
@@ -49,7 +64,20 @@ type Monster struct {
 	HP   int
 }
 
-func NewMonster(n string, sym rune, hp int) *Monster {
+func NewMonster(id int) *Monster {
+
+	mt := MonsterLib[id]
+
+	m := &Monster{
+		Name: mt.Name,
+		HP:   mt.HP,
+	}
+	m.Symbol = mt.Symbol
+	return m
+
+}
+
+func CreateMonster(n string, sym rune, hp int) *Monster {
 	newMonster := &Monster{
 		//Symbol: sym,
 		Name: n,
