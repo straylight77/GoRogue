@@ -8,6 +8,19 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+var KeyCmdLookup = map[tcell.Key]GameCommand{
+	tcell.KeyEscape: CmdQuit,
+	tcell.KeyCtrlC:  CmdQuit,
+	tcell.KeyLeft:   CmdLeft,
+	tcell.KeyRight:  CmdRight,
+	tcell.KeyUp:     CmdUp,
+	tcell.KeyDown:   CmdDown,
+}
+
+var RuneCmdLookup = map[rune]GameCommand{
+	'Q': CmdQuit,
+}
+
 var TileRunes = map[TileType]rune{
 	TileEmpty:    ' ',
 	TileWallH:    '-',
@@ -69,22 +82,30 @@ func (d *Display) Show() {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) GetCommand() tcell.Key {
+func (d *Display) GetCommand() (cmd GameCommand) {
 
-	ev := d.Screen.PollEvent()
+	var ok bool
+	ev := d.Screen.PollEvent() // blocks until input from user
 
-	var cmd tcell.Key // game command that the main loop will handle
-
-	// Process event
+	// do 'display level' processing, otherwise find the GameCommand to return
 	switch ev := ev.(type) {
 	case *tcell.EventResize:
 		d.Screen.Clear()
 		d.Screen.Sync()
+
 	case *tcell.EventKey:
-		if ev.Key() == tcell.KeyCtrlR {
-			d.Screen.Sync()
-		} else {
-			cmd = ev.Key()
+		key := ev.Key()
+		rn := ev.Rune()
+
+		switch key {
+		case tcell.KeyRune:
+			if cmd, ok = RuneCmdLookup[rn]; !ok {
+				logMessage(fmt.Sprintf("I don't know that command (%c)", rn))
+			}
+		default:
+			if cmd, ok = KeyCmdLookup[key]; !ok {
+				logMessage(fmt.Sprintf("I don't know that command (%v)", tcell.KeyNames[key]))
+			}
 		}
 	}
 	return cmd

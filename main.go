@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 // wrap these into GameState?  Will have handleCommand()?
@@ -16,6 +14,17 @@ type Entity interface {
 	SetPos(int, int)
 	Rune() rune
 }
+
+type GameCommand int
+
+const (
+	CmdNop GameCommand = iota
+	CmdQuit
+	CmdUp
+	CmdDown
+	CmdLeft
+	CmdRight
+)
 
 // -----------------------------------------------------------------------
 var messages []string
@@ -53,11 +62,13 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	default:
 		logMessage("That way is blocked.")
 	}
+
+	player.moves++
 }
 
 // -----------------------------------------------------------------------
 func main() {
-	var cmd tcell.Key
+	var cmd GameCommand
 
 	// initialization and setup
 	disp := Display{}
@@ -84,27 +95,22 @@ func main() {
 
 		disp.Show()
 
-		// get the Game Command from user (blocks until input)
 		cmd = disp.GetCommand()
 
 		// handle user's command
 		switch cmd {
-		case tcell.KeyEscape,
-			tcell.KeyCtrlC:
+		case 0: //ignore
+		case CmdQuit:
 			done = true
-		case tcell.KeyLeft:
+		case CmdLeft:
 			movePlayer(-1, 0, &dungeon, &player, &monsters)
-		case tcell.KeyRight:
+		case CmdRight:
 			movePlayer(1, 0, &dungeon, &player, &monsters)
-		case tcell.KeyUp:
+		case CmdUp:
 			movePlayer(0, -1, &dungeon, &player, &monsters)
-		case tcell.KeyDown:
+		case CmdDown:
 			movePlayer(0, 1, &dungeon, &player, &monsters)
-		default:
-			logMessage(fmt.Sprintf("I don't know that command (%v)", cmd))
 		}
-
-		player.moves++
 
 		// do other world updates
 		for i, m := range monsters {
