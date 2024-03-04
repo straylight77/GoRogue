@@ -42,8 +42,8 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 		TileDoorOp:
 		p.SetPos(destX, destY)
 
-	case '+': // open the door
-		d.SetTile(destX, destY, '`')
+	case TileDoorCl: // open the door
+		d.SetTile(destX, destY, TileDoorOp)
 		logMessage("You open the door.")
 
 	default:
@@ -85,7 +85,7 @@ func main() {
 		disp.Screen.Show()
 
 		// get the Game Command from user (blocks until input)
-		cmd = disp.Command()
+		cmd = disp.GetCommand()
 
 		// handle user's command
 		switch cmd {

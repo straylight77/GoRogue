@@ -5,26 +5,16 @@ const (
 )
 
 const (
-	//TileWallH  = tcell.RuneHLine
-	//TileWallV  = tcell.RuneVLine
-	//TileWallUL = tcell.RuneULCorner
-	//TileWallUR = tcell.RuneURCorner
-	//TileWallLL = tcell.RuneLLCorner
-	//TileWallLR = tcell.RuneLRCorner
-	//TileFloor  = tcell.RuneBullet
-	//TilePath   = tcell.RuneBoard
-
-	TileWallH  = '-'
-	TileWallV  = '|'
-	TileWallUL = '-'
-	TileWallUR = '-'
-	TileWallLL = '-'
-	TileWallLR = '-'
-	TileFloor  = '.'
-	TilePath   = '#'
-
-	TileDoorOp = '`'
-	TileDoorCl = '+'
+	TileWallH = iota
+	TileWallV
+	TileWallUL
+	TileWallUR
+	TileWallLL
+	TileWallLR
+	TileFloor
+	TilePath
+	TileDoorCl
+	TileDoorOp
 )
 
 const (
@@ -40,7 +30,7 @@ type DungeonTile struct {
 	visible bool
 }
 
-type DungeonMap [MapMaxX][MapMaxY]rune
+type DungeonMap [MapMaxX][MapMaxY]int
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) Clear() {
@@ -52,12 +42,12 @@ func (m *DungeonMap) Clear() {
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) SetTile(x, y int, r rune) {
-	m[x][y] = r
+func (m *DungeonMap) SetTile(x, y int, t int) {
+	m[x][y] = t
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) Tile(x, y int) rune {
+func (m *DungeonMap) Tile(x, y int) int {
 	return m[x][y]
 }
 
@@ -85,7 +75,7 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir int, length int) (int, int) {
 		case TileFloor:
 			//ignore floor tiles
 		case TileWallH, TileWallV:
-			m.SetTile(x, y, '+')
+			m.SetTile(x, y, TileDoorCl)
 		default:
 			m[x][y] = TilePath
 		}
