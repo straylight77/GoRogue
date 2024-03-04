@@ -33,9 +33,6 @@ func (d *Display) Init() {
 
 // -----------------------------------------------------------------------------
 func (d *Display) Quit() {
-	// You have to catch panics in a defer, clean up, and
-	// re-raise them - otherwise your application can
-	// die without leaving any diagnostic trace.
 	maybePanic := recover()
 	d.Screen.Fini()
 	if maybePanic != nil {
@@ -104,12 +101,12 @@ func (d *Display) DrawText(x1, y1 int, text string) {
 func (d *Display) DrawDebug(p *Player, ml *MonsterList) {
 	maxX, maxY := 80, 25
 	for x := 0; x < maxX; x++ {
-		d.Screen.SetContent(x, maxY, tcell.RuneHLine, nil, d.DebugStyle)
+		d.Screen.SetContent(x, maxY, TileWallH, nil, d.DebugStyle)
 	}
 	for y := 0; y < maxY; y++ {
-		d.Screen.SetContent(maxX, y, tcell.RuneVLine, nil, d.DebugStyle)
+		d.Screen.SetContent(maxX, y, TileWallV, nil, d.DebugStyle)
 	}
-	d.Screen.SetContent(maxX, maxY, tcell.RuneLRCorner, nil, d.DebugStyle)
+	d.Screen.SetContent(maxX, maxY, TileWallLR, nil, d.DebugStyle)
 
 	texth := "012345678901234567890123456789012345678901234567890123456789012345678901234567890"
 	drawTextWrap(d.Screen, 0, 26, 81, 26, d.DebugStyle, texth)
@@ -130,19 +127,19 @@ func (d *Display) DrawBox(x1, y1 int, w, h int) {
 	w -= 1
 
 	for x := x1; x < x1+w; x++ {
-		d.Screen.SetContent(x, y1, tcell.RuneHLine, nil, d.DefStyle)
-		d.Screen.SetContent(x, y1+h, tcell.RuneHLine, nil, d.DefStyle)
+		d.Screen.SetContent(x, y1, TileWallH, nil, d.DefStyle)
+		d.Screen.SetContent(x, y1+h, TileWallH, nil, d.DefStyle)
 	}
 
 	for y := y1; y < y1+h; y++ {
-		d.Screen.SetContent(x1, y, tcell.RuneVLine, nil, d.DefStyle)
-		d.Screen.SetContent(x1+w, y, tcell.RuneVLine, nil, d.DefStyle)
+		d.Screen.SetContent(x1, y, TileWallV, nil, d.DefStyle)
+		d.Screen.SetContent(x1+w, y, TileWallV, nil, d.DefStyle)
 	}
 
-	d.Screen.SetContent(x1, y1, tcell.RuneULCorner, nil, d.DefStyle)
-	d.Screen.SetContent(x1+w, y1, tcell.RuneURCorner, nil, d.DefStyle)
-	d.Screen.SetContent(x1, y1+h, tcell.RuneLLCorner, nil, d.DefStyle)
-	d.Screen.SetContent(x1+w, y1+h, tcell.RuneLRCorner, nil, d.DefStyle)
+	d.Screen.SetContent(x1, y1, TileWallUL, nil, d.DefStyle)
+	d.Screen.SetContent(x1+w, y1, TileWallUR, nil, d.DefStyle)
+	d.Screen.SetContent(x1, y1+h, TileWallLL, nil, d.DefStyle)
+	d.Screen.SetContent(x1+w, y1+h, TileWallLR, nil, d.DefStyle)
 }
 
 // ============================================================================

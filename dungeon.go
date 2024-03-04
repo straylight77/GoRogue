@@ -1,9 +1,30 @@
 package main
 
-import "github.com/gdamore/tcell/v2"
-
 const (
 	MapMaxX, MapMaxY = 80, 24
+)
+
+const (
+	//TileWallH  = tcell.RuneHLine
+	//TileWallV  = tcell.RuneVLine
+	//TileWallUL = tcell.RuneULCorner
+	//TileWallUR = tcell.RuneURCorner
+	//TileWallLL = tcell.RuneLLCorner
+	//TileWallLR = tcell.RuneLRCorner
+	//TileFloor  = tcell.RuneBullet
+	//TilePath   = tcell.RuneBoard
+
+	TileWallH  = '-'
+	TileWallV  = '|'
+	TileWallUL = '-'
+	TileWallUR = '-'
+	TileWallLL = '-'
+	TileWallLR = '-'
+	TileFloor  = '.'
+	TilePath   = '#'
+
+	TileDoorOp = '`'
+	TileDoorCl = '+'
 )
 
 const (
@@ -61,14 +82,12 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir int, length int) (int, int) {
 	for i := length; i > 0; i-- {
 
 		switch m[x][y] {
-		case tcell.RuneBullet:
-			break //ignore floor tiles
-		case tcell.RuneHLine,
-			tcell.RuneVLine:
+		case TileFloor:
+			//ignore floor tiles
+		case TileWallH, TileWallV:
 			m.SetTile(x, y, '+')
-
 		default:
-			m[x][y] = tcell.RuneBoard
+			m[x][y] = TilePath
 		}
 		x += dx
 		y += dy
@@ -82,25 +101,25 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 	w -= 1
 
 	for x := x1; x < x1+w; x++ {
-		m[x][y1] = tcell.RuneHLine
-		m[x][y1+h] = tcell.RuneHLine
+		m[x][y1] = TileWallH
+		m[x][y1+h] = TileWallH
 	}
 
 	for y := y1; y < y1+h; y++ {
-		m[x1][y] = tcell.RuneVLine
-		m[x1+w][y] = tcell.RuneVLine
+		m[x1][y] = TileWallV
+		m[x1+w][y] = TileWallV
 	}
 
 	for x := x1 + 1; x < x1+w; x++ {
 		for y := y1 + 1; y < y1+h; y++ {
-			m[x][y] = tcell.RuneBullet
+			m[x][y] = TileFloor
 		}
 	}
 
-	m[x1][y1] = tcell.RuneULCorner
-	m[x1+w][y1] = tcell.RuneURCorner
-	m[x1][y1+h] = tcell.RuneLLCorner
-	m[x1+w][y1+h] = tcell.RuneLRCorner
+	m[x1][y1] = TileWallUL
+	m[x1+w][y1] = TileWallUR
+	m[x1][y1+h] = TileWallLL
+	m[x1+w][y1+h] = TileWallLR
 
 	// return the coords of the room center
 	return x1 + (w / 2), y1 + (h / 2)

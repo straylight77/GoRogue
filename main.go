@@ -37,12 +37,9 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	destTile := d[destX][destY]
 	switch destTile {
 
-	case '.', // consider these tiles as "walkable"
-		'#',
-		'`',
-		tcell.RuneBullet,
-		tcell.RuneBoard,
-		tcell.RuneCkBoard:
+	case TileFloor, // consider these tiles as "walkable"
+		TilePath,
+		TileDoorOp:
 		p.SetPos(destX, destY)
 
 	case '+': // open the door
