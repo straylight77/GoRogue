@@ -19,6 +19,7 @@ var KeyCmdLookup = map[tcell.Key]GameCommand{
 
 var RuneCmdLookup = map[rune]GameCommand{
 	'Q': CmdQuit,
+	'D': CmdDebug,
 }
 
 var TileRunes = map[TileType]rune{

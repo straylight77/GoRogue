@@ -19,6 +19,7 @@ type GameCommand int
 
 const (
 	CmdNop GameCommand = iota
+	CmdDebug
 	CmdQuit
 	CmdUp
 	CmdDown
@@ -78,6 +79,7 @@ func main() {
 	// create a dungeon level
 	dungeon.GenerateLevel(player.depth, &player, &monsters)
 
+	debug := true
 	done := false
 	for !done {
 
@@ -91,7 +93,9 @@ func main() {
 			disp.DrawEntity(m)
 		}
 		disp.DrawPlayer(&player)
-		disp.DrawDebug(&player, &monsters)
+		if debug {
+			disp.DrawDebug(&player, &monsters)
+		}
 
 		disp.Show()
 
@@ -110,6 +114,8 @@ func main() {
 			movePlayer(0, -1, &dungeon, &player, &monsters)
 		case CmdDown:
 			movePlayer(0, 1, &dungeon, &player, &monsters)
+		case CmdDebug:
+			debug = !debug
 		}
 
 		// do other world updates
