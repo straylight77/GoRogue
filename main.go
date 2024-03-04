@@ -11,6 +11,12 @@ var dungeon DungeonMap
 var player Player
 var monsters MonsterList
 
+type Entity interface {
+	Pos() (int, int)
+	SetPos(int, int)
+	Rune() rune
+}
+
 // -----------------------------------------------------------------------
 var messages []string
 
@@ -57,7 +63,6 @@ func main() {
 	disp := Display{}
 	disp.Init()
 	defer disp.Quit()
-	player.Symbol = '@'
 
 	// create a dungeon level
 	dungeon.GenerateLevel(player.depth, &player, &monsters)
@@ -66,7 +71,7 @@ func main() {
 	for !done {
 
 		// draw the world
-		disp.Screen.Clear()
+		disp.Clear()
 		disp.DrawMap(&dungeon)
 		disp.DrawMessages(messages)
 		disp.DrawText(0, 24, player.InfoString())
@@ -74,10 +79,10 @@ func main() {
 		for _, m := range monsters {
 			disp.DrawEntity(m)
 		}
-		disp.DrawEntity(&player)
+		disp.DrawPlayer(&player)
 		disp.DrawDebug(&player, &monsters)
 
-		disp.Screen.Show()
+		disp.Show()
 
 		// get the Game Command from user (blocks until input)
 		cmd = disp.GetCommand()

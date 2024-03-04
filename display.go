@@ -44,6 +44,7 @@ func (d *Display) Init() {
 	d.DebugStyle = tcell.StyleDefault.Foreground(tcell.ColorLightSkyBlue)
 
 	s.SetStyle(d.DefStyle)
+	s.SetCursorStyle(tcell.CursorStyleSteadyBlock)
 	s.Clear()
 	d.Screen = s
 }
@@ -55,6 +56,16 @@ func (d *Display) Quit() {
 	if maybePanic != nil {
 		panic(maybePanic)
 	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) Clear() {
+	d.Screen.Clear()
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) Show() {
+	d.Screen.Show()
 }
 
 // -----------------------------------------------------------------------------
@@ -83,6 +94,13 @@ func (d *Display) GetCommand() tcell.Key {
 func (d *Display) DrawEntity(e Entity) {
 	x, y := e.Pos()
 	d.Screen.SetContent(x, y, e.Rune(), nil, d.DefStyle)
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawPlayer(p *Player) {
+	x, y := p.Pos()
+	d.Screen.SetContent(x, y, '@', nil, d.DefStyle)
+	d.Screen.ShowCursor(x, y)
 }
 
 // -----------------------------------------------------------------------------

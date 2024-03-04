@@ -57,11 +57,10 @@ func (ml MonsterList) MonsterAt(x, y int) *Monster {
  */
 
 type Monster struct {
-	//X, Y   int
-	//Symbol rune
-	BaseEntity
-	Name string
-	HP   int
+	X, Y   int
+	Symbol rune
+	Name   string
+	HP     int
 }
 
 func NewMonster(id int) *Monster {
@@ -86,4 +85,17 @@ func CreateMonster(n string, sym rune, hp int) *Monster {
 
 func (m *Monster) DebugString() string {
 	return fmt.Sprintf("%s x=%d y=%d hp=%d", m.Name, m.X, m.Y, m.HP)
+}
+
+func (m *Monster) SetPos(newX, newY int) {
+	m.X = newX
+	m.Y = newY
+}
+
+func (m *Monster) Pos() (int, int) {
+	return m.X, m.Y
+}
+
+func (m *Monster) Rune() rune {
+	return m.Symbol
 }

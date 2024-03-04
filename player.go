@@ -3,9 +3,23 @@ package main
 import "fmt"
 
 type Player struct {
-	BaseEntity
-	moves int
-	depth int
+	X, Y   int
+	Symbol rune
+	moves  int
+	depth  int
+}
+
+func (p *Player) SetPos(newX, newY int) {
+	p.X = newX
+	p.Y = newY
+}
+
+func (p *Player) Pos() (int, int) {
+	return p.X, p.Y
+}
+
+func (p *Player) Rune() rune {
+	return p.Symbol
 }
 
 // -----------------------------------------------------------------------
