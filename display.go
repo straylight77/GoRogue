@@ -20,10 +20,12 @@ var KeyCmdLookup = map[tcell.Key]GameCommand{
 var RuneCmdLookup = map[rune]GameCommand{
 	'Q': CmdQuit,
 	'D': CmdDebug,
+	'G': CmdGenerate,
 }
 
 var TileRunes = map[TileType]rune{
-	TileEmpty:    tcell.RuneCkBoard, // for testing
+	//TileEmpty:    tcell.RuneCkBoard, // for testing
+	TileEmpty:    ' ',
 	TileWallH:    '-',
 	TileWallV:    '|',
 	TileWallUL:   '-',

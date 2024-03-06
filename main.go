@@ -25,6 +25,7 @@ const (
 	CmdDown
 	CmdLeft
 	CmdRight
+	CmdGenerate // for testing
 )
 
 // -----------------------------------------------------------------------
@@ -123,6 +124,8 @@ func main() {
 			movePlayer(0, 1, &dungeon, &player, &monsters)
 		case CmdDebug:
 			debug = !debug
+		case CmdGenerate:
+			generateRandomLevel(&dungeon, &monsters, &player)
 		}
 
 		// do other world updates
