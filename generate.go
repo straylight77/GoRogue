@@ -2,9 +2,25 @@ package main
 
 import "math/rand"
 
+type Point struct {
+	X, Y int
+}
+
+// ----------------------------------------------------------------------------
 type Rect struct {
 	X, Y int
 	W, H int
+}
+
+func (r Rect) Center() Point {
+	return Point{r.X + r.W/2, r.Y + r.H/2}
+}
+
+func (r Rect) RandPoint() Point {
+	return Point{
+		r.X + rand.Intn(r.W-2) + 1,
+		r.Y + rand.Intn(r.H-2) + 1,
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -22,9 +38,9 @@ func randomRooms() (rooms []Rect) {
 		}
 	}
 
-	//make a random room within each area
+	// make a random room within each area
 	for _, a := range areas {
-		randW := rand.Intn(12) + 5
+		randW := rand.Intn(12) + 8
 		randH := rand.Intn(roomH-4) + 4
 		dx := rand.Intn(roomW - randW)
 		dy := rand.Intn(roomH - randH)
@@ -33,7 +49,7 @@ func randomRooms() (rooms []Rect) {
 	}
 
 	// drop a few rooms
-	for i := 0; i < 3; i++ {
+	for i := 0; i < 2; i++ {
 		idx := rand.Intn(len(rooms))
 		rooms = append(rooms[:idx], rooms[idx+1:]...)
 	}
@@ -45,11 +61,18 @@ func randomRooms() (rooms []Rect) {
 func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 	rooms := randomRooms()
 
+	d.Clear()
 	for _, r := range rooms {
 		d.CreateRoom(r.X, r.Y, r.W, r.H)
+		//pt := r.Center()
+		pt := r.RandPoint()
+		d.SetTile(pt.X, pt.Y, TileStairsUp)
 	}
 }
 
+/*********************************************************************
+ *********************************************************************
+ */
 func generateRandomLevel2(d *DungeonMap, ml *MonsterList, p *Player) {
 	p.SetPos(2, 3)
 
