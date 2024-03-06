@@ -42,6 +42,12 @@ func clearMessages() {
 func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	destX, destY := p.X+dx, p.Y+dy
 
+	// check edges of the map
+	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
+		logMessage("That way is blocked.")
+		return
+	}
+
 	// check for monsters
 	m := mlist.MonsterAt(destX, destY)
 	if m != nil {
