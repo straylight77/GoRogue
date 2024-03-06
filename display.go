@@ -23,7 +23,7 @@ var RuneCmdLookup = map[rune]GameCommand{
 }
 
 var TileRunes = map[TileType]rune{
-	TileEmpty:    ' ',
+	TileEmpty:    tcell.RuneCkBoard, // for testing
 	TileWallH:    '-',
 	TileWallV:    '|',
 	TileWallUL:   '-',
@@ -115,14 +115,14 @@ func (d *Display) GetCommand() (cmd GameCommand) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawEntity(e Entity) {
 	x, y := e.Pos()
-	d.Screen.SetContent(x, y, e.Rune(), nil, d.DefStyle)
+	d.Screen.SetContent(x, y+1, e.Rune(), nil, d.DefStyle)
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawPlayer(p *Player) {
 	x, y := p.Pos()
-	d.Screen.SetContent(x, y, '@', nil, d.DefStyle)
-	d.Screen.ShowCursor(x, y)
+	d.Screen.SetContent(x, y+1, '@', nil, d.DefStyle)
+	d.Screen.ShowCursor(x, y+1)
 }
 
 // -----------------------------------------------------------------------------
@@ -130,7 +130,10 @@ func (d *Display) DrawMap(m *DungeonMap) {
 	for x, col := range m {
 		for y, t := range col {
 			r := TileRunes[t.typ]
-			d.Screen.SetContent(x, y, r, nil, d.DefStyle)
+
+			// y+1 becuase first line is the message line
+			d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)
+
 		}
 	}
 }
@@ -165,10 +168,10 @@ func (d *Display) DrawDebug(p *Player, ml *MonsterList) {
 	}
 	d.Screen.SetContent(maxX, maxY, tcell.RuneLRCorner, nil, d.DebugStyle)
 
-	//texth := "012345678901234567890123456789012345678901234567890123456789012345678901234567890"
-	//drawTextWrap(d.Screen, 0, 26, 81, 26, d.DebugStyle, texth)
-	//textv := "01234567890123456789012345"
-	//drawTextWrap(d.Screen, 81, 0, 82, 27, d.DebugStyle, textv)
+	texth := "012345678901234567890123456789012345678901234567890123456789012345678901234567890"
+	drawTextWrap(d.Screen, 0, 26, 81, 26, d.DebugStyle, texth)
+	textv := "01234567890123456789012345"
+	drawTextWrap(d.Screen, 81, 0, 82, 27, d.DebugStyle, textv)
 
 	drawTextWrap(d.Screen, 84, 1, 200, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
 	drawTextWrap(d.Screen, 84, 2, 200, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))

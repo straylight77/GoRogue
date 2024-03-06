@@ -1,7 +1,7 @@
 package main
 
 const (
-	MapMaxX, MapMaxY = 80, 24
+	MapMaxX, MapMaxY = 80, 23
 )
 
 // -----------------------------------------------------------------------
@@ -45,6 +45,7 @@ func (t *Tile) IsWalkable() bool {
 		TilePath,
 		TileDoorOp,
 		TileStairsDn,
+		TileEmpty, // just for testing...
 		TileStairsUp:
 		return true
 	default:
@@ -113,8 +114,7 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int
 	for i := length; i > 0; i-- {
 
 		switch m.TileAt(x, y).typ {
-		case TileFloor:
-			//ignore floor tiles
+		case TileFloor: //ignore floor tiles
 		case TileWallH, TileWallV:
 			m.SetTile(x, y, TileDoorCl)
 		default:
