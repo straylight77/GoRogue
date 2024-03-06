@@ -89,36 +89,78 @@ func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
-	var x, y int
 
 	m.Clear()
-	x, y = m.CreateRoom(42, 3, 12, 8)
-	x, y = m.CreatePath(x, y, West, 15)
-	m.CreateRoom(27, 15, 10, 6)
-	x, y = m.CreatePath(x, y, South, 10)
+	x1, y1 := m.CreateRoom(42, 3, 13, 9)
+	x2, y2 := m.CreateRoom(7, 15, 11, 7)
 
-	m.SetTile(45, 5, TileStairsUp)
-	m.SetTile(31, 18, TileStairsDn)
+	m.ConnectRooms(x1, y1, x2, y2, East)
 
-	monsters.Add(NewMonster(0), 50, 8)
-	monsters.Add(NewMonster(1), 29, 17)
+	//m.SetTile(45, 5, TileStairsUp)
+	//m.SetTile(31, 18, TileStairsDn)
+	//monsters.Add(NewMonster(0), 50, 8)
+	//monsters.Add(NewMonster(1), 29, 17)
 
 	p.SetPos(45, 5)
 	p.depth++
 }
 
 // -----------------------------------------------------------------------
+// assume x1 < x2 and y1 < y2
+func (m *DungeonMap) ConnectRooms(x1, y1 int, x2, y2 int, startDir Direction) {
+	HDir := East
+	VDir := South
+
+	if x2 < x1 {
+		HDir = West
+	}
+	if y2 < y1 {
+		VDir = North
+	}
+
+	dx := x2 - x1
+	dy := y2 - y1
+
+	var x, y int
+	switch startDir {
+	case North, South:
+		seg1Len := dy / 2
+		seg3Len := dy - seg1Len
+		x, y = m.CreatePath(x1, y1, VDir, seg1Len)
+		x, y = m.CreatePath(x, y, HDir, dx)
+		x, y = m.CreatePath(x, y, VDir, seg3Len)
+	case East, West:
+		seg1Len := dx / 2
+		seg3Len := dx - seg1Len
+		x, y = m.CreatePath(x1, y1, HDir, seg1Len)
+		x, y = m.CreatePath(x, y, VDir, dy)
+		x, y = m.CreatePath(x, y, HDir, seg3Len)
+	}
+}
+
+// -----------------------------------------------------------------------
 func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int) {
+	ignoreTiles := true // for testing, should be false in prod
+
+	//allow length to be given as negative
+	if length < 0 {
+		length = -1 * length
+	}
+
 	dx, dy := getDirectionCoords(dir)
 	x, y := x1, y1
 	for i := length; i > 0; i-- {
 
-		switch m.TileAt(x, y).typ {
-		case TileFloor: //ignore floor tiles
-		case TileWallH, TileWallV:
-			m.SetTile(x, y, TileDoorCl)
-		default:
+		if ignoreTiles {
 			m.SetTile(x, y, TilePath)
+		} else {
+			switch m.TileAt(x, y).typ {
+			case TileFloor: //ignore floor tiles
+			case TileWallH, TileWallV:
+				m.SetTile(x, y, TileDoorCl)
+			default:
+				m.SetTile(x, y, TilePath)
+			}
 		}
 		x += dx
 		y += dy

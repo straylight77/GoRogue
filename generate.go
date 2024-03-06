@@ -87,10 +87,21 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 		if mark[idx] >= 0 {
 			d.CreateRoom(r.X, r.Y, r.W, r.H)
 			//pt := r.Center()
-			pt := r.RandPoint()
-			d.SetTile(pt.X, pt.Y, TileStairsUp)
+			//pt := r.RandPoint()
+			//d.SetTile(pt.X, pt.Y, TileStairsUp)
 		}
 	}
+
+	p1 := rooms[0].Center()
+	p2 := rooms[1].Center()
+
+	//TODO:
+	//- make the breakpoint (firstLen) a parameter
+	//- add Room.Top, Bottom, Left, Right
+	//- breakpoint = r1.Right - r2.Left
+
+	d.ConnectRooms(p1.X, p1.Y, p2.X, p2.Y, East)
+	//d.ConnectRooms(p1.X, p1.Y, p2.X, p2.Y, East, (p2.X-p1.X)/2)
 
 	disp.Show()
 }
