@@ -160,7 +160,31 @@ func (d *Display) DrawText(x1, y1 int, text string) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawDebug(p *Player, ml *MonsterList) {
+func (d *Display) DrawDebug(x1, y1 int, text string) {
+	row := y1
+	col := x1
+	for _, r := range []rune(text) {
+		d.Screen.SetContent(col, row, r, nil, d.DebugStyle)
+		col++
+	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawHLine(row int, length int, style tcell.Style) {
+	for i := 0; i < length; i++ {
+		d.Screen.SetContent(i, row, tcell.RuneHLine, nil, d.DebugStyle)
+	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawVLine(col int, length int, style tcell.Style) {
+	for i := 0; i < length; i++ {
+		d.Screen.SetContent(col, i, tcell.RuneVLine, nil, d.DebugStyle)
+	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawDebugFrame(p *Player, ml *MonsterList) {
 	maxX, maxY := 80, 25
 	for x := 0; x < maxX; x++ {
 		d.Screen.SetContent(x, maxY, tcell.RuneHLine, nil, d.DebugStyle)

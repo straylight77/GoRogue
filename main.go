@@ -74,12 +74,14 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	player.moves++
 }
 
+var disp Display
+
 // -----------------------------------------------------------------------
 func main() {
 	var cmd GameCommand
 
 	// initialization and setup
-	disp := Display{}
+	disp = Display{}
 	disp.Init()
 	defer disp.Quit()
 
@@ -92,7 +94,7 @@ func main() {
 	for !done {
 
 		// draw the world
-		disp.Clear()
+		//disp.Clear()
 		disp.DrawMap(&dungeon)
 		disp.DrawMessages(messages)
 		disp.DrawText(0, 24, player.InfoString())
@@ -102,7 +104,11 @@ func main() {
 		}
 		disp.DrawPlayer(&player)
 		if debug {
-			disp.DrawDebug(&player, &monsters)
+			disp.DrawDebugFrame(&player, &monsters)
+			disp.DrawHLine(8, 80, disp.DebugStyle)
+			disp.DrawHLine(16, 80, disp.DebugStyle)
+			disp.DrawVLine(26, 25, disp.DebugStyle)
+			disp.DrawVLine(53, 25, disp.DebugStyle)
 		}
 
 		disp.Show()
