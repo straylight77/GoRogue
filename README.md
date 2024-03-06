@@ -1,5 +1,5 @@
-# rogue-classic
-A rewrite from scratch of the original game Rogue as it was released circa 1980, with a few modern features thrown in, written in Go using Tcell. The goal is to recreate the playing experience of the original game as much as possible.  
+# GoRogue
+Back to basics!  A rewrite from scratch of the original game Rogue as it was released circa 1980, with a few modern features thrown in, written in Go using Tcell. The goal is to recreate the playing experience of the original game as much as possible.  
 
 ![Rogue Screenshot](https://upload.wikimedia.org/wikipedia/commons/0/0c/Rogue_Screenshot.png)
 
