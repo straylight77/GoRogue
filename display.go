@@ -170,15 +170,15 @@ func (d *Display) DrawDebug(x1, y1 int, text string) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawHLine(row int, length int, style tcell.Style) {
-	for i := 0; i < length; i++ {
+func (d *Display) DrawHLine(row int, from, to int, style tcell.Style) {
+	for i := from; i <= to; i++ {
 		d.Screen.SetContent(i, row, tcell.RuneHLine, nil, d.DebugStyle)
 	}
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawVLine(col int, length int, style tcell.Style) {
-	for i := 0; i < length; i++ {
+func (d *Display) DrawVLine(col int, from, to int, style tcell.Style) {
+	for i := from; i < to; i++ {
 		d.Screen.SetContent(col, i, tcell.RuneVLine, nil, d.DebugStyle)
 	}
 }

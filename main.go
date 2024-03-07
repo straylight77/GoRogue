@@ -86,15 +86,15 @@ func main() {
 	defer disp.Quit()
 
 	// create a dungeon level
-	dungeon.GenerateLevel(player.depth, &player, &monsters)
-	//generateRandomLevel(&dungeon, &monsters, &player)
+	//dungeon.GenerateLevel(player.depth, &player, &monsters)
+	generateRandomLevel(&dungeon, &monsters, &player)
 
 	debug := true
 	done := false
 	for !done {
 
 		// draw the world
-		//disp.Clear()
+		disp.Clear()
 		disp.DrawMap(&dungeon)
 		disp.DrawMessages(messages)
 		disp.DrawText(0, 24, player.InfoString())
@@ -105,10 +105,7 @@ func main() {
 		disp.DrawPlayer(&player)
 		if debug {
 			disp.DrawDebugFrame(&player, &monsters)
-			//disp.DrawHLine(8, 80, disp.DebugStyle)
-			//disp.DrawHLine(16, 80, disp.DebugStyle)
-			//disp.DrawVLine(26, 25, disp.DebugStyle)
-			//disp.DrawVLine(53, 25, disp.DebugStyle)
+			drawGenerateDebug(&disp)
 		}
 
 		disp.Show()
