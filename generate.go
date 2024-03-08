@@ -30,19 +30,60 @@ func (r Room) RandPoint() Point {
 // ----------------------------------------------------------------------------
 type RoomGrid [9]Room
 
-func (g *RoomGrid) getNeighbours(idx int) []int {
-	return []int{}
-}
-
 var roomGrid = RoomGrid{}
 
 var nbList [9][]int
 
 // ----------------------------------------------------------------------------
+func (g *RoomGrid) getRandomRoom(mark int) int {
+	ids := []int{}
+
+	for i, r := range g {
+		if r.mark == mark {
+			ids = append(ids, i)
+		}
+	}
+	if len(ids) == 0 {
+		return -1
+	}
+
+	idx := rand.Intn(len(ids))
+	return ids[idx]
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGrid) getRandomNeighbour(id int, mark int) int {
+	ids := []int{}
+
+	logDebugMsg(fmt.Sprintf(" nb: id=%d, nbList=%v", id, nbList[id]))
+	for _, nid := range nbList[id] {
+		if g[nid].mark == mark {
+			ids = append(ids, nid)
+			//logDebugMsg(fmt.Sprintf("     nb: mark=%d nid=%d Y", mark, nid))
+		} else {
+			//logDebugMsg(fmt.Sprintf("     nb: mark=%d nid=%d -", mark, nid))
+		}
+	}
+	if len(ids) == 0 {
+		return -1
+	}
+
+	idx := rand.Intn(len(ids))
+	return ids[idx]
+}
+
+// TODO: provide a path through dropped rooms to connect id1 to id2 (need associated directions as well?)
+func (g *RoomGrid) PathBetween(id1 int, id2 int) []int {
+	//vert := (id2 / 3) - (id1 / 3)
+	//horiz := (id2 % 3) - (id1 % 3)
+	return []int{}
+}
+
+// ----------------------------------------------------------------------------
 // called from main()
 func drawGenerateDebug(disp *Display) {
-	disp.DrawHLine(8, 0, 80, disp.DebugStyle)
-	disp.DrawHLine(16, 0, 80, disp.DebugStyle)
+	disp.DrawHLine(8, 0, 79, disp.DebugStyle)
+	disp.DrawHLine(16, 0, 79, disp.DebugStyle)
 	disp.DrawVLine(26, 1, 24, disp.DebugStyle)
 	disp.DrawVLine(53, 1, 24, disp.DebugStyle)
 
@@ -53,6 +94,10 @@ func drawGenerateDebug(disp *Display) {
 
 	for i, lst := range nbList {
 		disp.DrawDebug(20, 28+i, fmt.Sprint(lst))
+	}
+
+	for i, msg := range debugMessages {
+		disp.DrawDebug(84, 5+i, msg)
 	}
 
 	disp.DrawDebug(0, 1, "0")
@@ -93,8 +138,11 @@ func makeRandomRooms(bounds []Room, roomW, roomH int) {
 		roomGrid[i] = r
 	}
 
-	// drop a few rooms
-	for i := 0; i < 2; i++ {
+}
+
+// ----------------------------------------------------------------------------
+func dropRandomRooms(count int) {
+	for i := 0; i < count; i++ {
 		idx := rand.Intn(len(roomGrid))
 		if roomGrid[idx].mark >= 0 {
 			roomGrid[idx].mark = -1
@@ -102,6 +150,7 @@ func makeRandomRooms(bounds []Room, roomW, roomH int) {
 			i-- // if room has already been dropped, choose again
 		}
 	}
+
 }
 
 // ----------------------------------------------------------------------------
@@ -157,6 +206,7 @@ func getNeighbours(id int, depth int) []int {
 
 // ----------------------------------------------------------------------------
 func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
+	clearDebugMsg()
 	d.Clear()
 
 	// assume 3x3 rooms on the map
@@ -168,22 +218,74 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 
 	// get the list of neighbours for each room
 	for idx := range roomGrid {
-		nbList[idx] = getNeighbours(idx, 3)
+		nbList[idx] = getNeighbours(idx, 1)
 	}
 
-	// create the rooms on the map
+	// CONNECT THE ROOMS:
+
+	// 1. pick a random room (that's not dropped)
+	id1 := roomGrid.getRandomRoom(0)
+	logDebugMsg(fmt.Sprintf("first: %d", id1))
+
+	// 2. connect it to one of its neighbours
+	id2 := roomGrid.getRandomNeighbour(id1, 0)
+	logDebugMsg(fmt.Sprintf("next: %d", id2))
+
+	pt1 := roomGrid[id1].Center()
+	pt2 := roomGrid[id2].Center()
+	d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, East)
+	roomGrid[id1].mark = 1
+	roomGrid[id2].mark = 1
+
+	count := 0
+	id := 0
+	destId := 0
+
+	// 3. while there are unconnected rooms
+	// 3a. pick one at random
+	id = roomGrid.getRandomRoom(0)
+	logDebugMsg(fmt.Sprintf("next: %d", id))
+
+	for id != -1 && count < 20 {
+
+		// 3b. connect it to a neighbour already connected
+		destId = roomGrid.getRandomNeighbour(id, 1)
+		if destId != -1 {
+			logDebugMsg(fmt.Sprintf("connect to: %d", destId))
+			pt1 := roomGrid[id].Center()
+			pt2 := roomGrid[destId].Center()
+			d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, East)
+			roomGrid[id].mark = 1
+			roomGrid[destId].mark = 1
+
+		} else {
+			//    c. if there are none, skip
+			logDebugMsg(fmt.Sprintf("skipping: %d", destId))
+		}
+
+		// 3. while there are unconnected rooms
+		// 3a. pick one at random
+		id = roomGrid.getRandomRoom(0)
+		logDebugMsg(fmt.Sprintf("next: %d", id))
+		count++
+	}
+
+	dropRandomRooms(2)
+
+	// actually create the rooms on the map
 	for idx, r := range roomGrid {
 		if roomGrid[idx].mark >= 0 {
 			d.CreateRoom(r.X, r.Y, r.W, r.H)
 		}
 	}
 
-	// CONNECT THE ROOMS:
-	// 1. pick a random unconnected room
-	// 2. connect it to one of its neighbours
-	// 3. while there are unconnected rooms
-	//    a. pick one at random
-	//    b. connect it to a neighbour already connected
-	//    c. if there are none, skip
+}
 
+var debugMessages []string
+
+func logDebugMsg(msg string) {
+	debugMessages = append(debugMessages, msg)
+}
+func clearDebugMsg() {
+	debugMessages = nil
 }
