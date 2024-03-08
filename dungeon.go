@@ -140,7 +140,7 @@ func (m *DungeonMap) ConnectRooms(x1, y1 int, x2, y2 int, startDir Direction) {
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int) {
-	ignoreTiles := true // for testing, should be false in prod
+	ignoreTiles := false // for testing, should be false in prod
 
 	//allow length to be given as negative
 	if length < 0 {
