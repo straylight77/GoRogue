@@ -7,6 +7,21 @@ const (
 // -----------------------------------------------------------------------
 type Direction int
 
+func (d Direction) String() string {
+	switch d {
+	case North:
+		return "north"
+	case East:
+		return "east"
+	case South:
+		return "south"
+	case West:
+		return "west"
+	default:
+		return "unknown"
+	}
+}
+
 const (
 	North Direction = iota
 	East
@@ -91,17 +106,17 @@ func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
 
 	m.Clear()
-	x1, y1 := m.CreateRoom(42, 3, 13, 9)
-	x2, y2 := m.CreateRoom(7, 15, 11, 7)
+	x1, y1 := m.CreateRoom(42, 15, 13, 5)
+	x2, y2 := m.CreateRoom(7, 1, 11, 7)
 
-	m.ConnectRooms(x1, y1, x2, y2, East)
+	m.ConnectRooms(x1, y1, x2, y2, North)
 
 	//m.SetTile(45, 5, TileStairsUp)
 	//m.SetTile(31, 18, TileStairsDn)
 	//monsters.Add(NewMonster(0), 50, 8)
 	//monsters.Add(NewMonster(1), 29, 17)
 
-	p.SetPos(45, 5)
+	p.SetPos(9, 3)
 	p.depth++
 }
 

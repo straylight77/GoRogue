@@ -69,13 +69,10 @@ func (g *RoomGrid) getRandomRoom(mark int) int {
 func (g *RoomGrid) getRandomNeighbour(id int, mark int) int {
 	ids := []int{}
 
-	//logDebugMsg(fmt.Sprintf(" nb: id=%d, nbList=%v", id, nbList[id]))
 	for _, nid := range nbList[id] {
 		if g[nid].mark == mark {
 			ids = append(ids, nid)
-			//logDebugMsg(fmt.Sprintf("     nb: mark=%d nid=%d Y", mark, nid))
 		} else {
-			//logDebugMsg(fmt.Sprintf("     nb: mark=%d nid=%d -", mark, nid))
 		}
 	}
 	if len(ids) == 0 {
@@ -84,6 +81,31 @@ func (g *RoomGrid) getRandomNeighbour(id int, mark int) int {
 
 	idx := rand.Intn(len(ids))
 	return ids[idx]
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGrid) Direction(id1, id2 int) Direction {
+	col1, row1 := id1%3, id1/3
+	col2, row2 := id2%3, id2/3
+
+	dx := col2 - col1
+	dy := row2 - row1
+
+	switch {
+	case dx != 0 && dy != 0:
+		// shouldn't happen but let's catch it
+		return East
+	case dx > 0:
+		return East
+	case dx < 0:
+		return West
+	case dy > 0:
+		return South
+	case dy < 0:
+		return North
+	default:
+		return East
+	}
 }
 
 /*****************************************************************************/
@@ -132,13 +154,9 @@ func dropRandomRooms(count int) {
 			i-- // if room has already been dropped, choose again
 		}
 	}
-
 }
 
 // ----------------------------------------------------------------------------
-// 0  1  2
-// 3  4  5
-// 6  7  8
 func getNeighbours(id int, depth int) []int {
 
 	// handle recursion
@@ -213,13 +231,11 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 		nbList[idx] = getNeighbours(idx, 1)
 	}
 
-	// CONNECT THE ROOMS:
-
-	// 1. pick a random room (that's not dropped)
+	// pick a random room (that's not dropped)
 	id1 := roomGrid.getRandomRoom(0)
 	logDebugMsg(fmt.Sprintf("first: %d", id1))
 
-	// 2. connect it to one of its neighbours
+	// connect it to one of its neighbours
 	id2 := roomGrid.getRandomNeighbour(id1, 0)
 	logDebugMsg(fmt.Sprintf("next: %d", id2))
 	connectRooms(id1, id2)
@@ -228,35 +244,28 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 	id := 0
 	destId := 0
 
-	// 3. while there are unconnected rooms
-	// 3a. pick one at random
+	// pick an another unconnected room at random
 	id = roomGrid.getRandomRoom(0)
-	//logDebugMsg(fmt.Sprintf("next: %d", id))
 
+	// if it exists (and we haven't hit the limit)
 	for id != -1 && count < 20 {
 
-		// 3b. connect it to a neighbour already connected
+		// connect the chosen room to a neighbour that's already connected
 		destId = roomGrid.getRandomNeighbour(id, 1)
 		if destId != -1 {
 			logDebugMsg(fmt.Sprintf("checking: %d ->  %d connected  (count=%d)", id, destId, count))
 			connectRooms(id, destId)
 		} else {
-			//    c. if there are none, skip
+			// if there are none, just skip it
 			logDebugMsg(fmt.Sprintf("checking: %d -> %d   skipped  (count=%d)", id, destId, count))
 		}
 
-		// 3. while there are unconnected rooms
-		// 3a. pick one at random
+		// pick another random unconnected room
 		id = roomGrid.getRandomRoom(0)
-		//logDebugMsg(fmt.Sprintf("next: %d", id))
 		count++
 	}
 
 	dropRandomRooms(2)
-
-	//TODO:
-	// - remove deadends (paths that have exactly one dropped room)
-	// - set the direction of paths e.g. North-South, not just East
 
 	// actually create the rooms on the map
 	for idx, r := range roomGrid {
@@ -273,14 +282,10 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 	for _, p := range pathList {
 		pt1 := roomGrid[p.origID].Center()
 		pt2 := roomGrid[p.destID].Center()
-		d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, East)
+		dir := roomGrid.Direction(p.origID, p.destID)
+		logDebugMsg(fmt.Sprintf("making path: %d -> %d, dir=%v", p.origID, p.destID, dir))
+		d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, dir)
 	}
-
-	//for _, r := range roomGrid {
-	//	pt := r.Center()
-	//	d.SetTile(pt.X, pt.Y, TileStairsDn)
-	//}
-
 }
 
 // ----------------------------------------------------------------------------
@@ -300,9 +305,11 @@ func drawGenerateDebug(disp *Display) {
 
 	debugMapGrid(disp)
 
-	for i := 0; i < len(roomGrid); i++ {
-		info := fmt.Sprintf("%d: %v", i, roomGrid[i])
+	for i, r := range roomGrid {
+		info := fmt.Sprintf("%d: %v", i, r)
 		disp.DrawDebug(0, 28+i, info)
+		pt := r.Center()
+		disp.DrawDebug(pt.X, pt.Y, "X")
 	}
 
 	for i, lst := range nbList {
