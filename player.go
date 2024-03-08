@@ -32,5 +32,11 @@ func (p *Player) Attack(m *Monster) string {
 
 // -----------------------------------------------------------------------
 func (p *Player) InfoString() string {
-	return fmt.Sprintf("Level: 1  Gold: 4       Hp: 11 (20)  Str: 16(16)  Arm: 4   Exp: 2/14")
+	info := fmt.Sprintf(
+		"Level:%2d  Gold: 4       Hp:11(20)  Str:16(16)  Arm: 4   Exp: 2/14      (%d,%d)",
+		p.depth,
+		p.X,
+		p.Y,
+	)
+	return info
 }

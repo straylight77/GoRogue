@@ -60,7 +60,6 @@ func (t *Tile) IsWalkable() bool {
 		TilePath,
 		TileDoorOp,
 		TileStairsDn,
-		TileEmpty, // just for testing...
 		TileStairsUp:
 		return true
 	default:

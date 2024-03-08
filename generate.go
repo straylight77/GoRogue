@@ -286,6 +286,19 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 		logDebugMsg(fmt.Sprintf("making path: %d -> %d, dir=%v", p.origID, p.destID, dir))
 		d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, dir)
 	}
+
+	// place the player in a random location (as well as the stairs up)
+	playerID := roomGrid.getRandomRoom(1)
+	playerPt := roomGrid[playerID].RandPoint()
+	p.SetPos(playerPt.X, playerPt.Y)
+	d.SetTile(playerPt.X, playerPt.Y, TileStairsUp)
+
+	// place the stairs down in a random location
+	stairsID := roomGrid.getRandomRoom(1)
+	stairsPt := roomGrid[stairsID].RandPoint()
+	d.SetTile(stairsPt.X, stairsPt.Y, TileStairsDn)
+
+	p.depth++
 }
 
 // ----------------------------------------------------------------------------
@@ -309,7 +322,7 @@ func drawGenerateDebug(disp *Display) {
 		info := fmt.Sprintf("%d: %v", i, r)
 		disp.DrawDebug(0, 28+i, info)
 		pt := r.Center()
-		disp.DrawDebug(pt.X, pt.Y, "X")
+		disp.DrawDebug(pt.X, pt.Y+1, "X") // Y+1 to convert to map coords
 	}
 
 	for i, lst := range nbList {
