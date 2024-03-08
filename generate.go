@@ -33,7 +33,11 @@ func (r Room) RandPoint() Point {
 type Path struct {
 	origID int
 	destID int
-	//dir    Direction
+	mark   int // 0=normal, -1=dropped
+}
+
+func (p *Path) Drop() {
+	p.mark = -1
 }
 
 /*****************************************************************************/
@@ -106,6 +110,35 @@ func (g *RoomGrid) Direction(id1, id2 int) Direction {
 	default:
 		return East
 	}
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGrid) IsDeadend(id int) bool {
+
+	count := 0
+	for _, p := range pathList {
+		if (p.origID == id || p.destID == id) && roomGrid[id].mark == -1 {
+			count++
+		}
+	}
+
+	deadend := count == 1
+	logDebugMsg(fmt.Sprintf("deadend? %d: %v", id, deadend))
+
+	return deadend
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGrid) DropPaths(id int) {
+	for i, p := range pathList {
+		if p.origID == id || p.destID == id {
+			logDebugMsg(fmt.Sprintf("dropping path %d: %v", id, p))
+			pathList[i].Drop()
+
+			// should check orig and dest to see if they become deadends
+		}
+	}
+
 }
 
 /*****************************************************************************/
@@ -267,30 +300,47 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 
 	dropRandomRooms(2)
 
+	for i := range roomGrid {
+		if roomGrid.IsDeadend(i) {
+			roomGrid.DropPaths(i)
+		}
+	}
+
+	x, y := buildMap(d)
+	p.SetPos(x, y)
+	p.depth++
+}
+
+// ----------------------------------------------------------------------------
+func buildMap(d *DungeonMap) (int, int) {
 	// actually create the rooms on the map
 	for idx, r := range roomGrid {
 		if roomGrid[idx].mark == 1 {
 			d.CreateRoom(r.X, r.Y, r.W, r.H)
-		} else if roomGrid[idx].mark == -1 {
-			// bug workaround: for missing rooms, paths aren't connected in some cases
-			pt := roomGrid[idx].Center()
-			d.SetTile(pt.X, pt.Y, TilePath)
 		}
 	}
 
 	// actually create the paths on the map
 	for _, p := range pathList {
-		pt1 := roomGrid[p.origID].Center()
-		pt2 := roomGrid[p.destID].Center()
-		dir := roomGrid.Direction(p.origID, p.destID)
-		logDebugMsg(fmt.Sprintf("making path: %d -> %d, dir=%v", p.origID, p.destID, dir))
-		d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, dir)
+
+		if p.mark == 0 { // ignore dropped paths (-1)
+			pt1 := roomGrid[p.origID].Center()
+			pt2 := roomGrid[p.destID].Center()
+			dir := roomGrid.Direction(p.origID, p.destID)
+			//logDebugMsg(fmt.Sprintf("making path: %d -> %d, dir=%v", p.origID, p.destID, dir))
+			d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, dir)
+
+			// bug workaround: for missing rooms, some paths aren't fully connected
+			if roomGrid[p.destID].mark == -1 {
+				pt := roomGrid[p.destID].Center()
+				d.SetTile(pt.X, pt.Y, TilePath)
+			}
+		}
 	}
 
 	// place the player in a random location (as well as the stairs up)
 	playerID := roomGrid.getRandomRoom(1)
 	playerPt := roomGrid[playerID].RandPoint()
-	p.SetPos(playerPt.X, playerPt.Y)
 	d.SetTile(playerPt.X, playerPt.Y, TileStairsUp)
 
 	// place the stairs down in a random location
@@ -298,7 +348,7 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 	stairsPt := roomGrid[stairsID].RandPoint()
 	d.SetTile(stairsPt.X, stairsPt.Y, TileStairsDn)
 
-	p.depth++
+	return playerPt.X, playerPt.Y
 }
 
 // ----------------------------------------------------------------------------

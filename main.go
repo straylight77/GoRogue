@@ -89,7 +89,7 @@ func main() {
 	//dungeon.GenerateLevel(player.depth, &player, &monsters)
 	generateRandomLevel(&dungeon, &monsters, &player)
 
-	debug := false
+	debug := true
 	done := false
 	for !done {
 
