@@ -129,13 +129,23 @@ func (g *RoomGrid) IsDeadend(id int) bool {
 }
 
 // ----------------------------------------------------------------------------
-func (g *RoomGrid) DropPaths(id int) {
+func (g *RoomGrid) DropPaths(id int, maxDepth int) {
+	if maxDepth < 0 {
+		return
+	}
 	for i, p := range pathList {
 		if p.origID == id || p.destID == id {
-			logDebugMsg(fmt.Sprintf("dropping path %d: %v", id, p))
+			logDebugMsg(fmt.Sprintf("%d dropping path %d: %v", maxDepth, id, p))
 			pathList[i].Drop()
 
 			// should check orig and dest to see if they become deadends
+			if p.origID != id && g.IsDeadend(p.origID) {
+				g.DropPaths(p.origID, maxDepth-1)
+			}
+			if p.destID != id && g.IsDeadend(p.destID) {
+				g.DropPaths(p.destID, maxDepth-1)
+			}
+
 		}
 	}
 
@@ -302,7 +312,7 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 
 	for i := range roomGrid {
 		if roomGrid.IsDeadend(i) {
-			roomGrid.DropPaths(i)
+			roomGrid.DropPaths(i, 2)
 		}
 	}
 
