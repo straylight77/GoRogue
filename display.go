@@ -11,16 +11,18 @@ import (
 var KeyCmdLookup = map[tcell.Key]GameCommand{
 	tcell.KeyEscape: CmdQuit,
 	tcell.KeyCtrlC:  CmdQuit,
-	tcell.KeyLeft:   CmdLeft,
-	tcell.KeyRight:  CmdRight,
-	tcell.KeyUp:     CmdUp,
-	tcell.KeyDown:   CmdDown,
+	tcell.KeyLeft:   CmdWest,
+	tcell.KeyRight:  CmdEast,
+	tcell.KeyUp:     CmdNorth,
+	tcell.KeyDown:   CmdSouth,
 }
 
 var RuneCmdLookup = map[rune]GameCommand{
 	'Q': CmdQuit,
 	'D': CmdDebug,
 	'G': CmdGenerate,
+	'>': CmdDown,
+	'<': CmdUp,
 }
 
 var TileRunes = map[TileType]rune{

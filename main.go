@@ -21,10 +21,12 @@ const (
 	CmdNop GameCommand = iota
 	CmdDebug
 	CmdQuit
+	CmdNorth
+	CmdSouth
+	CmdEast
+	CmdWest
 	CmdUp
 	CmdDown
-	CmdLeft
-	CmdRight
 	CmdGenerate // for testing
 )
 
@@ -117,14 +119,27 @@ func main() {
 		case 0: //ignore
 		case CmdQuit:
 			done = true
-		case CmdLeft:
+		case CmdWest:
 			movePlayer(-1, 0, &dungeon, &player, &monsters)
-		case CmdRight:
+		case CmdEast:
 			movePlayer(1, 0, &dungeon, &player, &monsters)
-		case CmdUp:
+		case CmdNorth:
 			movePlayer(0, -1, &dungeon, &player, &monsters)
-		case CmdDown:
+		case CmdSouth:
 			movePlayer(0, 1, &dungeon, &player, &monsters)
+		case CmdDown:
+			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
+				logMessage("You decend the ancient stairs.")
+				generateRandomLevel(&dungeon, &monsters, &player)
+			} else {
+				logMessage("There are no stairs to go down here.")
+			}
+		case CmdUp:
+			if dungeon.TileAt(player.X, player.Y).typ == TileStairsUp {
+				logMessage("Your way is magically blocked.")
+			} else {
+				logMessage("There are no stairs to go up here.")
+			}
 		case CmdDebug:
 			debug = !debug
 		case CmdGenerate:
