@@ -117,7 +117,7 @@ func (g *RoomGrid) IsDeadend(id int) bool {
 
 	count := 0
 	for _, p := range pathList {
-		if (p.origID == id || p.destID == id) && roomGrid[id].mark == -1 {
+		if (p.origID == id || p.destID == id) && p.mark != -1 && roomGrid[id].mark == -1 {
 			count++
 		}
 	}
@@ -133,6 +133,7 @@ func (g *RoomGrid) DropPaths(id int, maxDepth int) {
 	if maxDepth < 0 {
 		return
 	}
+
 	for i, p := range pathList {
 		if p.origID == id || p.destID == id {
 			logDebugMsg(fmt.Sprintf("%d dropping path %d: %v", maxDepth, id, p))
@@ -145,10 +146,8 @@ func (g *RoomGrid) DropPaths(id int, maxDepth int) {
 			if p.destID != id && g.IsDeadend(p.destID) {
 				g.DropPaths(p.destID, maxDepth-1)
 			}
-
 		}
 	}
-
 }
 
 /*****************************************************************************/
