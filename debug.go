@@ -50,8 +50,8 @@ func drawGenerateDebug(disp *Display) {
 	for i, r := range graph.rooms {
 		info := fmt.Sprintf("%d: %v", i, r)
 		disp.DrawDebug(0, 28+i, info)
-		//pt := r.Center()
-		//disp.DrawDebug(pt.X, pt.Y+1, "X") // Y+1 to convert to map coords
+		cX, cY := r.Center()
+		disp.DrawDebug(cX, cY+1, "X") // Y+1 to convert to map coords
 	}
 
 	for i := 0; i < 9; i++ {

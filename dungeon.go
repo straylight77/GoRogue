@@ -169,7 +169,7 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int
 			m.SetTile(x, y, TilePath)
 		} else {
 			switch m.TileAt(x, y).typ {
-			case TileFloor: //ignore floor tiles
+			case TileFloor: //don't overwrite floor tiles
 			case TileWallH, TileWallV:
 				m.SetTile(x, y, TileDoorCl)
 			default:
