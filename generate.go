@@ -1,12 +1,128 @@
 package main
 
 import (
-	"fmt"
 	"math/rand"
 )
 
+var debug = DebugMessageLog{}
+
+/*****************************************************************************/
 type Point struct {
 	X, Y int
+}
+
+/*****************************************************************************/
+//   0 - 1 - 2
+//   |   |   |
+//   3 - 4 - 5
+//   |   |   |
+//   6 - 7 - 8
+
+type RoomGraph struct {
+	rooms [9]Room
+	paths []Path
+}
+
+// func (g *RoomGraph) RoomAt(col, row int) Room       {}
+// func (g *RoomGraph) IsDeadend(cell int) bool        {}
+// func (g *RoomGraph) RemoveDeaded(cell int)          {}
+// func (g *RoomGraph) AreConnected(c1, c2 int) bool   {}
+// func (g *RoomGraph) Path(c1, c2 int)                {}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) Room(cell int) Room {
+	return g.rooms[cell]
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) Neighbours(cell int) []int {
+	ref := [9][]int{
+		{1, 3},       // cell 0
+		{0, 4, 2},    // cell 1
+		{1, 5},       // cell 2
+		{0, 4, 6},    // cell 3
+		{1, 5, 7, 3}, // cell 4
+		{2, 4, 8},    // cell 5
+		{3, 7},       // cell 6
+		{6, 4, 8},    // cell 7
+		{7, 5},       // cell 8
+	}
+	return ref[cell]
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) RandCell(mark int) int {
+	cells := []int{}
+
+	for i, r := range g.rooms {
+		if r.mark == mark {
+			cells = append(cells, i)
+		}
+	}
+	if len(cells) == 0 {
+		return -1
+	}
+
+	idx := rand.Intn(len(cells))
+	return cells[idx]
+
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) RandNeighbour(cell int, mark int) int {
+	nbList := []int{}
+	for _, nb := range g.Neighbours(cell) {
+		if g.rooms[nb].mark == mark {
+			nbList = append(nbList, nb)
+		}
+	}
+	idx := rand.Intn(len(nbList))
+	return nbList[idx]
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) Direction(c1, c2 int) Direction {
+	col1, row1 := c1%3, c1/3
+	col2, row2 := c2%3, c2/3
+
+	dx := col2 - col1
+	dy := row2 - row1
+
+	switch {
+	case dx != 0 && dy != 0:
+		return East // shouldn't happen but let's catch it
+	case dx > 0:
+		return East
+	case dx < 0:
+		return West
+	case dy > 0:
+		return South
+	case dy < 0:
+		return North
+	default:
+		return East
+	}
+
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) Connect(c1, c2 int) {
+	p := Path{origID: c1, destID: c2}
+	g.paths = append(g.paths, p)
+	g.rooms[c1].mark = 1
+	g.rooms[c2].mark = 1
+}
+
+// ----------------------------------------------------------------------------
+func newRandomGraph() *RoomGraph {
+	g := RoomGraph{}
+
+	c1 := g.RandCell(0)
+	c2 := g.RandNeighbour(c1, 0)
+	g.Connect(c1, c2)
+	debug.Add("Connected %d -> %d", c1, c2)
+
+	return &g
 }
 
 /*****************************************************************************/
@@ -28,6 +144,10 @@ func (r Room) RandPoint() Point {
 	}
 }
 
+func (r Room) Drop() {
+	r.mark = -1
+}
+
 /*****************************************************************************/
 
 type Path struct {
@@ -40,6 +160,20 @@ func (p *Path) Drop() {
 	p.mark = -1
 }
 
+// ----------------------------------------------------------------------------
+
+var graph *RoomGraph
+
+func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
+	debug.Clear()
+	dm.Clear()
+
+	graph = newRandomGraph()
+	p.SetPos(3, 3)
+	p.depth++
+}
+
+/*****************************************************************************/
 /*****************************************************************************/
 /*
  *   0 - 1 - 2
@@ -123,7 +257,7 @@ func (g *RoomGrid) IsDeadend(id int) bool {
 	}
 
 	deadend := count == 1
-	logDebugMsg(fmt.Sprintf("deadend? %d: %v", id, deadend))
+	debug.Add("deadend? %d: %v", id, deadend)
 
 	return deadend
 }
@@ -136,7 +270,7 @@ func (g *RoomGrid) DropPaths(id int, maxDepth int) {
 
 	for i, p := range pathList {
 		if p.origID == id || p.destID == id {
-			logDebugMsg(fmt.Sprintf("%d dropping path %d: %v", maxDepth, id, p))
+			debug.Add("%d dropping path %d: %v", maxDepth, id, p)
 			pathList[i].Drop()
 
 			// should check orig and dest to see if they become deadends
@@ -255,8 +389,8 @@ func connectRooms(origID int, destID int) {
 }
 
 // ----------------------------------------------------------------------------
-func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
-	clearDebugMsg()
+func generateRandomLevel_old(d *DungeonMap, ml *MonsterList, p *Player) {
+	debug.Clear()
 	d.Clear()
 
 	pathList = []Path{}
@@ -275,11 +409,11 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 
 	// pick a random room (that's not dropped)
 	id1 := roomGrid.getRandomRoom(0)
-	logDebugMsg(fmt.Sprintf("first: %d", id1))
+	debug.Add("first: %d", id1)
 
 	// connect it to one of its neighbours
 	id2 := roomGrid.getRandomNeighbour(id1, 0)
-	logDebugMsg(fmt.Sprintf("next: %d", id2))
+	debug.Add("next: %d", id2)
 	connectRooms(id1, id2)
 
 	count := 0
@@ -295,11 +429,11 @@ func generateRandomLevel(d *DungeonMap, ml *MonsterList, p *Player) {
 		// connect the chosen room to a neighbour that's already connected
 		destId = roomGrid.getRandomNeighbour(id, 1)
 		if destId != -1 {
-			logDebugMsg(fmt.Sprintf("checking: %d ->  %d connected  (count=%d)", id, destId, count))
+			debug.Add("checking: %d ->  %d connected  (count=%d)", id, destId, count)
 			connectRooms(id, destId)
 		} else {
 			// if there are none, just skip it
-			logDebugMsg(fmt.Sprintf("checking: %d -> %d   skipped  (count=%d)", id, destId, count))
+			debug.Add("checking: %d -> %d   skipped  (count=%d)", id, destId, count)
 		}
 
 		// pick another random unconnected room
@@ -336,7 +470,7 @@ func buildMap(d *DungeonMap) (int, int) {
 			pt1 := roomGrid[p.origID].Center()
 			pt2 := roomGrid[p.destID].Center()
 			dir := roomGrid.Direction(p.origID, p.destID)
-			//logDebugMsg(fmt.Sprintf("making path: %d -> %d, dir=%v", p.origID, p.destID, dir))
+			//debug.Add("making path: %d -> %d, dir=%v", p.origID, p.destID, dir))
 			d.ConnectRooms(pt1.X, pt1.Y, pt2.X, pt2.Y, dir)
 
 			// bug workaround: for missing rooms, some paths aren't fully connected
@@ -358,60 +492,4 @@ func buildMap(d *DungeonMap) (int, int) {
 	d.SetTile(stairsPt.X, stairsPt.Y, TileStairsDn)
 
 	return playerPt.X, playerPt.Y
-}
-
-// ----------------------------------------------------------------------------
-
-var debugMessages []string
-
-func logDebugMsg(msg string) {
-	debugMessages = append(debugMessages, msg)
-}
-func clearDebugMsg() {
-	debugMessages = nil
-}
-
-// ----------------------------------------------------------------------------
-// called from main()
-func drawGenerateDebug(disp *Display) {
-
-	debugMapGrid(disp)
-
-	for i, r := range roomGrid {
-		info := fmt.Sprintf("%d: %v", i, r)
-		disp.DrawDebug(0, 28+i, info)
-		pt := r.Center()
-		disp.DrawDebug(pt.X, pt.Y+1, "X") // Y+1 to convert to map coords
-	}
-
-	for i, lst := range nbList {
-		disp.DrawDebug(20, 28+i, fmt.Sprint(lst))
-	}
-
-	for i, p := range pathList {
-		disp.DrawDebug(35, 28+i, fmt.Sprint(p))
-	}
-
-	for i, msg := range debugMessages {
-		disp.DrawDebug(84, 5+i, msg)
-	}
-
-}
-
-// ----------------------------------------------------------------------------
-func debugMapGrid(disp *Display) {
-	disp.DrawHLine(8, 0, 79, disp.DebugStyle)
-	disp.DrawHLine(16, 0, 79, disp.DebugStyle)
-	disp.DrawVLine(26, 1, 24, disp.DebugStyle)
-	disp.DrawVLine(53, 1, 24, disp.DebugStyle)
-
-	disp.DrawDebug(0, 1, "0")
-	disp.DrawDebug(27, 1, "1")
-	disp.DrawDebug(54, 1, "2")
-	disp.DrawDebug(0, 9, "3")
-	disp.DrawDebug(27, 9, "4")
-	disp.DrawDebug(54, 9, "5")
-	disp.DrawDebug(0, 17, "6")
-	disp.DrawDebug(27, 17, "7")
-	disp.DrawDebug(54, 17, "8")
 }
