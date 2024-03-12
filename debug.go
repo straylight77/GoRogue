@@ -64,4 +64,20 @@ func drawGenerateDebug(disp *Display) {
 	}
 
 	debug.Draw(disp, 84, 5)
+
+	cell := 0
+	for row := 0; row < 3; row++ {
+		for col := 0; col < 3; col++ {
+			if graph.rooms[cell].mark != -1 {
+				disp.DrawDebug(50+(4*col), 28+(2*row), fmt.Sprint(cell))
+			}
+			if graph.AreConnected(cell, cell+1) {
+				disp.DrawDebug(50+(4*col)+2, 28+(2*row), "-")
+			}
+			if graph.AreConnected(cell, cell+3) {
+				disp.DrawDebug(50+(4*col), 28+(2*row)+1, "|")
+			}
+			cell++
+		}
+	}
 }

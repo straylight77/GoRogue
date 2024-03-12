@@ -6,6 +6,20 @@ import (
 
 var debug = DebugMessageLog{}
 
+// ----------------------------------------------------------------------------
+
+var graph *RoomGraph
+
+func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
+	debug.Clear()
+	dm.Clear()
+
+	graph = newRandomGraph()
+
+	p.SetPos(3, 3)
+	p.depth++
+}
+
 /*****************************************************************************/
 type Point struct {
 	X, Y int
@@ -23,10 +37,93 @@ type RoomGraph struct {
 	paths []Path
 }
 
+// ----------------------------------------------------------------------------
+func newRandomGraph() *RoomGraph {
+	g := RoomGraph{}
+
+	c1 := g.RandCell(0) // connect 2 rooms at random
+	c2 := g.RandNeighbour(c1, 0)
+	g.Connect(c1, c2)
+	debug.Add("First %d -> %d", c1, c2)
+
+	count := 0
+	next := g.RandCell(0)          // pick a random unconnected room
+	for next != -1 && count < 20 { // while there are unconnected rooms
+
+		nb := g.RandNeighbour(next, 1) // connect it to an already connected neighbour
+		if nb != -1 {                  // if there are none, just skip it
+			g.Connect(next, nb)
+			debug.Add("Connect %d -> %d", next, nb)
+		}
+		next = g.RandCell(0) // pick the next unconnected room
+		count++
+	}
+
+	g.DropRandRooms(2)
+
+	// add one more connection
+	//count = 0
+	//found := false
+	//for !found && count < 10 {
+	//	c1 = g.RandCell(1)
+	//	c2 = g.RandNeighbour(c1, 1)
+	//	if !g.AreConnected(c1, c2) {
+	//		g.Connect(c1, c2)
+	//		debug.Add("Last %d -> %d", c1, c2)
+	//		found = true
+	//	} else {
+	//		debug.Add("Already connected %d -> %d", c1, c2)
+	//	}
+	//	count++
+	//}
+
+	return &g
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) DropRandRooms(count int) {
+	for i := 0; i < count; i++ {
+		cell := g.RandCell(1)
+		debug.Add("Dropping room %d", cell)
+		g.rooms[cell].Drop()
+		g.PruneDeadends(cell, 2)
+	}
+
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) CountPaths(cell int) int {
+	count := 0
+	for _, p := range g.paths {
+		if (p.origID == cell || p.destID == cell) && p.mark != -1 {
+			count++
+		}
+	}
+	return count
+}
+
+// ----------------------------------------------------------------------------
+func (g *RoomGraph) PruneDeadends(cell int, depth int) {
+	if depth == 0 { // handle recursion
+		return
+	}
+	// check if the given cell is a dead end
+	if g.rooms[cell].mark == -1 && g.CountPaths(cell) == 1 {
+
+		// if it is, remove all the paths (should be just one)
+		for i, p := range g.paths {
+			if p.origID == cell || p.destID == cell {
+				g.paths[i].Drop()
+				debug.Add("dropping path %v, cell=%d", p, cell)
+			}
+		}
+
+		// TODO handle the case where this creates a new deadend
+	}
+}
+
 // func (g *RoomGraph) RoomAt(col, row int) Room       {}
 // func (g *RoomGraph) IsDeadend(cell int) bool        {}
-// func (g *RoomGraph) RemoveDeaded(cell int)          {}
-// func (g *RoomGraph) AreConnected(c1, c2 int) bool   {}
 // func (g *RoomGraph) Path(c1, c2 int)                {}
 
 // ----------------------------------------------------------------------------
@@ -71,11 +168,17 @@ func (g *RoomGraph) RandCell(mark int) int {
 // ----------------------------------------------------------------------------
 func (g *RoomGraph) RandNeighbour(cell int, mark int) int {
 	nbList := []int{}
+
 	for _, nb := range g.Neighbours(cell) {
 		if g.rooms[nb].mark == mark {
 			nbList = append(nbList, nb)
 		}
 	}
+
+	if len(nbList) == 0 {
+		return -1
+	}
+
 	idx := rand.Intn(len(nbList))
 	return nbList[idx]
 }
@@ -114,15 +217,16 @@ func (g *RoomGraph) Connect(c1, c2 int) {
 }
 
 // ----------------------------------------------------------------------------
-func newRandomGraph() *RoomGraph {
-	g := RoomGraph{}
-
-	c1 := g.RandCell(0)
-	c2 := g.RandNeighbour(c1, 0)
-	g.Connect(c1, c2)
-	debug.Add("Connected %d -> %d", c1, c2)
-
-	return &g
+func (g *RoomGraph) AreConnected(c1, c2 int) bool {
+	for _, p := range g.paths {
+		if p.mark != -1 &&
+			(p.origID == c1 || p.destID == c1) &&
+			(p.origID == c2 || p.destID == c2) {
+			//debug.Add("AreConnected: %d, %d, yes!", c1, c2)
+			return true
+		}
+	}
+	return false
 }
 
 /*****************************************************************************/
@@ -144,7 +248,7 @@ func (r Room) RandPoint() Point {
 	}
 }
 
-func (r Room) Drop() {
+func (r *Room) Drop() {
 	r.mark = -1
 }
 
@@ -158,19 +262,6 @@ type Path struct {
 
 func (p *Path) Drop() {
 	p.mark = -1
-}
-
-// ----------------------------------------------------------------------------
-
-var graph *RoomGraph
-
-func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
-	debug.Clear()
-	dm.Clear()
-
-	graph = newRandomGraph()
-	p.SetPos(3, 3)
-	p.depth++
 }
 
 /*****************************************************************************/
