@@ -6,7 +6,7 @@ import (
 
 var debug = DebugMessageLog{}
 
-var graph *RoomGraph
+var graph *RoomGraph = &RoomGraph{}
 
 // ----------------------------------------------------------------------------
 // Entry point from main() to build a new dungeon level
@@ -37,19 +37,12 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 
 	// create the paths on the map
 	for _, p := range g.paths {
-
 		if p.mark == 0 { // ignore dropped paths (-1)
 			x1, y1 := g.rooms[p.origID].Center()
 			x2, y2 := g.rooms[p.destID].Center()
 			dir := g.Direction(p.origID, p.destID)
-			debug.Add("making path: %d -> %d, dir=%v", p.origID, p.destID, dir)
+			//debug.Add("making path: %d -> %d, dir=%v", p.origID, p.destID, dir)
 			d.ConnectRooms(x1, y1, x2, y2, dir)
-
-			// BUG: paths aren't fully connected for dropped rooms
-			if g.rooms[p.destID].mark == -1 {
-				x3, y3 := g.rooms[p.destID].Center()
-				d.SetTile(x3, y3, TilePath)
-			}
 		}
 	}
 
@@ -185,7 +178,7 @@ func (g *RoomGraph) DropRandomRooms(count int) {
 		cell := g.RandCell(1)
 		debug.Add("Dropping room %d", cell)
 		g.rooms[cell].mark = -1
-		g.PruneDeadends(cell)
+		g.PruneDeadends(cell, 2)
 	}
 }
 
@@ -222,7 +215,6 @@ func (g *RoomGraph) MakeRandomRooms() {
 		dy := rand.Intn(a.H - randH)
 		g.rooms[i].SetSize(a.X+dx, a.Y+dy, randW, randH)
 	}
-
 }
 
 // ----------------------------------------------------------------------------
@@ -245,16 +237,23 @@ func (g *RoomGraph) Neighbours(cell int) []int {
 // ----------------------------------------------------------------------------
 // For a given cell, checks if it is a deadend (just one path with no room attached)
 // and removes the path if it is.
-func (g *RoomGraph) PruneDeadends(cell int) {
+func (g *RoomGraph) PruneDeadends(cell int, depth int) {
 
 	// check if the given cell is a dead end
 	if g.rooms[cell].mark == -1 && g.CountPaths(cell) == 1 {
 
 		// if it is, remove all the paths (should be just one)
 		for i, p := range g.paths {
-			if p.origID == cell || p.destID == cell {
+			if (p.origID == cell || p.destID == cell) && p.mark != -1 {
 				g.paths[i].mark = -1
-				debug.Add("dropping path %v, cell=%d", p, cell)
+				debug.Add("%d dropping path %v, cell=%d", depth, p, cell)
+
+				// check to see if we just created another deadend
+				if p.origID == cell {
+					g.PruneDeadends(p.destID, depth-1)
+				} else {
+					g.PruneDeadends(p.origID, depth-1)
+				}
 			}
 		}
 	}

@@ -5,31 +5,6 @@ const (
 )
 
 // -----------------------------------------------------------------------
-type Direction int
-
-func (d Direction) String() string {
-	switch d {
-	case North:
-		return "north"
-	case East:
-		return "east"
-	case South:
-		return "south"
-	case West:
-		return "west"
-	default:
-		return "unknown"
-	}
-}
-
-const (
-	North Direction = iota
-	East
-	South
-	West
-)
-
-// -----------------------------------------------------------------------
 type TileType int
 
 const (
@@ -71,10 +46,8 @@ func (t *Tile) IsType(t2 TileType) bool {
 	return t.typ == t2
 }
 
-/***
- * Dungeon Map
- *
- */
+/************************************************************************/
+
 type DungeonMap [MapMaxX][MapMaxY]Tile
 
 // -----------------------------------------------------------------------
@@ -99,24 +72,6 @@ func (m *DungeonMap) TileAt(x, y int) Tile {
 // -----------------------------------------------------------------------
 func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 	return m[x][y].IsWalkable()
-}
-
-// -----------------------------------------------------------------------
-func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
-
-	m.Clear()
-	x1, y1 := m.CreateRoom(42, 15, 13, 5)
-	x2, y2 := m.CreateRoom(7, 1, 11, 7)
-
-	m.ConnectRooms(x1, y1, x2, y2, North)
-
-	//m.SetTile(45, 5, TileStairsUp)
-	//m.SetTile(31, 18, TileStairsDn)
-	//monsters.Add(NewMonster(0), 50, 8)
-	//monsters.Add(NewMonster(1), 29, 17)
-
-	p.SetPos(9, 3)
-	p.depth++
 }
 
 // -----------------------------------------------------------------------
@@ -150,11 +105,13 @@ func (m *DungeonMap) ConnectRooms(x1, y1 int, x2, y2 int, startDir Direction) {
 		x, y = m.CreatePath(x, y, VDir, dy)
 		x, y = m.CreatePath(x, y, HDir, seg3Len)
 	}
+	m.ConvertTile(x2, y2, false)
 }
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int) {
-	ignoreTiles := false // for testing, should be false in prod
+
+	//debug.Add("path: x1=%d, y1=%d, len=%d", x1, y1, length)
 
 	//allow length to be given as negative
 	if length < 0 {
@@ -164,22 +121,27 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int
 	dx, dy := getDirectionCoords(dir)
 	x, y := x1, y1
 	for i := length; i > 0; i-- {
-
-		if ignoreTiles {
-			m.SetTile(x, y, TilePath)
-		} else {
-			switch m.TileAt(x, y).typ {
-			case TileFloor: //don't overwrite floor tiles
-			case TileWallH, TileWallV:
-				m.SetTile(x, y, TileDoorCl)
-			default:
-				m.SetTile(x, y, TilePath)
-			}
-		}
+		m.ConvertTile(x, y, false)
 		x += dx
 		y += dy
 	}
 	return x, y
+}
+
+// -----------------------------------------------------------------------
+func (m *DungeonMap) ConvertTile(x, y int, ignore bool) {
+	if ignore {
+		m.SetTile(x, y, TilePath)
+	} else {
+		switch m.TileAt(x, y).typ {
+		case TileFloor: //don't overwrite floor tiles
+		case TileWallH, TileWallV:
+			m.SetTile(x, y, TileDoorCl)
+		default:
+			m.SetTile(x, y, TilePath)
+		}
+	}
+
 }
 
 // -----------------------------------------------------------------------
@@ -212,19 +174,21 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 	return x1 + (w / 2), y1 + (h / 2)
 }
 
-// ============================================================================
+// -----------------------------------------------------------------------
+func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
 
-func getDirectionCoords(dir Direction) (int, int) {
-	dx, dy := 0, 0
-	switch dir {
-	case North:
-		dy = -1
-	case South:
-		dy = 1
-	case East:
-		dx = 1
-	case West:
-		dx = -1
-	}
-	return dx, dy
+	m.Clear()
+	x1, y1 := m.CreateRoom(42, 16, 13, 5)
+	x2, y2 := m.CreateRoom(7, 1, 11, 7)
+
+	//debug.Add("gen: x1=%d, y1=%d, x2=%d, y2=%d", x1, y1, x2, y2)
+	m.ConnectRooms(x1, y1, x2, y2, North)
+
+	//m.SetTile(45, 5, TileStairsUp)
+	//m.SetTile(31, 18, TileStairsDn)
+	//monsters.Add(NewMonster(0), 50, 8)
+	//monsters.Add(NewMonster(1), 29, 17)
+
+	p.SetPos(9, 3)
+	p.depth++
 }
