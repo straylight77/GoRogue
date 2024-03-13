@@ -87,33 +87,13 @@ func (d *Display) Show() {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) GetCommand() (cmd GameCommand) {
-
-	var ok bool
-	ev := d.Screen.PollEvent() // blocks until input from user
-
-	// do 'display level' processing, otherwise find the GameCommand to return
-	switch ev := ev.(type) {
-	case *tcell.EventResize:
-		d.Screen.Clear()
-		d.Screen.Sync()
-
-	case *tcell.EventKey:
-		key := ev.Key()
-		rn := ev.Rune()
-
-		switch key {
-		case tcell.KeyRune:
-			if cmd, ok = RuneCmdLookup[rn]; !ok {
-				logMessage(fmt.Sprintf("I don't know that command (%c)", rn))
-			}
-		default:
-			if cmd, ok = KeyCmdLookup[key]; !ok {
-				logMessage(fmt.Sprintf("I don't know that command (%v)", tcell.KeyNames[key]))
-			}
-		}
+func (d *Display) Printf(x, y int, format string, vals ...any) {
+	text := fmt.Sprintf(format, vals...)
+	col, row := x, y
+	for _, r := range []rune(text) {
+		d.Screen.SetContent(col, row, r, nil, d.DefStyle)
+		col++
 	}
-	return cmd
 }
 
 // -----------------------------------------------------------------------------
@@ -174,32 +154,23 @@ func (d *Display) DrawDebug(x1, y1 int, text string) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawHLine(row int, from, to int, style tcell.Style) {
 	for i := from; i <= to; i++ {
-		d.Screen.SetContent(i, row, tcell.RuneHLine, nil, d.DebugStyle)
+		d.Screen.SetContent(i, row, tcell.RuneHLine, nil, style)
 	}
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawVLine(col int, from, to int, style tcell.Style) {
 	for i := from; i < to; i++ {
-		d.Screen.SetContent(col, i, tcell.RuneVLine, nil, d.DebugStyle)
+		d.Screen.SetContent(col, i, tcell.RuneVLine, nil, style)
 	}
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawDebugFrame(p *Player, ml *MonsterList) {
 	maxX, maxY := 80, 25
-	for x := 0; x < maxX; x++ {
-		d.Screen.SetContent(x, maxY, tcell.RuneHLine, nil, d.DebugStyle)
-	}
-	for y := 0; y < maxY; y++ {
-		d.Screen.SetContent(maxX, y, tcell.RuneVLine, nil, d.DebugStyle)
-	}
+	d.DrawHLine(maxY, 0, maxX, d.DebugStyle)
+	d.DrawVLine(maxX, 0, maxY, d.DebugStyle)
 	d.Screen.SetContent(maxX, maxY, tcell.RuneLRCorner, nil, d.DebugStyle)
-
-	texth := "012345678901234567890123456789012345678901234567890123456789012345678901234567890"
-	drawTextWrap(d.Screen, 0, 26, 81, 26, d.DebugStyle, texth)
-	textv := "01234567890123456789012345"
-	drawTextWrap(d.Screen, 81, 0, 82, 27, d.DebugStyle, textv)
 
 	drawTextWrap(d.Screen, 84, 1, 200, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
 	drawTextWrap(d.Screen, 84, 2, 200, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))
@@ -207,6 +178,36 @@ func (d *Display) DrawDebugFrame(p *Player, ml *MonsterList) {
 		msg := fmt.Sprintf("%d: %v", i, m.DebugString())
 		drawTextWrap(d.Screen, 84, 4+i, 200, 4+i, d.DebugStyle, msg)
 	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) GetCommand() (cmd GameCommand) {
+
+	var ok bool
+	ev := d.Screen.PollEvent() // blocks until input from user
+
+	// do 'display level' processing, otherwise find the GameCommand to return
+	switch ev := ev.(type) {
+	case *tcell.EventResize:
+		d.Screen.Clear()
+		d.Screen.Sync()
+
+	case *tcell.EventKey:
+		key := ev.Key()
+		rn := ev.Rune()
+
+		switch key {
+		case tcell.KeyRune:
+			if cmd, ok = RuneCmdLookup[rn]; !ok {
+				logMessage(fmt.Sprintf("I don't know that command (%c)", rn))
+			}
+		default:
+			if cmd, ok = KeyCmdLookup[key]; !ok {
+				logMessage(fmt.Sprintf("I don't know that command (%v)", tcell.KeyNames[key]))
+			}
+		}
+	}
+	return cmd
 }
 
 // ============================================================================

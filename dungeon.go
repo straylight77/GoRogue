@@ -4,6 +4,9 @@ const (
 	MapMaxX, MapMaxY = 80, 23
 )
 
+// If set to true, draw paths without accouting for existing tiles
+var IgnoreTiles = false
+
 // -----------------------------------------------------------------------
 type TileType int
 
@@ -105,13 +108,11 @@ func (m *DungeonMap) ConnectRooms(x1, y1 int, x2, y2 int, startDir Direction) {
 		x, y = m.CreatePath(x, y, VDir, dy)
 		x, y = m.CreatePath(x, y, HDir, seg3Len)
 	}
-	m.ConvertTile(x2, y2, false)
+	m.ConvertTile(x2, y2, IgnoreTiles)
 }
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int) {
-
-	//debug.Add("path: x1=%d, y1=%d, len=%d", x1, y1, length)
 
 	//allow length to be given as negative
 	if length < 0 {
@@ -121,7 +122,7 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int
 	dx, dy := getDirectionCoords(dir)
 	x, y := x1, y1
 	for i := length; i > 0; i-- {
-		m.ConvertTile(x, y, false)
+		m.ConvertTile(x, y, IgnoreTiles)
 		x += dx
 		y += dy
 	}
@@ -178,17 +179,16 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
 
 	m.Clear()
-	x1, y1 := m.CreateRoom(42, 16, 13, 5)
-	x2, y2 := m.CreateRoom(7, 1, 11, 7)
+	x1, y1 := m.CreateRoom(42, 3, 13, 5)
+	x2, y2 := m.CreateRoom(25, 15, 11, 7)
 
-	//debug.Add("gen: x1=%d, y1=%d, x2=%d, y2=%d", x1, y1, x2, y2)
 	m.ConnectRooms(x1, y1, x2, y2, North)
 
-	//m.SetTile(45, 5, TileStairsUp)
-	//m.SetTile(31, 18, TileStairsDn)
-	//monsters.Add(NewMonster(0), 50, 8)
-	//monsters.Add(NewMonster(1), 29, 17)
+	m.SetTile(45, 5, TileStairsUp)
+	m.SetTile(31, 18, TileStairsDn)
+	monsters.Add(NewMonster(0), 50, 6)
+	monsters.Add(NewMonster(1), 29, 17)
 
-	p.SetPos(9, 3)
+	p.SetPos(45, 5)
 	p.depth++
 }
