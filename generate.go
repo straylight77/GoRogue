@@ -38,11 +38,29 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 	// create the paths on the map
 	for _, p := range g.paths {
 		if p.mark == 0 { // ignore dropped paths (-1)
-			x1, y1 := g.rooms[p.origID].Center()
-			x2, y2 := g.rooms[p.destID].Center()
-			dir := g.Direction(p.origID, p.destID)
+
+			var x1, y1, x2, y2 int
+
+			// If the room has been dropped use the center, otherwise use a
+			// random point on the wall closest to the destination cell
+			dir1 := g.Direction(p.origID, p.destID)
+			if g.rooms[p.origID].mark == 1 {
+				x1, y1 = g.rooms[p.origID].RandWallPoint(dir1)
+			} else {
+				x1, y1 = g.rooms[p.origID].Center()
+			}
+
+			// Same logic as above for the destination room, find a point on
+			// the wall closest to the origin room
+			dir2 := g.Direction(p.destID, p.origID)
+			if g.rooms[p.destID].mark == 1 {
+				x2, y2 = g.rooms[p.destID].RandWallPoint(dir2)
+			} else {
+				x2, y2 = g.rooms[p.destID].Center()
+			}
+
 			//debug.Add("making path: %d -> %d, dir=%v", p.origID, p.destID, dir)
-			d.ConnectRooms(x1, y1, x2, y2, dir)
+			d.ConnectRooms(x1, y1, x2, y2, dir1)
 		}
 	}
 
@@ -316,6 +334,23 @@ func (r Room) Center() (x int, y int) {
 func (r Room) RandPoint() (x int, y int) {
 	x = r.X + rand.Intn(r.W-2) + 1
 	y = r.Y + rand.Intn(r.H-2) + 1
+	return
+}
+
+// Returns the coord of a random point on the wall of the given direction
+func (r Room) RandWallPoint(dir Direction) (x, y int) {
+	x, y = r.Center()
+	switch dir {
+	case North:
+		y = r.Y
+	case South:
+		y = r.Y + r.H - 1
+	case East:
+		x = r.X + r.W - 1
+	case West:
+		x = r.X
+	}
+	debug.Add("wall point: %v %v x=%d y=%d", r, dir, x, y)
 	return
 }
 
