@@ -339,7 +339,7 @@ func (r Room) RandPoint() (x int, y int) {
 
 // Returns the coord of a random point on the wall of the given direction
 func (r Room) RandWallPoint(dir Direction) (x, y int) {
-	x, y = r.Center()
+	x, y = r.RandPoint()
 	switch dir {
 	case North:
 		y = r.Y
