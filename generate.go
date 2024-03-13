@@ -41,8 +41,8 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 
 			var x1, y1, x2, y2 int
 
-			// If the room has been dropped use the center, otherwise use a
-			// random point on the wall closest to the destination cell
+			// If the room has been dropped use, its center. Otherwise use a
+			// random point on the wall closest to the destination cell.
 			dir1 := g.Direction(p.origID, p.destID)
 			if g.rooms[p.origID].mark == 1 {
 				x1, y1 = g.rooms[p.origID].RandWallPoint(dir1)
@@ -50,8 +50,7 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 				x1, y1 = g.rooms[p.origID].Center()
 			}
 
-			// Same logic as above for the destination room, find a point on
-			// the wall closest to the origin room
+			// Same logic as above for the destination room
 			dir2 := g.Direction(p.destID, p.origID)
 			if g.rooms[p.destID].mark == 1 {
 				x2, y2 = g.rooms[p.destID].RandWallPoint(dir2)
@@ -105,22 +104,38 @@ type RoomGraph struct {
 func newRandomGraph() *RoomGraph {
 	g := RoomGraph{}
 
-	c1 := g.RandCell(0) // connect 2 rooms at random
+	c1 := g.RandCell(0) // Connect 2 rooms at random
 	c2 := g.RandNeighbour(c1, 0)
 	g.Connect(c1, c2)
-	debug.Add("First %d -> %d", c1, c2)
+	//debug.Add("First %d -> %d", c1, c2)
 
 	count := 0
-	next := g.RandCell(0)          // pick a random unconnected room
-	for next != -1 && count < 20 { // while there are unconnected rooms
+	next := g.RandCell(0)          // Pick a random unconnected room
+	for next != -1 && count < 20 { // While there are unconnected rooms
 
-		nb := g.RandNeighbour(next, 1) // connect it to an already connected neighbour
-		if nb != -1 {                  // if there are none, just skip it
+		nb := g.RandNeighbour(next, 1) // Connect it to an already connected neighbour
+		if nb != -1 {                  // If there are none, just skip it
 			g.Connect(next, nb)
-			debug.Add("Connect %d -> %d", next, nb)
+			//debug.Add("Connect %d -> %d", next, nb)
 		}
-		next = g.RandCell(0) // pick the next unconnected room
+		next = g.RandCell(0) // Pick the next unconnected room
 		count++
+	}
+
+	// Add a few more connections to keep it interesting
+	n := rand.Intn(2) + 1 // 1-2
+	for i := 0; i < n; i++ {
+		found := false
+		count = 0
+		for !found && count < 10 {
+			c1 = g.RandCell(1)
+			c2 = g.RandNeighbour(c1, 1)
+			if !g.AreConnected(c1, c2) {
+				g.Connect(c1, c2)
+				//debug.Add("Last %d -> %d", c1, c2)
+				found = true
+			}
+		}
 	}
 
 	g.DropRandomRooms(2)
@@ -194,7 +209,7 @@ func (g *RoomGraph) Direction(c1, c2 int) Direction {
 func (g *RoomGraph) DropRandomRooms(count int) {
 	for i := 0; i < count; i++ {
 		cell := g.RandCell(1)
-		debug.Add("Dropping room %d", cell)
+		//debug.Add("Dropping room %d", cell)
 		g.rooms[cell].mark = -1
 		g.PruneDeadends(cell, 2)
 	}
@@ -227,8 +242,9 @@ func (g *RoomGraph) MakeRandomRooms() {
 
 	// make a random room within each area
 	for i, a := range g.bounds {
-		randW := rand.Intn(12) + 8    // between 8 and 20
-		randH := rand.Intn(a.H-4) + 4 // between 4 and height of area
+		//randW := rand.Intn(12) + 8    // between 8 and 20
+		randW := rand.Intn(a.W-5) + 5
+		randH := rand.Intn(a.H-4) + 4 // between 4 and max height of area
 		dx := rand.Intn(a.W - randW)  // position within the boundary area
 		dy := rand.Intn(a.H - randH)
 		g.rooms[i].SetSize(a.X+dx, a.Y+dy, randW, randH)
@@ -264,7 +280,7 @@ func (g *RoomGraph) PruneDeadends(cell int, depth int) {
 		for i, p := range g.paths {
 			if (p.origID == cell || p.destID == cell) && p.mark != -1 {
 				g.paths[i].mark = -1
-				debug.Add("%d dropping path %v, cell=%d", depth, p, cell)
+				//debug.Add("%d dropping path %v, cell=%d", depth, p, cell)
 
 				// check to see if we just created another deadend
 				if p.origID == cell {
@@ -350,7 +366,6 @@ func (r Room) RandWallPoint(dir Direction) (x, y int) {
 	case West:
 		x = r.X
 	}
-	debug.Add("wall point: %v %v x=%d y=%d", r, dir, x, y)
 	return
 }
 
