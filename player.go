@@ -9,6 +9,8 @@ type Player struct {
 	depth  int
 }
 
+// implement the Entity interface
+
 func (p *Player) SetPos(newX, newY int) {
 	p.X = newX
 	p.Y = newY

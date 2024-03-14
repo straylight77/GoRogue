@@ -87,6 +87,8 @@ func (m *Monster) DebugString() string {
 	return fmt.Sprintf("%s x=%d y=%d hp=%d", m.Name, m.X, m.Y, m.HP)
 }
 
+// Implement the Entity interface
+
 func (m *Monster) SetPos(newX, newY int) {
 	m.X = newX
 	m.Y = newY

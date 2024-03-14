@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -21,6 +20,7 @@ var RuneCmdLookup = map[rune]GameCommand{
 	'Q': CmdQuit,
 	'D': CmdDebug,
 	'G': CmdGenerate,
+	'M': CmdMessages,
 	'>': CmdDown,
 	'<': CmdUp,
 }
@@ -123,12 +123,24 @@ func (d *Display) DrawMap(m *DungeonMap) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawMessages(messages []string) {
-	if len(messages) > 0 {
-		entireStr := strings.Join(messages, " ")
-		drawTextWrap(d.Screen, 0, 0, 80, 3, d.DefStyle, entireStr)
-		clearMessages()
+func (d *Display) DrawMessages(log *MessageLog) {
+	if log.HasUnread() {
+		s := log.LatestAsStr()
+		drawTextWrap(d.Screen, 0, 0, 80, 3, d.DefStyle, s)
+		log.ClearUnread()
 	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawMessageHistory(log *MessageLog) {
+	d.Clear()
+	d.DrawText(0, 0, "MESSAGE HISTORY:")
+	for i, m := range log.Last(20) {
+		d.Printf(0, i+1, "%d: %v", i, m)
+	}
+	d.Printf(0, 22, "Press any key to continue...")
+	d.Screen.HideCursor()
+	d.Show()
 }
 
 // -----------------------------------------------------------------------------
@@ -199,15 +211,20 @@ func (d *Display) GetCommand() (cmd GameCommand) {
 		switch key {
 		case tcell.KeyRune:
 			if cmd, ok = RuneCmdLookup[rn]; !ok {
-				logMessage(fmt.Sprintf("I don't know that command (%c)", rn))
+				messages.Add("I don't know that command (%c)", rn)
 			}
 		default:
 			if cmd, ok = KeyCmdLookup[key]; !ok {
-				logMessage(fmt.Sprintf("I don't know that command (%v)", tcell.KeyNames[key]))
+				messages.Add("I don't know that command (%v)", tcell.KeyNames[key])
 			}
 		}
 	}
 	return cmd
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) WaitForKeypress() {
+	d.Screen.PollEvent() // blocks until input from user
 }
 
 // ============================================================================

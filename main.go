@@ -2,12 +2,17 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 // wrap these into GameState?  Will have handleCommand()?
 var dungeon DungeonMap
 var player Player
 var monsters MonsterList
+
+var messages MessageLog
+
+var disp Display
 
 type Entity interface {
 	Pos() (int, int)
@@ -28,17 +33,46 @@ const (
 	CmdUp
 	CmdDown
 	CmdGenerate // for testing
+	CmdMessages
 )
 
 // -----------------------------------------------------------------------
-var messages []string
-
-func logMessage(s string) {
-	messages = append(messages, s)
+type MessageLog struct {
+	messages []string
+	idx      int
 }
 
-func clearMessages() {
-	messages = nil
+func (log *MessageLog) Add(format string, vals ...any) {
+	msg := fmt.Sprintf(format, vals...)
+	log.messages = append(log.messages, msg)
+}
+
+func (log *MessageLog) Clear() {
+	log.messages = nil
+}
+
+func (log *MessageLog) HasUnread() bool {
+	return log.idx < len(log.messages)
+}
+
+func (log *MessageLog) Last(n int) []string {
+	if n >= len(log.messages) {
+		return log.messages
+	} else {
+		return log.messages[len(log.messages)-n:]
+	}
+}
+
+func (log *MessageLog) LatestAsStr() string {
+	s := ""
+	if len(log.messages[log.idx:]) > 0 {
+		s = strings.Join(log.messages[log.idx:], " ")
+	}
+	return s
+}
+
+func (log *MessageLog) ClearUnread() {
+	log.idx = len(log.messages)
 }
 
 // -----------------------------------------------------------------------
@@ -47,14 +81,14 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 
 	// check edges of the map
 	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
-		logMessage("That way is blocked.")
+		messages.Add("That way is blocked.")
 		return
 	}
 
 	// check for monsters
 	m := mlist.MonsterAt(destX, destY)
 	if m != nil {
-		logMessage(p.Attack(m))
+		messages.Add(p.Attack(m))
 		return
 	}
 
@@ -67,16 +101,14 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 
 	case destTile.IsType(TileDoorCl): // open the door
 		d.SetTile(destX, destY, TileDoorOp)
-		logMessage("You open the door.")
+		messages.Add("You open the door.")
 
 	default:
-		logMessage("That way is blocked.")
+		messages.Add("That way is blocked.")
 	}
 
 	player.moves++
 }
-
-var disp Display
 
 // -----------------------------------------------------------------------
 func main() {
@@ -98,7 +130,7 @@ func main() {
 		// draw the world
 		disp.Clear()
 		disp.DrawMap(&dungeon)
-		disp.DrawMessages(messages)
+		disp.DrawMessages(&messages)
 		disp.DrawText(0, 24, player.InfoString())
 
 		for _, m := range monsters {
@@ -129,28 +161,33 @@ func main() {
 			movePlayer(0, 1, &dungeon, &player, &monsters)
 		case CmdDown:
 			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
-				logMessage("You decend the ancient stairs.")
+				messages.Add("You decend the ancient stairs.")
 				generateRandomLevel(&dungeon, &monsters, &player)
 			} else {
-				logMessage("There are no stairs to go down here.")
+				messages.Add("There are no stairs to go down here.")
 			}
 		case CmdUp:
 			if dungeon.TileAt(player.X, player.Y).typ == TileStairsUp {
-				logMessage("Your way is magically blocked.")
+				messages.Add("Your way is magically blocked.")
 			} else {
-				logMessage("There are no stairs to go up here.")
+				messages.Add("There are no stairs to go up here.")
 			}
+		case CmdMessages:
+			disp.DrawMessageHistory(&messages)
+			disp.WaitForKeypress()
+
+		// extra debugging and testing stuff
 		case CmdDebug:
 			debug = !debug
 		case CmdGenerate:
 			generateRandomLevel(&dungeon, &monsters, &player)
-		}
 
+		}
 		// do other world updates
 		for i, m := range monsters {
 			if m.HP <= 0 {
 				monsters.Remove(i)
-				logMessage(fmt.Sprintf("You defeated the %s!", m.Name))
+				messages.Add("You defeated the %s!", m.Name)
 			}
 		}
 
