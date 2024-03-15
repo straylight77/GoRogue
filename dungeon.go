@@ -87,21 +87,25 @@ func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 
 // -----------------------------------------------------------------------
 func (d *DungeonMap) playerFOV(p *Player) {
-	for x := p.X - 1; x <= p.X+1; x++ {
-		for y := p.Y - 1; y <= p.Y+1; y++ {
+	radius := 1
+	for x := p.X - radius; x <= p.X+radius; x++ {
+		for y := p.Y - radius; y <= p.Y+radius; y++ {
 
 			// Check what the player is currently standing on
 			switch d.TileTypeAt(p.X, p.Y) {
-			case TilePath, TileFloor, TileDoor:
 
-				// If player is in a hallway, only light up paths or doors
+			// If the player is not in a room...
+			case TilePath, TileDoor:
+
 				switch d.TileTypeAt(x, y) {
-				case TilePath, TileDoor:
+				//... only light up paths, doors and floors
+				case TilePath, TileDoor, TileFloor:
 					d.tiles[x][y].visible = true
 					d.tiles[x][y].visited = true
 				}
 
 			default:
+				// Otherwise, light up everything
 				d.tiles[x][y].visible = true
 				d.tiles[x][y].visited = true
 			}

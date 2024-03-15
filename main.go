@@ -158,6 +158,7 @@ func main() {
 		// Update the player's field of view and visited tiles
 		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
 		dungeon.playerFOV(&player)
+
 		for _, r := range dungeon.rooms {
 			if r.InRoom(player.X, player.Y) {
 				dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)
