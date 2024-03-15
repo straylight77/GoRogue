@@ -52,10 +52,6 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 	case destTile.IsWalkable():
 		p.SetPos(destX, destY)
 
-	case destTile.IsType(TileDoorCl): // open the door
-		d.SetTile(destX, destY, TileDoorOp)
-		messages.Add("You open the door.")
-
 	default:
 		messages.Add("That way is blocked.")
 	}
@@ -72,10 +68,10 @@ func main() {
 	defer disp.Quit()
 
 	// Create a dungeon level
-	dungeon.GenerateLevel(&player, &monsters)
-	//generateRandomLevel(&dungeon, &monsters, &player)
+	//dungeon.GenerateLevel(&player, &monsters)
+	generateRandomLevel(&dungeon, &monsters, &player)
 
-	debugFlag := true
+	debugFlag := false
 	doneFlag := false
 	var doUpdate bool
 
@@ -161,7 +157,7 @@ func main() {
 
 		// Update the player's field of view and visited tiles
 		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
-		dungeon.SetVisible(player.X-1, player.Y-1, 3, 3, true)
+		dungeon.playerFOV(&player)
 		for _, r := range dungeon.rooms {
 			if r.InRoom(player.X, player.Y) {
 				dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)

@@ -20,8 +20,7 @@ const (
 	TileWallLR
 	TileFloor
 	TilePath
-	TileDoorCl
-	TileDoorOp
+	TileDoor
 	TileStairsDn
 	TileStairsUp
 )
@@ -37,7 +36,7 @@ func (t *Tile) IsWalkable() bool {
 	switch t.typ {
 	case TileFloor, // consider these tiles as "walkable"
 		TilePath,
-		TileDoorOp,
+		TileDoor,
 		TileStairsDn,
 		TileStairsUp:
 		return true
@@ -77,8 +76,37 @@ func (m *DungeonMap) TileAt(x, y int) Tile {
 }
 
 // -----------------------------------------------------------------------
+func (m *DungeonMap) TileTypeAt(x, y int) TileType {
+	return m.tiles[x][y].typ
+}
+
+// -----------------------------------------------------------------------
 func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 	return m.tiles[x][y].IsWalkable()
+}
+
+// -----------------------------------------------------------------------
+func (d *DungeonMap) playerFOV(p *Player) {
+	for x := p.X - 1; x <= p.X+1; x++ {
+		for y := p.Y - 1; y <= p.Y+1; y++ {
+
+			// Check what the player is currently standing on
+			switch d.TileTypeAt(p.X, p.Y) {
+			case TilePath, TileFloor, TileDoor:
+
+				// If player is in a hallway, only light up paths or doors
+				switch d.TileTypeAt(x, y) {
+				case TilePath, TileDoor:
+					d.tiles[x][y].visible = true
+					d.tiles[x][y].visited = true
+				}
+
+			default:
+				d.tiles[x][y].visible = true
+				d.tiles[x][y].visited = true
+			}
+		}
+	}
 }
 
 // -----------------------------------------------------------------------
@@ -162,7 +190,7 @@ func (m *DungeonMap) ConvertTile(x, y int, ignore bool) {
 		switch m.TileAt(x, y).typ {
 		case TileFloor: //don't overwrite floor tiles
 		case TileWallH, TileWallV:
-			m.SetTile(x, y, TileDoorCl)
+			m.SetTile(x, y, TileDoor)
 		default:
 			m.SetTile(x, y, TilePath)
 		}
