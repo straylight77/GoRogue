@@ -30,6 +30,7 @@ const (
 type Tile struct {
 	typ     TileType
 	visible bool
+	visited bool
 }
 
 func (t *Tile) IsWalkable() bool {
@@ -51,30 +52,54 @@ func (t *Tile) IsType(t2 TileType) bool {
 
 /************************************************************************/
 
-type DungeonMap [MapMaxX][MapMaxY]Tile
+type DungeonMap struct {
+	tiles [MapMaxX][MapMaxY]Tile
+	rooms []Room
+}
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) Clear() {
-	for x, col := range m {
+	for x, col := range m.tiles {
 		for y := range col {
-			m[x][y] = Tile{typ: TileEmpty}
+			m.tiles[x][y] = Tile{typ: TileEmpty}
 		}
 	}
 }
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) SetTile(x, y int, t TileType) {
-	m[x][y] = Tile{typ: t}
+	m.tiles[x][y] = Tile{typ: t}
 }
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) TileAt(x, y int) Tile {
-	return m[x][y]
+	return m.tiles[x][y]
 }
 
 // -----------------------------------------------------------------------
 func (m *DungeonMap) IsWalkableAt(x, y int) bool {
-	return m[x][y].IsWalkable()
+	return m.tiles[x][y].IsWalkable()
+}
+
+// -----------------------------------------------------------------------
+func (d *DungeonMap) SetVisible(x1, y1, w, h int, val bool) {
+	for x := x1; x < x1+w; x++ {
+		for y := y1; y < y1+h; y++ {
+			d.tiles[x][y].visible = val
+			if val {
+				// Any time we set the visible (on or off) we consider is visited
+				d.tiles[x][y].visited = true
+			}
+		}
+	}
+}
+
+// -----------------------------------------------------------------------
+// Returns the Chebyshev Distance from the given Entity
+func (d *DungeonMap) Distance(x1, y1, x2, y2 int) int {
+	dx := abs(x2 - x1)
+	dy := abs(y2 - y1)
+	return max(dx, dy)
 }
 
 // -----------------------------------------------------------------------
@@ -171,6 +196,8 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 	m.SetTile(x1, y1+h, TileWallLL)
 	m.SetTile(x1+w, y1+h, TileWallLR)
 
+	m.rooms = append(m.rooms, Room{X: x1, Y: y1, W: w, H: h})
+
 	// return the coords of the room center
 	return x1 + (w / 2), y1 + (h / 2)
 }
@@ -190,9 +217,9 @@ func (m *DungeonMap) GenerateLevel(p *Player, ml *MonsterList) {
 
 	m.SetTile(45, 5, TileStairsUp)
 	m.SetTile(31, 18, TileStairsDn)
-	monsters.Add(randomMonster(player.depth), 20, 4)
+	//monsters.Add(randomMonster(player.depth), 20, 4)
 	monsters.Add(randomMonster(player.depth), 50, 6)
-	monsters.Add(randomMonster(player.depth), 29, 17)
+	//monsters.Add(randomMonster(player.depth), 29, 17)
 
 	p.SetPos(45, 5)
 	p.depth++

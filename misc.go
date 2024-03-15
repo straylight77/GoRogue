@@ -46,3 +46,20 @@ func getDirectionCoords(dir Direction) (int, int) {
 	}
 	return dx, dy
 }
+
+// -----------------------------------------------------------------------
+func abs(val int) int {
+	if val < 0 {
+		val = -val
+	}
+	return val
+}
+
+// -----------------------------------------------------------------------
+func max(val1, val2 int) int {
+	if val1 > val2 {
+		return val1
+	} else {
+		return val2
+	}
+}

@@ -29,26 +29,26 @@ type MonsterTemplate struct {
 var MonsterLib = []MonsterTemplate{
 	{'K', 0, 2, 1, 7, "1d4", "kobold"},
 	{'J', 0, 2, 1, 7, "1d2", "jackal"},
-	{'B', 0, 1, 1, 3, "1d2", "bat"},
+	{'B', 0, 1, 1, 3, "1d2", "bat"}, // 50% chance to move randomly
 	{'S', 0, 3, 1, 5, "1d3", "snake"},
 	{'H', 0, 3, 1, 5, "1d8", "hobgoblin"},
-	{'E', 0, 5, 1, 9, "0d0", "floating eye"},
-	{'A', 0, 10, 2, 3, "1d6", "giant ant"},
+	{'E', 0, 5, 1, 9, "0d0", "floating eye"}, // paralyzes 2-3 turns
+	{'A', 0, 10, 2, 3, "1d6", "giant ant"},   // decrease str
 	{'O', 15, 5, 1, 6, "1d7", "orc"},
 	{'Z', 0, 7, 2, 8, "1d8", "zombie"},
 	{'G', 10, 8, 1, 5, "1d6", "gnome"},
-	{'L', 0, 10, 3, 8, "1d1", "leprechaun"},
+	{'L', 0, 10, 3, 8, "1d1", "leprechaun"}, // steal gold unless save vs magic
 	{'C', 15, 15, 4, 4, "1d6/1d6", "centaur"},
-	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster"},
+	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster"}, // -1 to armor being worn
 	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "quasit"},
-	{'N', 100, 40, 3, 9, "0d0", "nymph"},
+	{'N', 100, 40, 3, 9, "0d0", "nymph"}, // steals random magic item from inventory
 	{'Y', 30, 50, 4, 6, "1d6/1d6", "yeti"},
 	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "troll"},
-	{'W', 0, 55, 5, 4, "1d6", "wraith"},
-	{'F', 0, 85, 8, 3, "0d0", "violet fungi"},
-	{'I', 0, 120, 8, 3, "4d4", "invisible stalker"},
+	{'W', 0, 55, 5, 4, "1d6", "wraith"},             // 15% chance to drain level and 1d10 max hp
+	{'F', 0, 85, 8, 3, "0d0", "violet fungi"},       // grapple, damage is 1 then 2 then 3 etc.
+	{'I', 0, 120, 8, 3, "4d4", "invisible stalker"}, // 20% chance to move randomly
 	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "xorn"},
-	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk"},
+	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk"}, // confuses for 20-39 turns, only once
 	{'M', 30, 140, 7, 7, "3d4", "mimic"},
 	{'V', 30, 380, 8, 1, "1d10", "vampire"},
 	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "dragon"},
@@ -125,16 +125,16 @@ func newMonster(id int) *Monster {
 	return m
 }
 
-func CreateMonster(n string, sym rune, hp int) *Monster {
-	return &Monster{
-		Symbol: sym,
-		Name:   n,
-		HP:     hp,
-	}
-}
-
 func (m *Monster) DebugString() string {
 	return fmt.Sprintf("%s x=%d y=%d hp=%d", m.Name, m.X, m.Y, m.HP)
+}
+
+// Returns the Chebyshev Distance from the given Entity
+func (m *Monster) DistanceFrom(e Entity) int {
+	x2, y2 := e.Pos()
+	dx := abs(x2 - m.X)
+	dy := abs(y2 - m.Y)
+	return max(dx, dy)
 }
 
 // Implement the Entity interface

@@ -20,6 +20,7 @@ func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
 
 	p.SetPos(x, y)
 	p.depth++
+
 }
 
 // ----------------------------------------------------------------------------
@@ -373,6 +374,14 @@ func (r *Room) SetSize(x, y, w, h int) {
 	r.Y = y
 	r.W = w
 	r.H = h
+}
+
+// Returns true if the given x,y coord in within the bounds of the room
+func (r *Room) InRoom(x, y int) bool {
+	return r.X-1 < x &&
+		x < r.X+r.W+1 &&
+		r.Y-1 < y &&
+		y < r.Y+r.H+1
 }
 
 /*****************************************************************************/

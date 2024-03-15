@@ -89,7 +89,10 @@ func main() {
 		disp.DrawText(0, 24, player.InfoString())
 
 		for _, m := range monsters {
-			disp.DrawEntity(m)
+			mx, my := m.Pos()
+			if dungeon.TileAt(mx, my).visible {
+				disp.DrawEntity(m)
+			}
 		}
 		disp.DrawPlayer(&player)
 
@@ -156,6 +159,16 @@ func main() {
 			dungeon.GenerateLevel(&player, &monsters)
 		}
 
+		// Update the player's field of view and visited tiles
+		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
+		dungeon.SetVisible(player.X-1, player.Y-1, 3, 3, true)
+		for _, r := range dungeon.rooms {
+			if r.InRoom(player.X, player.Y) {
+				dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)
+				//debug.Add(" player in room %d %v", i, r)
+			}
+		}
+
 		// Do world updates
 		if doUpdate {
 			updateMonsters(&dungeon, &player, &monsters, &messages)
@@ -168,10 +181,13 @@ func main() {
 // TODO: move all handling of game objects into a GameState object
 func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) {
 	for i, m := range *ml {
+
+		// Remove any slain monsters
 		if m.HP <= 0 {
 			ml.Remove(i)
 			msg.Add("You defeated the %s!", m.Name)
 		}
-	}
 
+		debug.Add("monster %d (%s) dist=%d", i, m.Name, m.DistanceFrom(&player))
+	}
 }

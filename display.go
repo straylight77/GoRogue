@@ -113,13 +113,16 @@ func (d *Display) DrawPlayer(p *Player) {
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawMap(m *DungeonMap) {
-	for x, col := range m {
+	for x, col := range m.tiles {
 		for y, t := range col {
 			r := TileRunes[t.typ]
-
-			// y+1 becuase first line is the message line
-			d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)
-
+			if t.visible {
+				// y+1 because first line is the message line
+				d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)
+			} else if t.visited && t.typ != TileFloor {
+				// have the option to use a different style here
+				d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)
+			}
 		}
 	}
 }
