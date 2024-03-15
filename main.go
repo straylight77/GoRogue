@@ -1,10 +1,5 @@
 package main
 
-import (
-	"fmt"
-	"strings"
-)
-
 // wrap these into GameState?  Will have handleCommand()?
 var dungeon DungeonMap
 var player Player
@@ -13,12 +8,7 @@ var monsters MonsterList
 var messages MessageLog
 
 var disp Display
-
-type Entity interface {
-	Pos() (int, int)
-	SetPos(int, int)
-	Rune() rune
-}
+var debug = DebugMessageLog{}
 
 type GameCommand int
 
@@ -32,48 +22,11 @@ const (
 	CmdWest
 	CmdUp
 	CmdDown
+	CmdWait
+	CmdTick
 	CmdGenerate // for testing
 	CmdMessages
 )
-
-// -----------------------------------------------------------------------
-type MessageLog struct {
-	messages []string
-	idx      int
-}
-
-func (log *MessageLog) Add(format string, vals ...any) {
-	msg := fmt.Sprintf(format, vals...)
-	log.messages = append(log.messages, msg)
-}
-
-func (log *MessageLog) Clear() {
-	log.messages = nil
-}
-
-func (log *MessageLog) HasUnread() bool {
-	return log.idx < len(log.messages)
-}
-
-func (log *MessageLog) Last(n int) []string {
-	if n >= len(log.messages) {
-		return log.messages
-	} else {
-		return log.messages[len(log.messages)-n:]
-	}
-}
-
-func (log *MessageLog) LatestAsStr() string {
-	s := ""
-	if len(log.messages[log.idx:]) > 0 {
-		s = strings.Join(log.messages[log.idx:], " ")
-	}
-	return s
-}
-
-func (log *MessageLog) ClearUnread() {
-	log.idx = len(log.messages)
-}
 
 // -----------------------------------------------------------------------
 func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
@@ -107,27 +60,29 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 		messages.Add("That way is blocked.")
 	}
 
-	player.moves++
 }
 
 // -----------------------------------------------------------------------
 func main() {
 	var cmd GameCommand
 
-	// initialization and setup
+	// Initialization and setup
 	disp = Display{}
 	disp.Init()
 	defer disp.Quit()
 
-	// create a dungeon level
-	//dungeon.GenerateLevel(player.depth, &player, &monsters)
-	generateRandomLevel(&dungeon, &monsters, &player)
+	// Create a dungeon level
+	dungeon.GenerateLevel(&player, &monsters)
+	//generateRandomLevel(&dungeon, &monsters, &player)
 
-	debug := false
-	done := false
-	for !done {
+	debugFlag := true
+	doneFlag := false
+	var doUpdate bool
 
-		// draw the world
+	for !doneFlag {
+		doUpdate = true
+
+		// Draw the world
 		disp.Clear()
 		disp.DrawMap(&dungeon)
 		disp.DrawMessages(&messages)
@@ -137,20 +92,35 @@ func main() {
 			disp.DrawEntity(m)
 		}
 		disp.DrawPlayer(&player)
-		if debug {
+
+		if debugFlag {
 			disp.DrawDebugFrame(&player, &monsters)
-			drawGenerateDebug(&disp)
+			//drawGenerateDebug(&disp)
+			debug.Draw(&disp, 84, 10)
 		}
 
 		disp.Show()
 
 		cmd = disp.GetCommand()
 
-		// handle user's command
+		// Handle user's command
 		switch cmd {
-		case 0: //ignore
+
+		// Commands that do not increment time
+		case 0: // unkown command, just ignore
+			doUpdate = false
+		case CmdTick:
+			doUpdate = false
+			// Do nothing.  Used to redraw, clear recent messages, etc.
+		case CmdMessages:
+			doUpdate = false
+			disp.DrawMessageHistory(&messages)
+			disp.WaitForKeypress()
 		case CmdQuit:
-			done = true
+			doUpdate = false
+			doneFlag = true
+
+		// Commands that do increment time
 		case CmdWest:
 			movePlayer(-1, 0, &dungeon, &player, &monsters)
 		case CmdEast:
@@ -172,24 +142,36 @@ func main() {
 			} else {
 				messages.Add("There are no stairs to go up here.")
 			}
-		case CmdMessages:
-			disp.DrawMessageHistory(&messages)
-			disp.WaitForKeypress()
+		case CmdWait:
+			messages.Add("You rest for a moment.")
 
-		// extra debugging and testing stuff
+		// Extra debugging and testing stuff
 		case CmdDebug:
-			debug = !debug
+			doUpdate = false
+			debugFlag = !debugFlag
 		case CmdGenerate:
-			generateRandomLevel(&dungeon, &monsters, &player)
-
+			doUpdate = false
+			debug.Clear()
+			//generateRandomLevel(&dungeon, &monsters, &player)
+			dungeon.GenerateLevel(&player, &monsters)
 		}
-		// do other world updates
-		for i, m := range monsters {
-			if m.HP <= 0 {
-				monsters.Remove(i)
-				messages.Add("You defeated the %s!", m.Name)
-			}
+
+		// Do world updates
+		if doUpdate {
+			updateMonsters(&dungeon, &player, &monsters, &messages)
+			player.moves++
 		}
 
 	}
+}
+
+// TODO: move all handling of game objects into a GameState object
+func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) {
+	for i, m := range *ml {
+		if m.HP <= 0 {
+			ml.Remove(i)
+			msg.Add("You defeated the %s!", m.Name)
+		}
+	}
+
 }

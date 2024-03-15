@@ -1,6 +1,13 @@
 package main
 
 // -----------------------------------------------------------------------
+type Entity interface {
+	Pos() (int, int)
+	SetPos(int, int)
+	Rune() rune
+}
+
+// -----------------------------------------------------------------------
 type Direction int
 
 const (

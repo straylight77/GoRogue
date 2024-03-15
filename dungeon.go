@@ -176,18 +176,23 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) GenerateLevel(lvl int, p *Player, ml *MonsterList) {
+func (m *DungeonMap) GenerateLevel(p *Player, ml *MonsterList) {
 
 	m.Clear()
+	ml.Clear()
+
 	x1, y1 := m.CreateRoom(42, 3, 13, 5)
 	x2, y2 := m.CreateRoom(25, 15, 11, 7)
-
 	m.ConnectRooms(x1, y1, x2, y2, North)
+
+	x3, y3 := m.CreateRoom(18, 2, 20, 7)
+	m.ConnectRooms(x1, y1, x3, y3, East)
 
 	m.SetTile(45, 5, TileStairsUp)
 	m.SetTile(31, 18, TileStairsDn)
-	monsters.Add(NewMonster(0), 50, 6)
-	monsters.Add(NewMonster(1), 29, 17)
+	monsters.Add(randomMonster(player.depth), 20, 4)
+	monsters.Add(randomMonster(player.depth), 50, 6)
+	monsters.Add(randomMonster(player.depth), 29, 17)
 
 	p.SetPos(45, 5)
 	p.depth++

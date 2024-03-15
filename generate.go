@@ -4,8 +4,6 @@ import (
 	"math/rand"
 )
 
-var debug = DebugMessageLog{}
-
 var graph *RoomGraph = &RoomGraph{}
 
 // ----------------------------------------------------------------------------

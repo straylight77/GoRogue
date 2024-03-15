@@ -17,6 +17,8 @@ var KeyCmdLookup = map[tcell.Key]GameCommand{
 }
 
 var RuneCmdLookup = map[rune]GameCommand{
+	'.': CmdWait,
+	' ': CmdTick,
 	'Q': CmdQuit,
 	'D': CmdDebug,
 	'G': CmdGenerate,
