@@ -111,10 +111,14 @@ func (d *Display) DrawPlayer(p *Player) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawMap(m *DungeonMap) {
+func (d *Display) DrawMap(m *DungeonMap, showAll bool) {
 	for x, col := range m.tiles {
 		for y, t := range col {
 			r := TileRunes[t.typ]
+			if showAll {
+				d.Screen.SetContent(x, y+1, r, nil, d.DebugStyle)
+			}
+
 			if t.visible {
 				// y+1 because first line is the message line
 				d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)

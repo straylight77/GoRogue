@@ -250,9 +250,10 @@ func (m *DungeonMap) GenerateLevel(p *Player, ml *MonsterList) {
 	m.SetTile(45, 5, TileStairsUp)
 	m.SetTile(31, 18, TileStairsDn)
 	//monsters.Add(randomMonster(player.depth), 20, 4)
-	monsters.Add(randomMonster(player.depth), 50, 6)
+	monsters.Add(randomMonster(player.depth), x2, y2)
+	monsters.Add(randomMonster(player.depth), x3, y3)
 	//monsters.Add(randomMonster(player.depth), 29, 17)
 
-	p.SetPos(45, 5)
+	p.SetPos(x1, y1)
 	p.depth++
 }

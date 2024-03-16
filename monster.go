@@ -17,6 +17,7 @@ type MonsterTemplate struct {
 	AC     int
 	Dmg    string
 	Name   string
+	isMean bool
 }
 
 // Index is used as difficulty of the monsters
@@ -27,32 +28,32 @@ type MonsterTemplate struct {
 // (apparently called "vorpalness" in original Rogue source code)
 // https://datadrivengamer.blogspot.com/2019/05/identifying-mechanics-of-rogue.html
 var MonsterLib = []MonsterTemplate{
-	{'K', 0, 2, 1, 7, "1d4", "kobold"},
-	{'J', 0, 2, 1, 7, "1d2", "jackal"},
-	{'B', 0, 1, 1, 3, "1d2", "bat"}, // 50% chance to move randomly
-	{'S', 0, 3, 1, 5, "1d3", "snake"},
-	{'H', 0, 3, 1, 5, "1d8", "hobgoblin"},
-	{'E', 0, 5, 1, 9, "0d0", "floating eye"}, // paralyzes 2-3 turns
-	{'A', 0, 10, 2, 3, "1d6", "giant ant"},   // decrease str
-	{'O', 15, 5, 1, 6, "1d7", "orc"},
-	{'Z', 0, 7, 2, 8, "1d8", "zombie"},
-	{'G', 10, 8, 1, 5, "1d6", "gnome"},
-	{'L', 0, 10, 3, 8, "1d1", "leprechaun"}, // steal gold unless save vs magic
-	{'C', 15, 15, 4, 4, "1d6/1d6", "centaur"},
-	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster"}, // -1 to armor being worn
-	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "quasit"},
-	{'N', 100, 40, 3, 9, "0d0", "nymph"}, // steals random magic item from inventory
-	{'Y', 30, 50, 4, 6, "1d6/1d6", "yeti"},
-	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "troll"},
-	{'W', 0, 55, 5, 4, "1d6", "wraith"},             // 15% chance to drain level and 1d10 max hp
-	{'F', 0, 85, 8, 3, "0d0", "violet fungi"},       // grapple, damage is 1 then 2 then 3 etc.
-	{'I', 0, 120, 8, 3, "4d4", "invisible stalker"}, // 20% chance to move randomly
-	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "xorn"},
-	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk"}, // confuses for 20-39 turns, only once
-	{'M', 30, 140, 7, 7, "3d4", "mimic"},
-	{'V', 30, 380, 8, 1, "1d10", "vampire"},
-	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "dragon"},
-	{'P', 70, 7000, 15, 6, "2d12/2d4", "purple worm"},
+	{'K', 0, 2, 1, 7, "1d4", "kobold", true},
+	{'J', 0, 2, 1, 7, "1d2", "jackal", true},
+	{'B', 0, 1, 1, 3, "1d2", "bat", false}, // 50% chance to move randomly
+	{'S', 0, 3, 1, 5, "1d3", "snake", true},
+	{'H', 0, 3, 1, 5, "1d8", "hobgoblin", true},
+	{'E', 0, 5, 1, 9, "0d0", "floating eye", false}, // paralyzes 2-3 turns
+	{'A', 0, 10, 2, 3, "1d6", "giant ant", true},    // decrease str
+	{'O', 15, 5, 1, 6, "1d7", "orc", true},
+	{'Z', 0, 7, 2, 8, "1d8", "zombie", true},
+	{'G', 10, 8, 1, 5, "1d6", "gnome", false},
+	{'L', 0, 10, 3, 8, "1d1", "leprechaun", false}, // steal gold unless save vs magic
+	{'C', 15, 15, 4, 4, "1d6/1d6", "centaur", false},
+	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster", true}, // -1 to armor being worn
+	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "quasit", true},
+	{'N', 100, 40, 3, 9, "0d0", "nymph", false}, // steals random magic item from inventory
+	{'Y', 30, 50, 4, 6, "1d6/1d6", "yeti", false},
+	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "troll", true},
+	{'W', 0, 55, 5, 4, "1d6", "wraith", true},             // 15% chance to drain level and 1d10 max hp
+	{'F', 0, 85, 8, 3, "0d0", "violet fungi", true},       // grapple, damage is 1 then 2 then 3 etc.
+	{'I', 0, 120, 8, 3, "4d4", "invisible stalker", true}, // 20% chance to move randomly
+	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "xorn", true},
+	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk", true}, // confuses for 20-39 turns, only once
+	{'M', 30, 140, 7, 7, "3d4", "mimic", false},
+	{'V', 30, 380, 8, 1, "1d10", "vampire", true},
+	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "dragon", false},
+	{'P', 70, 7000, 15, 6, "2d12/2d4", "purple worm", false},
 }
 
 // Uses public variable MonsterLib
@@ -109,24 +110,35 @@ func (ml MonsterList) MonsterAt(x, y int) *Monster {
  */
 
 type Monster struct {
-	X, Y   int
-	Symbol rune
-	Name   string
-	HP     int
+	X, Y     int
+	Symbol   rune
+	Name     string
+	HP       int
+	State    int
+	isMean   bool // once visible, start chasing player
+	isGreedy bool // move towards any nearby gold
 }
+
+const (
+	StateDormant = iota
+	StateActive
+	StateChase
+	StateWander
+)
 
 func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
 	m := &Monster{
 		Name:   mt.Name,
-		HP:     1,
+		HP:     2,
 		Symbol: mt.Symbol,
+		isMean: mt.isMean,
 	}
 	return m
 }
 
 func (m *Monster) DebugString() string {
-	return fmt.Sprintf("%s x=%d y=%d hp=%d", m.Name, m.X, m.Y, m.HP)
+	return fmt.Sprintf("%c (%d,%d) hp=%d state=%d", m.Symbol, m.X, m.Y, m.HP, m.State)
 }
 
 // Returns the Chebyshev Distance from the given Entity
