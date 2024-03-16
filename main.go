@@ -29,7 +29,7 @@ const (
 )
 
 // -----------------------------------------------------------------------
-func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
+func movePlayer(p *Player, dx int, dy int, d *DungeonMap, mlist *MonsterList) {
 	destX, destY := p.X+dx, p.Y+dy
 
 	// check edges of the map
@@ -47,13 +47,8 @@ func movePlayer(dx int, dy int, d *DungeonMap, p *Player, mlist *MonsterList) {
 
 	// check dungeon tile
 	destTile := d.TileAt(destX, destY)
-	switch {
-
-	case destTile.IsWalkable():
+	if destTile.IsWalkable() {
 		p.SetPos(destX, destY)
-
-	default:
-		messages.Add("That way is blocked.")
 	}
 
 }
@@ -67,11 +62,13 @@ func main() {
 	disp.Init()
 	defer disp.Quit()
 
-	// Create a dungeon level
-	//dungeon.GenerateLevel(&player, &monsters)
-	generateRandomLevel(&dungeon, &monsters, &player)
+	player.Init()
 
-	debugFlag := false
+	// Create a dungeon level
+	dungeon.GenerateLevel(&player, &monsters)
+	//generateRandomLevel(&dungeon, &monsters, &player)
+
+	debugFlag := true
 	doneFlag := false
 	var doUpdate bool
 
@@ -121,13 +118,13 @@ func main() {
 
 		// Commands that do increment time
 		case CmdWest:
-			movePlayer(-1, 0, &dungeon, &player, &monsters)
+			movePlayer(&player, -1, 0, &dungeon, &monsters)
 		case CmdEast:
-			movePlayer(1, 0, &dungeon, &player, &monsters)
+			movePlayer(&player, 1, 0, &dungeon, &monsters)
 		case CmdNorth:
-			movePlayer(0, -1, &dungeon, &player, &monsters)
+			movePlayer(&player, 0, -1, &dungeon, &monsters)
 		case CmdSouth:
-			movePlayer(0, 1, &dungeon, &player, &monsters)
+			movePlayer(&player, 0, 1, &dungeon, &monsters)
 		case CmdDown:
 			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
 				messages.Add("You decend the ancient stairs.")
@@ -185,6 +182,32 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 			msg.Add("You defeated the %s!", m.Name)
 		}
 
-		debug.Add("monster %d (%s) dist=%d", i, m.Name, m.DistanceFrom(&player))
+		dx, dy := m.DirectionCoordsTo(&player)
+		moveMonster(m, dx, dy, &dungeon, &player)
+		debug.Add("monster %d (%s) dist=%d, dx=%d, dy=%d", i, m.Name, m.DistanceFrom(&player), dx, dy)
 	}
+}
+
+// -----------------------------------------------------------------------
+func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player) {
+	destX, destY := m.X+dx, m.Y+dy
+
+	// check edges of the map
+	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
+		return
+	}
+
+	// check if player is there
+	if destX == p.X && destY == p.Y {
+		messages.Add(m.Attack(p))
+		return
+	}
+
+	debug.Add("move: to %d, %d", destX, destY)
+	// check dungeon tile
+	destTile := d.TileAt(destX, destY)
+	if destTile.IsWalkable() {
+		m.SetPos(destX, destY)
+	}
+
 }

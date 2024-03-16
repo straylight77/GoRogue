@@ -7,6 +7,13 @@ type Player struct {
 	Symbol rune
 	moves  int
 	depth  int
+	HP     int
+	maxHP  int
+}
+
+func (p *Player) Init() {
+	p.HP = 10
+	p.maxHP = 10
 }
 
 // implement the Entity interface
@@ -35,8 +42,10 @@ func (p *Player) Attack(m *Monster) string {
 // -----------------------------------------------------------------------
 func (p *Player) InfoString() string {
 	info := fmt.Sprintf(
-		"Level:%2d  Gold: 4       Hp:11(20)  Str:16(16)  Arm: 4   Exp: 2/14",
+		"Level:%2d  Gold: 4       Hp:%2d(%2d)  Str:16(16)  Arm: 4   Exp: 2/14",
 		p.depth,
+		p.HP,
+		p.maxHP,
 	)
 	return info
 }

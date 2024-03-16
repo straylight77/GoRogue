@@ -240,7 +240,7 @@ func (m *DungeonMap) GenerateLevel(p *Player, ml *MonsterList) {
 	m.Clear()
 	ml.Clear()
 
-	x1, y1 := m.CreateRoom(42, 3, 13, 5)
+	x1, y1 := m.CreateRoom(42, 3, 13, 7)
 	x2, y2 := m.CreateRoom(25, 15, 11, 7)
 	m.ConnectRooms(x1, y1, x2, y2, North)
 

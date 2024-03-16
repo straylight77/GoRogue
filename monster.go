@@ -137,6 +137,34 @@ func (m *Monster) DistanceFrom(e Entity) int {
 	return max(dx, dy)
 }
 
+func (m *Monster) DirectionCoordsTo(e Entity) (dx int, dy int) {
+	eX, eY := e.Pos()
+
+	dx = 0
+	if eX < m.X {
+		dx = -1
+	} else if eX > m.X {
+		dx = 1
+	}
+	dy = 0
+	if eY < m.Y {
+		dy = -1
+	} else if eY > m.Y {
+		dy = 1
+	}
+
+	return dx, dy
+}
+
+func (m *Monster) Attack(p *Player) string {
+	p.HP += -1
+	return fmt.Sprintf("The %v attacks.", m)
+}
+
+func (m Monster) String() string {
+	return m.Name
+}
+
 // Implement the Entity interface
 
 func (m *Monster) SetPos(newX, newY int) {
