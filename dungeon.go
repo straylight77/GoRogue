@@ -61,6 +61,7 @@ func (m *DungeonMap) Clear() {
 	for x, col := range m.tiles {
 		for y := range col {
 			m.tiles[x][y] = Tile{typ: TileEmpty}
+			m.rooms = nil
 		}
 	}
 }
@@ -247,12 +248,13 @@ func (m *DungeonMap) GenerateLevel(p *Player, ml *MonsterList) {
 	x3, y3 := m.CreateRoom(18, 2, 20, 7)
 	m.ConnectRooms(x1, y1, x3, y3, East)
 
-	m.SetTile(45, 5, TileStairsUp)
-	m.SetTile(31, 18, TileStairsDn)
+	//m.SetTile(x1, y1, TileStairsUp)
+	m.SetTile(x2, y2, TileStairsDn)
 	//monsters.Add(randomMonster(player.depth), 20, 4)
 	monsters.Add(randomMonster(player.depth), x2, y2)
 	monsters.Add(randomMonster(player.depth), x3, y3)
 	//monsters.Add(randomMonster(player.depth), 29, 17)
+	monsters.Add(newMonster(2), 44, 5)
 
 	p.SetPos(x1, y1)
 	p.depth++

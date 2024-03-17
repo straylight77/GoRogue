@@ -1,5 +1,7 @@
 package main
 
+import "math/rand"
+
 // wrap these into GameState?  Will have handleCommand()?
 var dungeon DungeonMap
 var player Player
@@ -66,10 +68,10 @@ func main() {
 	player.Init()
 
 	// Create a dungeon level
-	dungeon.GenerateLevel(&player, &monsters)
-	//generateRandomLevel(&dungeon, &monsters, &player)
+	//dungeon.GenerateLevel(&player, &monsters)
+	generateRandomLevel(&dungeon, &monsters, &player)
 
-	debugFlag := true
+	debugFlag := false
 	doneFlag := false
 	var doUpdate bool
 
@@ -93,7 +95,7 @@ func main() {
 		if debugFlag {
 			disp.DrawDebugFrame(&player, &monsters)
 			//drawGenerateDebug(&disp)
-			debug.Draw(&disp, 84, 10)
+			debug.Draw(&disp, 84, 15)
 		}
 
 		disp.Show()
@@ -149,14 +151,11 @@ func main() {
 		case CmdGenerate:
 			doUpdate = false
 			debug.Clear()
-			//generateRandomLevel(&dungeon, &monsters, &player)
-			dungeon.GenerateLevel(&player, &monsters)
+			generateRandomLevel(&dungeon, &monsters, &player)
+			//dungeon.GenerateLevel(&player, &monsters)
 		}
 
 		// Update the player's field of view and visited tiles
-		//if debugFlag {
-		//	dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, true)
-		//} else {
 		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
 		dungeon.playerFOV(&player)
 
@@ -166,7 +165,6 @@ func main() {
 				//debug.Add(" player in room %d %v", i, r)
 			}
 		}
-		//}
 
 		// Do world updates
 		if doUpdate {
@@ -190,32 +188,51 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 
 		switch m.State {
 
-		case StateDormant:
-			if m.isMean && playerCanSee(m, &dungeon) {
+		case StateDormant, StateActive:
+			if (m.isMean && playerCanSee(m, &dungeon)) || m.DistanceFrom(&player) <= 1 {
 				m.State = StateChase
-				//messages.Add("The %v begins to chase you.", m)
 			}
 
 		case StateChase:
-			dx, dy := m.DirectionCoordsTo(&player)
-			moveMonster(m, dx, dy, &dungeon, &player, &monsters)
-			debug.Add("monster %d (%s) dist=%d, move:%d,%d", i, m.Name, m.DistanceFrom(&player), dx, dy)
 
+			if !m.isMean && m.DistanceFrom(&player) > 6 {
+				// For non-mean monsters, go dormant when far away
+				m.State = StateDormant
+
+			} else if m.randMove > rand.Intn(100) {
+				// Move randomly
+				moved := false
+				count := 0
+				for !moved && count < 8 {
+					dx, dy := randDirectionCoords()
+					moved = moveMonster(m, dx, dy, &dungeon, &player, &monsters)
+					count++
+				}
+
+			} else {
+				dx, dy := m.DirectionCoordsTo(&player)
+				moveMonster(m, dx, dy, &dungeon, &player, &monsters)
+			}
 		}
 
 	}
+}
+
+func randDirectionCoords() (x, y int) {
+	count := 0
+	for (x == 0 && y == 0) && count < 10 {
+		x = rand.Intn(3) - 1 // between -1 and 1
+		y = rand.Intn(3) - 1 // between -1 and 1
+		count++
+	}
+	return
 }
 
 // -----------------------------------------------------------------------
 // Returns weather the monster actually did something (moved or attacked)
 func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player, mlist *MonsterList) bool {
 	destX, destY := m.X+dx, m.Y+dy
-
-	//TODO: handle random movement (i.e. confusion)
-	// - any confused monsters moves randomly 80% of the time
-	// - 5% chance the confusion effect ends
-	// - non-confused bats move randomly 50% of the time
-	// - non-confused invisible stalkers 20%
+	//debug.Add("move: to %d, %d", destX, destY)
 
 	// Check edges of the map
 	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
@@ -234,7 +251,6 @@ func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player, mlist *Monste
 		return false
 	}
 
-	//debug.Add("move: to %d, %d", destX, destY)
 	// Check dungeon tile
 	destTile := d.TileAt(destX, destY)
 	if destTile.IsWalkable() {

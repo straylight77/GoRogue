@@ -11,12 +11,25 @@ var graph *RoomGraph = &RoomGraph{}
 func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
 	debug.Clear()
 	dm.Clear()
+	ml.Clear()
 
 	graph = newRandomGraph()
 
 	graph.MakeCellBounds()
 	graph.MakeRandomRooms()
 	x, y := buildMap(graph, dm)
+
+	// Populate with monsters
+	N := 5
+	for i := 0; i < N; i++ {
+		r := graph.RandCell(1)
+		mX, mY := graph.rooms[r].RandPoint()
+		if mX != p.X && mY != p.Y && ml.MonsterAt(mX, mY) == nil {
+			monsters.Add(randomMonster(p.depth), mX, mY)
+		} else {
+			i--
+		}
+	}
 
 	p.SetPos(x, y)
 	p.depth++
