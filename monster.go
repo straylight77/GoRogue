@@ -115,6 +115,7 @@ type Monster struct {
 	Symbol   rune
 	Name     string
 	HP       int
+	XP       int
 	State    int
 	isMean   bool // once visible, start chasing player
 	isGreedy bool // move towards any nearby gold
@@ -132,7 +133,8 @@ func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
 	m := &Monster{
 		Name:     mt.Name,
-		HP:       2,
+		HP:       mt.Level,
+		XP:       mt.XP,
 		Symbol:   mt.Symbol,
 		isMean:   mt.isMean,
 		randMove: mt.randMove,

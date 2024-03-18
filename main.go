@@ -183,6 +183,10 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 		if m.HP <= 0 {
 			ml.Remove(i)
 			msg.Add("You defeated the %s!", m.Name)
+			m := p.AddXP(m.XP)
+			if m != "" {
+				msg.Add(m)
+			}
 			continue
 		}
 
