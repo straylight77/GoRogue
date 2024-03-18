@@ -16,7 +16,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [ ] Traps
     [ ] Secret doors
 [X] Monsters
-    [X] All species and random choosing based on dungeon depth
+    [X] All specific basic stats
     [X] Basic states (dormant, chasing player)
     [X] Random movement (e.g. bats or confusion) 
     [X] Chasing the player (pathfinding)
@@ -24,6 +24,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 [ ] Player
     [ ] Combat (original AD&D rules)
     [X] Awarding XP and leveling up
+    [X] Natural healing
     [ ] Hunger
 [ ] Items
     [ ] Gold
@@ -41,4 +42,4 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 ```
 
 ## Contributing 
-Not yet.  Not until I hit version 1.0
+Not yet.  Not until I hit version 1.0 but feedback is welcome!
