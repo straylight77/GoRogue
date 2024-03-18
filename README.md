@@ -10,28 +10,27 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 [X] Basic dungeon map and walking around 
 [X] Random level generation 
     [X] Dungeon layout (3X3 Rogue-style)
-	[ ] Randomized monsters 
-	[ ] Randomized items and treasure
+    [ ] Randomized monsters 
+    [ ] Randomized items and treasure
 [X] Monsters
     [X] All species and random choosing based on dungeon depth
-	[X] Basic states (dormant, chasing player)
+    [X] Basic states (dormant, chasing player)
     [X] Random movement (e.g. bats or confusion) 
     [X] Chasing the player (pathfinding)
-	[ ] Spawning wandering monsters 
+    [ ] Spawning wandering monsters 
 [ ] Player
     [ ] Combat (original AD&D rules)
-	[ ] Awarding XP and leveling up
-	[ ] Hunger
+    [ ] Awarding XP and leveling up
+    [ ] Hunger
 [ ] Items
     [ ] Gold
-	[ ] Potions
-	[ ] Scrolls
+    [ ] Potions
+    [ ] Scrolls
 [ ] Gameplay
-	[ ] Title screen
-	[ ] End game screen with score 
-	[ ] Tracking high scores
+    [ ] Title screen
+    [ ] End game screen with score 
+    [ ] Tracking high scores
 ```
 
 ## Contributing 
 Not yet.  Not until I hit version 1.0
-
