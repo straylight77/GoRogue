@@ -10,8 +10,11 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 [X] Basic dungeon map and walking around 
 [X] Random level generation 
     [X] Dungeon layout (3X3 Rogue-style)
-    [ ] Randomized monsters 
+    [ ] Randomized monsters with "party rooms"
     [ ] Randomized items and treasure
+    [ ] Dark rooms
+    [ ] Traps
+    [ ] Secret doors
 [X] Monsters
     [X] All species and random choosing based on dungeon depth
     [X] Basic states (dormant, chasing player)
@@ -20,16 +23,21 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [ ] Spawning wandering monsters 
 [ ] Player
     [ ] Combat (original AD&D rules)
-    [ ] Awarding XP and leveling up
+    [X] Awarding XP and leveling up
     [ ] Hunger
 [ ] Items
     [ ] Gold
     [ ] Potions
     [ ] Scrolls
+    [ ] Weapons
+    [ ] Armor
+    [ ] rings
+    [ ] Sticks
 [ ] Gameplay
     [ ] Title screen
     [ ] End game screen with score 
     [ ] Tracking high scores
+    [ ] Amulet of Yendor
 ```
 
 ## Contributing 
