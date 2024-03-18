@@ -120,6 +120,7 @@ type Monster struct {
 	isMean   bool // once visible, start chasing player
 	isGreedy bool // move towards any nearby gold
 	randMove int
+	path     []Coord
 }
 
 const (
@@ -154,8 +155,8 @@ func (m *Monster) DistanceFrom(e Entity) int {
 	return max(dx, dy)
 }
 
-func (m *Monster) DirectionCoordsTo(e Entity) (dx int, dy int) {
-	eX, eY := e.Pos()
+func (m *Monster) DirectionCoordsTo(eX, eY int) (dx int, dy int) {
+	//eX, eY := e.Pos()
 
 	dx = 0
 	if eX < m.X {

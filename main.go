@@ -17,6 +17,8 @@ type GameCommand int
 const (
 	CmdNop GameCommand = iota
 	CmdDebug
+	CmdDebug2
+	CmdTest1
 	CmdQuit
 	CmdNorth
 	CmdSouth
@@ -68,10 +70,11 @@ func main() {
 	player.Init()
 
 	// Create a dungeon level
-	//dungeon.GenerateLevel(&player, &monsters)
+	//GenerateTestLevel(&dungeon, &player, &monsters)
 	generateRandomLevel(&dungeon, &monsters, &player)
 
 	debugFlag := false
+	debug2Flag := false
 	doneFlag := false
 	var doUpdate bool
 
@@ -96,6 +99,12 @@ func main() {
 			disp.DrawDebugFrame(&player, &monsters)
 			//drawGenerateDebug(&disp)
 			debug.Draw(&disp, 84, 15)
+		}
+
+		if debug2Flag {
+			for _, m := range monsters {
+				drawPathDebug(&disp, m.path, '*')
+			}
 		}
 
 		disp.Show()
@@ -148,17 +157,24 @@ func main() {
 		case CmdDebug:
 			doUpdate = false
 			debugFlag = !debugFlag
+		case CmdDebug2:
+			doUpdate = false
+			debug2Flag = !debugFlag
+		case CmdTest1:
+			doUpdate = false
+			//findPathStep(&dungeon)
 		case CmdGenerate:
 			doUpdate = false
 			debug.Clear()
 			generateRandomLevel(&dungeon, &monsters, &player)
-			//dungeon.GenerateLevel(&player, &monsters)
+			//GenerateTestLevel(&dungeon, &player, &monsters)
 		}
 
 		// Update the player's field of view and visited tiles
 		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
 		dungeon.playerFOV(&player)
 
+		// If the player is in a room, light it up
 		for _, r := range dungeon.rooms {
 			if r.InRoom(player.X, player.Y) {
 				dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)
@@ -175,7 +191,6 @@ func main() {
 	}
 }
 
-// TODO: move all handling of game objects into a GameState object
 func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) {
 	for i, m := range *ml {
 
@@ -214,7 +229,10 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 				}
 
 			} else {
-				dx, dy := m.DirectionCoordsTo(&player)
+				// Do pathfinding to the player and take the first step
+				// What happens when player goes out of sight?
+				m.path = findPathBFS(&dungeon, m.X, m.Y, player.X, player.Y)
+				dx, dy := m.DirectionCoordsTo(m.path[0].X, m.path[0].Y)
 				moveMonster(m, dx, dy, &dungeon, &player, &monsters)
 			}
 		}
@@ -270,4 +288,32 @@ func playerCanSee(e Entity, d *DungeonMap) bool {
 	eX, eY := e.Pos()
 	t := d.TileAt(eX, eY)
 	return t.visible
+}
+
+// -----------------------------------------------------------------------
+func GenerateTestLevel(m *DungeonMap, p *Player, ml *MonsterList) {
+
+	m.Clear()
+	ml.Clear()
+
+	x1, y1 := m.CreateRoom(44, 6, 13, 7)
+	x2, y2 := m.CreateRoom(25, 15, 11, 7)
+	x3, y3 := m.CreateRoom(18, 2, 20, 7)
+	m.ConnectRooms(x1, y1, x3, y3, East)
+	m.ConnectRooms(x2, y2, x3, y3, South)
+	//m.ConnectRooms(x1, y1, x2, y2, South)
+
+	//m.SetTile(x1, y1, TileStairsUp)
+	m.SetTile(x2, y2, TileStairsDn)
+	monsters.Add(randomMonster(player.depth), 20, 4)
+	monsters.Add(randomMonster(player.depth), x2, y2)
+	monsters.Add(randomMonster(player.depth), x3, y3)
+	monsters.Add(randomMonster(player.depth), 29, 17)
+	//monsters.Add(newMonster(2), 44, 5)
+
+	p.SetPos(x1, y1)
+	p.depth++
+
+	// Test some pathfinding stuff
+	//findPath(m, x2, y2, x3, y3)
 }

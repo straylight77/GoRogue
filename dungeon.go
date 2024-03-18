@@ -87,6 +87,29 @@ func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 }
 
 // -----------------------------------------------------------------------
+func (dm *DungeonMap) getWalkableNeighbours(pos Coord) []Coord {
+	toCheck := []Coord{
+		// Cardinal directions first
+		{pos.X - 1, pos.Y},
+		{pos.X, pos.Y + 1},
+		{pos.X + 1, pos.Y},
+		{pos.X, pos.Y - 1},
+		// Then the diagonals
+		{pos.X - 1, pos.Y - 1},
+		{pos.X - 1, pos.Y + 1},
+		{pos.X + 1, pos.Y - 1},
+		{pos.X + 1, pos.Y + 1},
+	}
+	var final []Coord
+	for _, c := range toCheck {
+		if dm.IsWalkableAt(c.X, c.Y) {
+			final = append(final, c)
+		}
+	}
+	return final
+}
+
+// -----------------------------------------------------------------------
 func (d *DungeonMap) playerFOV(p *Player) {
 	radius := 1
 	for x := p.X - radius; x <= p.X+radius; x++ {
@@ -120,7 +143,7 @@ func (d *DungeonMap) SetVisible(x1, y1, w, h int, val bool) {
 		for y := y1; y < y1+h; y++ {
 			d.tiles[x][y].visible = val
 			if val {
-				// Any time we set the visible (on or off) we consider is visited
+				// Any time we set a tile visible consider it visited
 				d.tiles[x][y].visited = true
 			}
 		}
@@ -128,7 +151,7 @@ func (d *DungeonMap) SetVisible(x1, y1, w, h int, val bool) {
 }
 
 // -----------------------------------------------------------------------
-// Returns the Chebyshev Distance from the given Entity
+// Returns the Chebyshev Distance between the two given points
 func (d *DungeonMap) Distance(x1, y1, x2, y2 int) int {
 	dx := abs(x2 - x1)
 	dy := abs(y2 - y1)
@@ -233,29 +256,4 @@ func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
 
 	// return the coords of the room center
 	return x1 + (w / 2), y1 + (h / 2)
-}
-
-// -----------------------------------------------------------------------
-func (m *DungeonMap) GenerateLevel(p *Player, ml *MonsterList) {
-
-	m.Clear()
-	ml.Clear()
-
-	x1, y1 := m.CreateRoom(42, 3, 13, 7)
-	x2, y2 := m.CreateRoom(25, 15, 11, 7)
-	m.ConnectRooms(x1, y1, x2, y2, North)
-
-	x3, y3 := m.CreateRoom(18, 2, 20, 7)
-	m.ConnectRooms(x1, y1, x3, y3, East)
-
-	//m.SetTile(x1, y1, TileStairsUp)
-	m.SetTile(x2, y2, TileStairsDn)
-	//monsters.Add(randomMonster(player.depth), 20, 4)
-	monsters.Add(randomMonster(player.depth), x2, y2)
-	monsters.Add(randomMonster(player.depth), x3, y3)
-	//monsters.Add(randomMonster(player.depth), 29, 17)
-	monsters.Add(newMonster(2), 44, 5)
-
-	p.SetPos(x1, y1)
-	p.depth++
 }

@@ -21,6 +21,8 @@ var RuneCmdLookup = map[rune]GameCommand{
 	' ': CmdTick,
 	'Q': CmdQuit,
 	'D': CmdDebug,
+	'P': CmdDebug2,
+	'p': CmdTest1,
 	'G': CmdGenerate,
 	'M': CmdMessages,
 	'>': CmdDown,
@@ -44,9 +46,10 @@ var TileRunes = map[TileType]rune{
 }
 
 type Display struct {
-	Screen     tcell.Screen
-	DefStyle   tcell.Style
-	DebugStyle tcell.Style
+	Screen      tcell.Screen
+	DefStyle    tcell.Style
+	DebugStyle  tcell.Style
+	Debug2Style tcell.Style
 }
 
 // -----------------------------------------------------------------------------
@@ -61,6 +64,7 @@ func (d *Display) Init() {
 
 	d.DefStyle = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
 	d.DebugStyle = tcell.StyleDefault.Foreground(tcell.ColorLightSkyBlue)
+	d.Debug2Style = tcell.StyleDefault.Foreground(tcell.ColorRed)
 
 	s.SetStyle(d.DefStyle)
 	s.SetCursorStyle(tcell.CursorStyleSteadyBlock)
