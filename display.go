@@ -192,11 +192,12 @@ func (d *Display) DrawDebugFrame(p *Player, ml *MonsterList) {
 	d.DrawVLine(maxX, 0, maxY, d.DebugStyle)
 	d.Screen.SetContent(maxX, maxY, tcell.RuneLRCorner, nil, d.DebugStyle)
 
-	drawTextWrap(d.Screen, 84, 1, 200, 1, d.DebugStyle, fmt.Sprintf("Moves:  %d", p.moves))
-	drawTextWrap(d.Screen, 84, 2, 200, 2, d.DebugStyle, fmt.Sprintf("Player: %d, %d", p.X, p.Y))
+	d.DrawDebug(84, 1, fmt.Sprintf("Moves:  %d", p.moves))
+	d.DrawDebug(84, 2, fmt.Sprintf("Pos: %d, %d", p.X, p.Y))
+	d.DrawDebug(84, 3, fmt.Sprintf("Heal: %d,  Food: %d", p.healCount, p.foodCount))
 	for i, m := range *ml {
 		msg := fmt.Sprintf("%d: %v", i, m.DebugString())
-		drawTextWrap(d.Screen, 84, 4+i, 200, 4+i, d.DebugStyle, msg)
+		d.DrawDebug(84, 5+i, msg)
 	}
 }
 

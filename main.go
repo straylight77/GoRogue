@@ -169,7 +169,7 @@ func main() {
 		// Do world updates
 		if doUpdate {
 			updateMonsters(&dungeon, &player, &monsters, &messages)
-			player.moves++
+			player.Update()
 		}
 
 	}

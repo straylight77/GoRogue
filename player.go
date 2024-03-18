@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/rand"
+)
 
 var XPTable = [21]int{
 	0,
@@ -27,20 +30,25 @@ var XPTable = [21]int{
 }
 
 type Player struct {
-	X, Y   int
-	Symbol rune
-	moves  int
-	depth  int
-	HP     int
-	maxHP  int
-	Level  int
-	XP     int
+	X, Y      int
+	Symbol    rune
+	moves     int
+	depth     int
+	HP        int
+	maxHP     int
+	Level     int
+	XP        int
+	healCount int
+	foodCount int
 }
 
 func (p *Player) Init() {
 	p.HP = 10
 	p.maxHP = 10
 	p.Level = 1
+	p.foodCount = 2000
+	p.ResetHealCount()
+
 }
 
 // implement the Entity interface
@@ -63,6 +71,7 @@ func (p *Player) Attack(m *Monster) string {
 	dmg := 1
 	m.HP -= dmg
 	msg := fmt.Sprintf("You hit the %v for %d damage.", m.Name, dmg)
+	p.healCount++ // this shouldn't decrement when fighting
 	return msg
 }
 
@@ -87,6 +96,47 @@ func (p *Player) CheckLevel() string {
 	}
 	p.Level = level
 	return msg
+}
+
+// -----------------------------------------------------------------------
+func (p *Player) ResetHealCount() {
+	if p.Level < 8 {
+		p.healCount = 21 - p.Level*2
+	} else {
+		p.healCount = 3
+	}
+}
+
+// -----------------------------------------------------------------------
+func (p *Player) ChangeHP(delta int) {
+	p.HP += delta
+	if p.HP > p.maxHP {
+		p.HP = p.maxHP
+	}
+}
+
+// -----------------------------------------------------------------------
+func (p *Player) Update() {
+
+	// At 300 start being hungry, at 150 weak
+	// At 0, every turn 20% chance you faint which paralyzes for 4-11 turns
+	p.foodCount--
+
+	// Levels 1-7, heal one point every [21-LVL*2] turns without fighting.
+	// Levels 8+, heal between 1 and [LVL-7] points every three turns without fighting.
+	// Note: Also see Attack()
+	p.healCount--
+	if p.healCount == 0 {
+		if p.Level < 8 {
+			p.ChangeHP(1)
+		} else {
+			amt := rand.Intn(p.Level - 7)
+			p.ChangeHP(amt)
+		}
+		p.ResetHealCount()
+	}
+
+	p.moves++
 }
 
 // -----------------------------------------------------------------------
