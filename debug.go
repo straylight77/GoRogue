@@ -59,7 +59,7 @@ func drawGenerateDebug(disp *Display) {
 		disp.DrawDebug(20, 28+i, fmt.Sprint(lst))
 	}
 
-	for i, p := range graph.paths {
+	for i, p := range graph.corridors {
 		disp.DrawDebug(35, 28+i, fmt.Sprint(p))
 	}
 

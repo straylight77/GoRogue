@@ -4,7 +4,7 @@ const (
 	MapMaxX, MapMaxY = 80, 23
 )
 
-// If set to true, draw paths without accouting for existing tiles
+// If set to true, draw corridors without accouting for existing tiles
 var IgnoreTiles = false
 
 // -----------------------------------------------------------------------
@@ -19,7 +19,7 @@ const (
 	TileWallLL
 	TileWallLR
 	TileFloor
-	TilePath
+	TileCorridor
 	TileDoor
 	TileStairsDn
 	TileStairsUp
@@ -35,7 +35,7 @@ type Tile struct {
 func (t *Tile) IsWalkable() bool {
 	switch t.typ {
 	case TileFloor, // consider these tiles as "walkable"
-		TilePath,
+		TileCorridor,
 		TileDoor,
 		TileStairsDn,
 		TileStairsUp:
@@ -119,11 +119,11 @@ func (d *DungeonMap) playerFOV(p *Player) {
 			switch d.TileTypeAt(p.X, p.Y) {
 
 			// If the player is not in a room...
-			case TilePath, TileDoor:
+			case TileCorridor, TileDoor:
 
 				switch d.TileTypeAt(x, y) {
-				//... only light up paths, doors and floors
-				case TilePath, TileDoor, TileFloor:
+				//... only light up corridors, doors and floors
+				case TileCorridor, TileDoor, TileFloor:
 					d.tiles[x][y].visible = true
 					d.tiles[x][y].visited = true
 				}
@@ -179,21 +179,21 @@ func (m *DungeonMap) ConnectRooms(x1, y1 int, x2, y2 int, startDir Direction) {
 	case North, South:
 		seg1Len := dy / 2
 		seg3Len := dy - seg1Len
-		x, y = m.CreatePath(x1, y1, VDir, seg1Len)
-		x, y = m.CreatePath(x, y, HDir, dx)
-		x, y = m.CreatePath(x, y, VDir, seg3Len)
+		x, y = m.CreateCorridor(x1, y1, VDir, seg1Len)
+		x, y = m.CreateCorridor(x, y, HDir, dx)
+		x, y = m.CreateCorridor(x, y, VDir, seg3Len)
 	case East, West:
 		seg1Len := dx / 2
 		seg3Len := dx - seg1Len
-		x, y = m.CreatePath(x1, y1, HDir, seg1Len)
-		x, y = m.CreatePath(x, y, VDir, dy)
-		x, y = m.CreatePath(x, y, HDir, seg3Len)
+		x, y = m.CreateCorridor(x1, y1, HDir, seg1Len)
+		x, y = m.CreateCorridor(x, y, VDir, dy)
+		x, y = m.CreateCorridor(x, y, HDir, seg3Len)
 	}
 	m.ConvertTile(x2, y2, IgnoreTiles)
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int) {
+func (m *DungeonMap) CreateCorridor(x1, y1 int, dir Direction, length int) (int, int) {
 
 	//allow length to be given as negative
 	if length < 0 {
@@ -213,14 +213,14 @@ func (m *DungeonMap) CreatePath(x1, y1 int, dir Direction, length int) (int, int
 // -----------------------------------------------------------------------
 func (m *DungeonMap) ConvertTile(x, y int, ignore bool) {
 	if ignore {
-		m.SetTile(x, y, TilePath)
+		m.SetTile(x, y, TileCorridor)
 	} else {
 		switch m.TileAt(x, y).typ {
 		case TileFloor: //don't overwrite floor tiles
 		case TileWallH, TileWallV:
 			m.SetTile(x, y, TileDoor)
 		default:
-			m.SetTile(x, y, TilePath)
+			m.SetTile(x, y, TileCorridor)
 		}
 	}
 

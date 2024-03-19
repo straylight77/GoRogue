@@ -37,7 +37,7 @@ var TileRunes = map[TileType]rune{
 	TileWallLL:   '-',
 	TileWallLR:   '-',
 	TileFloor:    '.',
-	TilePath:     '#',
+	TileCorridor: '#',
 	TileDoor:     '+',
 	TileStairsUp: '<',
 	TileStairsDn: '>',

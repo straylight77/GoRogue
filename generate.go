@@ -47,9 +47,9 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 		}
 	}
 
-	// create the paths on the map
-	for _, p := range g.paths {
-		if p.mark == 0 { // ignore dropped paths (-1)
+	// create the corridors on the map
+	for _, p := range g.corridors {
+		if p.mark == 0 { // ignore dropped corridors (-1)
 
 			var x1, y1, x2, y2 int
 
@@ -70,7 +70,7 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 				x2, y2 = g.rooms[p.destID].Center()
 			}
 
-			//debug.Add("making path: %d -> %d, dir=%v", p.origID, p.destID, dir)
+			//debug.Add("making corridor: %d -> %d, dir=%v", p.origID, p.destID, dir)
 			d.ConnectRooms(x1, y1, x2, y2, dir1)
 		}
 	}
@@ -96,9 +96,9 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 //   6 - 7 - 8
 
 type RoomGraph struct {
-	rooms  [9]Room
-	paths  []Path
-	bounds [9]Room
+	rooms     [9]Room
+	corridors []Corridor
+	bounds    [9]Room
 }
 
 // ----------------------------------------------------------------------------
@@ -156,9 +156,9 @@ func newRandomGraph() *RoomGraph {
 }
 
 // ----------------------------------------------------------------------------
-// Checks if there's a non-dropped path between the given cells
+// Checks if there's a non-dropped corridor between the given cells
 func (g *RoomGraph) AreConnected(c1, c2 int) bool {
-	for _, p := range g.paths {
+	for _, p := range g.corridors {
 		if p.mark != -1 &&
 			(p.origID == c1 || p.destID == c1) &&
 			(p.origID == c2 || p.destID == c2) {
@@ -170,20 +170,20 @@ func (g *RoomGraph) AreConnected(c1, c2 int) bool {
 }
 
 // ----------------------------------------------------------------------------
-// Creates a path between the given cells
+// Creates a corridor between the given cells
 func (g *RoomGraph) Connect(c1, c2 int) {
-	p := Path{origID: c1, destID: c2}
-	g.paths = append(g.paths, p)
+	p := Corridor{origID: c1, destID: c2}
+	g.corridors = append(g.corridors, p)
 	g.rooms[c1].mark = 1
 	g.rooms[c2].mark = 1
 	//debug.Add("Connect(%d, %d) %v %v", c1, c2, g.rooms[c1], g.rooms[c2])
 }
 
 // ----------------------------------------------------------------------------
-// Returns the total number paths coming in or going out of the given cell
-func (g *RoomGraph) CountPaths(cell int) int {
+// Returns the total number corridors coming in or going out of the given cell
+func (g *RoomGraph) CountCorridors(cell int) int {
 	count := 0
-	for _, p := range g.paths {
+	for _, p := range g.corridors {
 		if (p.origID == cell || p.destID == cell) && p.mark != -1 {
 			count++
 		}
@@ -192,7 +192,7 @@ func (g *RoomGraph) CountPaths(cell int) int {
 }
 
 // ----------------------------------------------------------------------------
-// Gives the relative Direction when going from c1 to c2.  Used to build paths.
+// Gives the relative Direction when going from c1 to c2.  Used to build corridors.
 func (g *RoomGraph) Direction(c1, c2 int) Direction {
 	col1, row1 := c1%3, c1/3
 	col2, row2 := c2%3, c2/3
@@ -281,18 +281,18 @@ func (g *RoomGraph) Neighbours(cell int) []int {
 }
 
 // ----------------------------------------------------------------------------
-// For a given cell, checks if it is a deadend (just one path with no room attached)
-// and removes the path if it is.
+// For a given cell, checks if it is a deadend (just one corridor with no room attached)
+// and removes the corridor if it is.
 func (g *RoomGraph) PruneDeadends(cell int, depth int) {
 
 	// check if the given cell is a dead end
-	if g.rooms[cell].mark == -1 && g.CountPaths(cell) == 1 {
+	if g.rooms[cell].mark == -1 && g.CountCorridors(cell) == 1 {
 
-		// if it is, remove all the paths (should be just one)
-		for i, p := range g.paths {
+		// if it is, remove all the corridors (should be just one)
+		for i, p := range g.corridors {
 			if (p.origID == cell || p.destID == cell) && p.mark != -1 {
-				g.paths[i].mark = -1
-				//debug.Add("%d dropping path %v, cell=%d", depth, p, cell)
+				g.corridors[i].mark = -1
+				//debug.Add("%d dropping corridor %v, cell=%d", depth, p, cell)
 
 				// check to see if we just created another deadend
 				if p.origID == cell {
@@ -399,7 +399,7 @@ func (r *Room) InRoom(x, y int) bool {
 
 /*****************************************************************************/
 
-type Path struct {
+type Corridor struct {
 	origID int
 	destID int
 	mark   int // 0=normal, -1=dropped
