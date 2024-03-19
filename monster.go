@@ -72,7 +72,7 @@ func randomMonster(depth int) *Monster {
 	if min < len(MonsterLib) { // Ensure we don't go out of bounds
 		idx = rand.Intn(max-min) + min
 	}
-	debug.Add("monster: len=%d, min=%d, max=%d, idx=%d", len(MonsterLib), min, max, idx)
+	//debug.Add("monster: len=%d, min=%d, max=%d, idx=%d", len(MonsterLib), min, max, idx)
 	return newMonster(idx)
 }
 

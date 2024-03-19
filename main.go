@@ -14,11 +14,11 @@ var debug = DebugMessageLog{}
 
 type GameCommand int
 
+var path []Coord
+
 const (
 	CmdNop GameCommand = iota
 	CmdDebug
-	CmdDebug2
-	CmdTest1
 	CmdQuit
 	CmdNorth
 	CmdSouth
@@ -74,7 +74,6 @@ func main() {
 	generateRandomLevel(&dungeon, &monsters, &player)
 
 	debugFlag := false
-	debug2Flag := false
 	doneFlag := false
 	var doUpdate bool
 
@@ -99,12 +98,10 @@ func main() {
 			disp.DrawDebugFrame(&player, &monsters)
 			//drawGenerateDebug(&disp)
 			debug.Draw(&disp, 84, 15)
-		}
-
-		if debug2Flag {
-			for _, m := range monsters {
-				drawPathDebug(&disp, m.path, '*')
-			}
+			//for _, m := range monsters {
+			//	drawPathDebug(&disp, m.path, '*')
+			//}
+			drawPathDebug(&disp, path, '*')
 		}
 
 		disp.Show()
@@ -157,12 +154,6 @@ func main() {
 		case CmdDebug:
 			doUpdate = false
 			debugFlag = !debugFlag
-		case CmdDebug2:
-			doUpdate = false
-			debug2Flag = !debugFlag
-		case CmdTest1:
-			doUpdate = false
-			//findPathStep(&dungeon)
 		case CmdGenerate:
 			doUpdate = false
 			debug.Clear()
@@ -178,7 +169,6 @@ func main() {
 		for _, r := range dungeon.rooms {
 			if r.InRoom(player.X, player.Y) {
 				dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)
-				//debug.Add(" player in room %d %v", i, r)
 			}
 		}
 
@@ -188,9 +178,13 @@ func main() {
 			player.Update()
 		}
 
+		// Test some pathfinding stuff
+		pathX, pathY := dungeon.rooms[0].Center()
+		path = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
 	}
 }
 
+// -----------------------------------------------------------------------
 func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) {
 	for i, m := range *ml {
 
@@ -240,6 +234,7 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 	}
 }
 
+// -----------------------------------------------------------------------
 func randDirectionCoords() (x, y int) {
 	count := 0
 	for (x == 0 && y == 0) && count < 10 {
@@ -314,6 +309,4 @@ func GenerateTestLevel(m *DungeonMap, p *Player, ml *MonsterList) {
 	p.SetPos(x1, y1)
 	p.depth++
 
-	// Test some pathfinding stuff
-	//findPath(m, x2, y2, x3, y3)
 }

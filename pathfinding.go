@@ -32,20 +32,26 @@ func (q *CoordQueue) IsEmpty() bool {
 }
 
 // -----------------------------------------------------------------------
+//type Path struct { // Need to rename all other Path (room connections)
+//	steps []Coord
+//	count int
+//}
+
+// A simple Breadth First Seach pathfinding algorithm.  Using A* would be
+// more optimal but the complexity is low for this game (small map, only
+// a few monsters chasing at any given time.)
 // https://www.redblobgames.com/pathfinding/a-star/introduction.html
 func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) []Coord {
 	// Declarations
 	start := Coord{x1, y1}
 	end := Coord{x2, y2}
 	frontier := CoordQueue{}
-	reached := map[Coord]bool{}
 	cameFrom := map[Coord]Coord{}
 	pathCount := 0
 
 	// Initialize
 	frontier.Add(start)
-	reached[start] = true
-	cameFrom[start] = Coord{-1, -1}
+	cameFrom[start] = Coord{start.X, start.Y}
 
 	// While path not found yet or no more explorable areas
 	_, foundPath := cameFrom[end]
@@ -53,17 +59,18 @@ func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) []Coord {
 		current := frontier.Next()
 
 		nb := dm.getWalkableNeighbours(current)
-		//debug.Add("nb: %v", nb)
 		for _, next := range nb {
-			if !reached[next] {
+			_, reached := cameFrom[next]
+			if !reached {
 				frontier.Add(next)
-				reached[next] = true
 				cameFrom[next] = current
 			}
 		}
 		_, foundPath = cameFrom[end]
 		pathCount++
 	}
+
+	//debug.Add("path found: %d steps", pathCount)
 
 	// Build a slice to hold the path we found
 	var ok bool
