@@ -32,16 +32,17 @@ func (q *CoordQueue) IsEmpty() bool {
 }
 
 // -----------------------------------------------------------------------
-//type Path struct { // Need to rename all other Path (room connections)
-//	steps []Coord
-//	count int
-//}
+type Path struct { // Need to rename all other Path (room connections)
+	steps []Coord
+	algo  string
+	iter  int
+}
 
 // A simple Breadth First Seach pathfinding algorithm.  Using A* would be
 // more optimal but the complexity is low for this game (small map, only
 // a few monsters chasing at any given time.)
 // https://www.redblobgames.com/pathfinding/a-star/introduction.html
-func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) []Coord {
+func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) Path {
 	// Declarations
 	start := Coord{x1, y1}
 	end := Coord{x2, y2}
@@ -73,23 +74,111 @@ func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) []Coord {
 	//debug.Add("path found: %d steps", pathCount)
 
 	// Build a slice to hold the path we found
+	path := Path{
+		algo: "bfs",
+		iter: pathCount,
+	}
 	var ok bool
-	path := []Coord{}
 	current := end
 	for current != start {
-		path = append(path, current)
+		path.steps = append(path.steps, current)
 		current, ok = cameFrom[current]
 		if !ok {
 			break
 		}
 	}
-	slices.Reverse(path)
+	slices.Reverse(path.steps)
 	return path
 }
 
 // -----------------------------------------------------------------------
-func drawPathDebug(disp *Display, path []Coord, ch rune) {
-	for _, pos := range path {
+func drawPathDebug(disp *Display, path Path, ch rune) {
+	for _, pos := range path.steps {
 		disp.Screen.SetContent(pos.X, pos.Y+1, ch, nil, disp.Style("debug2"))
+	}
+}
+
+/******************************************************************************
+* Dijkstra Map or Distance Transform
+ */
+
+type DMap struct {
+	targets  []Coord
+	distance map[Coord]int
+	iter     int
+}
+
+func newDMap() *DMap {
+	return &DMap{
+		make([]Coord, 0),
+		make(map[Coord]int),
+		0,
+	}
+}
+
+func (m *DMap) AddTarget(c Coord) {
+	m.targets = append(m.targets, c)
+}
+
+func (m *DMap) RemoveTarget(c Coord) {
+}
+
+func (m *DMap) ClearTargets() {
+	m.targets = []Coord{}
+}
+
+func (m *DMap) Clear() {
+}
+
+func (m *DMap) Calculate(dng *DungeonMap) {
+	frontier := CoordQueue{}
+	iterations := 0
+
+	// Initialize
+	for _, start := range m.targets {
+		frontier.Add(start)
+		m.distance[start] = 0
+	}
+
+	for !frontier.IsEmpty() {
+		current := frontier.Next()
+		nb := dng.getWalkableNeighbours(current)
+		for _, next := range nb {
+			_, reached := m.distance[next]
+			if !reached {
+				frontier.Add(next)
+				m.distance[next] = m.distance[current] + 1
+			}
+		}
+		iterations++
+	}
+	m.iter = iterations
+}
+
+func (m *DMap) PathFrom(pos Coord) {
+}
+
+func (m *DMap) Draw(disp *Display) {
+
+	styleName := []string{
+		"yellow",
+		"orange",
+		"red",
+		"purple",
+		"darkblue",
+		"blue",
+		"green",
+	}
+
+	for pos, dist := range m.distance {
+		if dist != 0 {
+			color := dist / 10
+			style := disp.Style("default")
+			if color < len(styleName) {
+				style = disp.Style(styleName[color])
+			}
+			ch := rune('1' + (dist % 10) - 1)
+			disp.Screen.SetContent(pos.X, pos.Y+1, ch, nil, style)
+		}
 	}
 }

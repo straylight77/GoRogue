@@ -120,7 +120,7 @@ type Monster struct {
 	isMean   bool // once visible, start chasing player
 	isGreedy bool // move towards any nearby gold
 	randMove int
-	path     []Coord
+	path     Path
 }
 
 const (

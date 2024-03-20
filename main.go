@@ -14,7 +14,8 @@ var debug = DebugMessageLog{}
 
 type GameCommand int
 
-var path []Coord
+var path Path
+var dmap *DMap
 
 const (
 	CmdNop GameCommand = iota
@@ -80,6 +81,18 @@ func main() {
 	for !doneFlag {
 		doUpdate = true
 
+		// Test some pathfinding stuff
+		pathX, pathY := dungeon.rooms[0].Center()
+		path = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
+
+		// Testing Dijkstra Maps (pathfinding)
+		dmap = newDMap()
+		dmap.AddTarget(Coord{player.X, player.Y})
+		for _, m := range monsters {
+			dmap.AddTarget(Coord{m.X, m.Y})
+		}
+		dmap.Calculate(&dungeon)
+
 		// Draw the world
 		disp.Clear()
 		disp.DrawMap(&dungeon, debugFlag)
@@ -101,12 +114,9 @@ func main() {
 			//for _, m := range monsters {
 			//	drawPathDebug(&disp, m.path, '*')
 			//}
-			drawPathDebug(&disp, path, '*')
+			//drawPathDebug(&disp, path, '*')
+			dmap.Draw(&disp)
 		}
-
-		// Test some pathfinding stuff
-		pathX, pathY := dungeon.rooms[0].Center()
-		path = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
 
 		disp.Show()
 
@@ -227,7 +237,7 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 				// Do pathfinding to the player and take the first step
 				// What happens when player goes out of sight?
 				m.path = findPathBFS(&dungeon, m.X, m.Y, player.X, player.Y)
-				dx, dy := m.DirectionCoordsTo(m.path[0].X, m.path[0].Y)
+				dx, dy := m.DirectionCoordsTo(m.path.steps[0].X, m.path.steps[0].Y)
 				moveMonster(m, dx, dy, &dungeon, &player, &monsters)
 			}
 		}
