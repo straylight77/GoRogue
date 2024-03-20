@@ -155,7 +155,46 @@ func (m *DMap) Calculate(dng *DungeonMap) {
 	m.iter = iterations
 }
 
-func (m *DMap) PathFrom(pos Coord) {
+func (m *DMap) PathFrom(pos Coord) Path {
+	path := Path{
+		algo: "dmap",
+		iter: 0,
+	}
+	current := pos
+	for m.distance[current] != 0 {
+		path.steps = append(path.steps, current)
+		current = m.getLeastNeighbour(current)
+	}
+	slices.Reverse(path.steps)
+	return path
+
+}
+
+func (m *DMap) getLeastNeighbour(pos Coord) Coord {
+	toCheck := []Coord{
+		// Cardinal directions first
+		{pos.X - 1, pos.Y},
+		{pos.X, pos.Y + 1},
+		{pos.X + 1, pos.Y},
+		{pos.X, pos.Y - 1},
+		// Then the diagonals
+		{pos.X - 1, pos.Y - 1},
+		{pos.X - 1, pos.Y + 1},
+		{pos.X + 1, pos.Y - 1},
+		{pos.X + 1, pos.Y + 1},
+	}
+
+	minDist := m.distance[pos]
+	minCoord := Coord{-1, -1}
+	for _, check := range toCheck {
+		dist, ok := m.distance[check]
+		if ok && dist < minDist {
+			minDist = m.distance[check]
+			minCoord = check
+		}
+	}
+	return minCoord
+
 }
 
 func (m *DMap) Draw(disp *Display) {
@@ -167,7 +206,9 @@ func (m *DMap) Draw(disp *Display) {
 		"purple",
 		"darkblue",
 		"blue",
+		"bluegreen",
 		"green",
+		"darkgreen",
 	}
 
 	for pos, dist := range m.distance {

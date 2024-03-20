@@ -60,15 +60,16 @@ func (d *Display) Init() {
 	d.styles = make(map[string]tcell.Style)
 	d.styles["default"] = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
 	d.styles["debug"] = tcell.StyleDefault.Foreground(tcell.ColorLightSkyBlue)
-	d.styles["debug2"] = tcell.StyleDefault.Foreground(tcell.ColorRed)
+	d.styles["debug2"] = tcell.StyleDefault.Foreground(tcell.ColorRed).Background(tcell.ColorDarkRed)
 	d.styles["yellow"] = tcell.StyleDefault.Foreground(tcell.ColorYellow)
 	d.styles["orange"] = tcell.StyleDefault.Foreground(tcell.ColorOrange)
 	d.styles["red"] = tcell.StyleDefault.Foreground(tcell.ColorRed)
 	d.styles["purple"] = tcell.StyleDefault.Foreground(tcell.ColorPurple)
+	d.styles["darkblue"] = tcell.StyleDefault.Foreground(tcell.ColorNavy)
 	d.styles["blue"] = tcell.StyleDefault.Foreground(tcell.ColorBlue)
-	d.styles["lightblue"] = tcell.StyleDefault.Foreground(tcell.ColorLightBlue)
-	d.styles["darkblue"] = tcell.StyleDefault.Foreground(tcell.ColorDarkBlue)
+	d.styles["bluegreen"] = tcell.StyleDefault.Foreground(tcell.ColorAquaMarine)
 	d.styles["green"] = tcell.StyleDefault.Foreground(tcell.ColorGreen)
+	d.styles["darkgreen"] = tcell.StyleDefault.Foreground(tcell.ColorDarkGreen)
 
 	scr.SetStyle(d.styles["default"])
 	scr.SetCursorStyle(tcell.CursorStyleSteadyBlock)
@@ -182,7 +183,7 @@ func (d *Display) DrawEntity(e Entity) {
 func (d *Display) DrawPlayer(p *Player) {
 	x, y := p.Pos()
 	d.Screen.SetContent(x, y+1, '@', nil, d.Style("default"))
-	d.Screen.ShowCursor(x, y+1)
+	//d.Screen.ShowCursor(x, y+1)
 }
 
 // -----------------------------------------------------------------------------

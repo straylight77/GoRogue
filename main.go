@@ -12,10 +12,11 @@ var messages MessageLog
 var disp Display
 var debug = DebugMessageLog{}
 
-type GameCommand int
-
-var path Path
+var path1 Path
+var path2 Path
 var dmap *DMap
+
+type GameCommand int
 
 const (
 	CmdNop GameCommand = iota
@@ -28,7 +29,7 @@ const (
 	CmdUp
 	CmdDown
 	CmdWait
-	CmdTick
+	CmdTick     // redundant with CmdNop?
 	CmdGenerate // for testing
 	CmdMessages
 )
@@ -81,17 +82,15 @@ func main() {
 	for !doneFlag {
 		doUpdate = true
 
-		// Test some pathfinding stuff
+		// ===== Test some pathfinding stuff ====
 		pathX, pathY := dungeon.rooms[0].Center()
-		path = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
+		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
 
-		// Testing Dijkstra Maps (pathfinding)
+		// ==== Testing Dijkstra Maps ====
 		dmap = newDMap()
 		dmap.AddTarget(Coord{player.X, player.Y})
-		for _, m := range monsters {
-			dmap.AddTarget(Coord{m.X, m.Y})
-		}
 		dmap.Calculate(&dungeon)
+		path2 = dmap.PathFrom(Coord{pathX, pathY})
 
 		// Draw the world
 		disp.Clear()
@@ -111,11 +110,9 @@ func main() {
 			drawDebugFrame(&disp, &player, &monsters)
 			//drawGenerateDebug(&disp)
 			debug.Draw(&disp, 84, 15)
-			//for _, m := range monsters {
-			//	drawPathDebug(&disp, m.path, '*')
-			//}
-			//drawPathDebug(&disp, path, '*')
 			dmap.Draw(&disp)
+			//drawPathDebug(&disp, path1, 'x')
+			drawPathDebug(&disp, path2, '*')
 		}
 
 		disp.Show()
