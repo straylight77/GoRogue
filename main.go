@@ -73,7 +73,7 @@ func main() {
 	//GenerateTestLevel(&dungeon, &player, &monsters)
 	generateRandomLevel(&dungeon, &monsters, &player)
 
-	debugFlag := false
+	debugFlag := true
 	doneFlag := false
 	var doUpdate bool
 
@@ -84,7 +84,7 @@ func main() {
 		disp.Clear()
 		disp.DrawMap(&dungeon, debugFlag)
 		disp.DrawMessages(&messages)
-		disp.DrawText(0, 24, player.InfoString())
+		disp.Print(0, 24, player.InfoString())
 
 		for _, m := range monsters {
 			mx, my := m.Pos()
@@ -95,7 +95,7 @@ func main() {
 		disp.DrawPlayer(&player)
 
 		if debugFlag {
-			disp.DrawDebugFrame(&player, &monsters)
+			drawDebugFrame(&disp, &player, &monsters)
 			//drawGenerateDebug(&disp)
 			debug.Draw(&disp, 84, 15)
 			//for _, m := range monsters {
@@ -103,6 +103,10 @@ func main() {
 			//}
 			drawPathDebug(&disp, path, '*')
 		}
+
+		// Test some pathfinding stuff
+		pathX, pathY := dungeon.rooms[0].Center()
+		path = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
 
 		disp.Show()
 
@@ -178,9 +182,6 @@ func main() {
 			player.Update()
 		}
 
-		// Test some pathfinding stuff
-		pathX, pathY := dungeon.rooms[0].Center()
-		path = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
 	}
 }
 

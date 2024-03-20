@@ -28,7 +28,6 @@ var RuneCmdLookup = map[rune]GameCommand{
 }
 
 var TileRunes = map[TileType]rune{
-	//TileEmpty:    tcell.RuneCkBoard, // for testing
 	TileEmpty:    ' ',
 	TileWallH:    '-',
 	TileWallV:    '|',
@@ -44,30 +43,29 @@ var TileRunes = map[TileType]rune{
 }
 
 type Display struct {
-	Screen      tcell.Screen
-	DefStyle    tcell.Style
-	DebugStyle  tcell.Style
-	Debug2Style tcell.Style
+	Screen tcell.Screen
+	styles map[string]tcell.Style
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) Init() {
-	s, err := tcell.NewScreen()
+	scr, err := tcell.NewScreen()
 	if err != nil {
 		log.Fatalf("%+v", err)
 	}
-	if err := s.Init(); err != nil {
+	if err := scr.Init(); err != nil {
 		log.Fatalf("%+v", err)
 	}
 
-	d.DefStyle = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
-	d.DebugStyle = tcell.StyleDefault.Foreground(tcell.ColorLightSkyBlue)
-	d.Debug2Style = tcell.StyleDefault.Foreground(tcell.ColorRed)
+	d.styles = make(map[string]tcell.Style)
+	d.styles["default"] = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
+	d.styles["debug"] = tcell.StyleDefault.Foreground(tcell.ColorLightSkyBlue)
+	d.styles["debug2"] = tcell.StyleDefault.Foreground(tcell.ColorRed)
 
-	s.SetStyle(d.DefStyle)
-	s.SetCursorStyle(tcell.CursorStyleSteadyBlock)
-	s.Clear()
-	d.Screen = s
+	scr.SetStyle(d.styles["default"])
+	scr.SetCursorStyle(tcell.CursorStyleSteadyBlock)
+	scr.Clear()
+	d.Screen = scr
 }
 
 // -----------------------------------------------------------------------------
@@ -90,25 +88,92 @@ func (d *Display) Show() {
 }
 
 // -----------------------------------------------------------------------------
+func (d *Display) Style(styleName string) tcell.Style {
+	style, ok := d.styles[styleName]
+	if !ok {
+		style = tcell.StyleDefault.Background(tcell.ColorReset).Foreground(tcell.ColorReset)
+	}
+	return style
+}
+
+// -----------------------------------------------------------------------------
 func (d *Display) Printf(x, y int, format string, vals ...any) {
 	text := fmt.Sprintf(format, vals...)
-	col, row := x, y
+	d.DrawText(x, y, "default", text)
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) Print(x, y int, vals ...any) {
+	text := fmt.Sprint(vals...)
+	d.DrawText(x, y, "default", text)
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) Debugf(x, y int, format string, vals ...any) {
+	text := fmt.Sprintf(format, vals...)
+	d.DrawText(x, y, "debug", text)
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) Debug(x, y int, vals ...any) {
+	text := fmt.Sprint(vals...)
+	d.DrawText(x, y, "debug", text)
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawText(x1, y1 int, styleName string, text string) {
+	style := d.Style(styleName)
+	row := y1
+	col := x1
 	for _, r := range []rune(text) {
-		d.Screen.SetContent(col, row, r, nil, d.DefStyle)
+		d.Screen.SetContent(col, row, r, nil, style)
 		col++
+	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawBox(x, y int, w, h int, styleName string) {
+	style := d.Style(styleName)
+	for col := x; col <= x+w; col++ {
+		d.Screen.SetContent(col, y, tcell.RuneHLine, nil, style)
+		d.Screen.SetContent(col, y+h, tcell.RuneHLine, nil, style)
+	}
+	for row := y; row <= y+h; row++ {
+		d.Screen.SetContent(x, row, tcell.RuneVLine, nil, style)
+		d.Screen.SetContent(x+w, row, tcell.RuneVLine, nil, style)
+	}
+	d.Screen.SetContent(x, y, tcell.RuneULCorner, nil, style)
+	d.Screen.SetContent(x+w, y, tcell.RuneURCorner, nil, style)
+	d.Screen.SetContent(x, y+h, tcell.RuneLLCorner, nil, style)
+	d.Screen.SetContent(x+w, y+h, tcell.RuneLRCorner, nil, style)
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawHLine(row int, from, to int, styleName string) {
+	style := d.Style(styleName)
+	for i := from; i <= to; i++ {
+		d.Screen.SetContent(i, row, tcell.RuneHLine, nil, style)
+	}
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawVLine(col int, from, to int, styleName string) {
+	style := d.Style(styleName)
+	for i := from; i < to; i++ {
+		d.Screen.SetContent(col, i, tcell.RuneVLine, nil, style)
 	}
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawEntity(e Entity) {
 	x, y := e.Pos()
-	d.Screen.SetContent(x, y+1, e.Rune(), nil, d.DefStyle)
+	d.Screen.SetContent(x, y+1, e.Rune(), nil, d.Style("default"))
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawPlayer(p *Player) {
 	x, y := p.Pos()
-	d.Screen.SetContent(x, y+1, '@', nil, d.DefStyle)
+	d.Screen.SetContent(x, y+1, '@', nil, d.Style("default"))
 	d.Screen.ShowCursor(x, y+1)
 }
 
@@ -117,16 +182,17 @@ func (d *Display) DrawMap(m *DungeonMap, showAll bool) {
 	for x, col := range m.tiles {
 		for y, t := range col {
 			r := TileRunes[t.typ]
+
 			if showAll {
-				d.Screen.SetContent(x, y+1, r, nil, d.DebugStyle)
+				d.Screen.SetContent(x, y+1, r, nil, d.Style("debug"))
 			}
 
 			if t.visible {
 				// y+1 because first line is the message line
-				d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)
+				d.Screen.SetContent(x, y+1, r, nil, d.Style("default"))
 			} else if t.visited && t.typ != TileFloor {
 				// have the option to use a different style here
-				d.Screen.SetContent(x, y+1, r, nil, d.DefStyle)
+				d.Screen.SetContent(x, y+1, r, nil, d.Style("default"))
 			}
 		}
 	}
@@ -136,7 +202,7 @@ func (d *Display) DrawMap(m *DungeonMap, showAll bool) {
 func (d *Display) DrawMessages(log *MessageLog) {
 	if log.HasUnread() {
 		s := log.LatestAsStr()
-		drawTextWrap(d.Screen, 0, 0, 80, 3, d.DefStyle, s)
+		drawTextWrap(d.Screen, 0, 0, 80, 3, d.Style("default"), s)
 		log.ClearUnread()
 	}
 }
@@ -144,7 +210,7 @@ func (d *Display) DrawMessages(log *MessageLog) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawMessageHistory(log *MessageLog) {
 	d.Clear()
-	d.DrawText(0, 0, "MESSAGE HISTORY:")
+	d.Print(0, 0, "MESSAGE HISTORY:")
 	for i, m := range log.Last(20) {
 		d.Printf(0, i+1, "%d: %v", i, m)
 	}
@@ -154,53 +220,8 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawText(x1, y1 int, text string) {
-	row := y1
-	col := x1
-	for _, r := range []rune(text) {
-		d.Screen.SetContent(col, row, r, nil, d.DefStyle)
-		col++
-	}
-}
-
-// -----------------------------------------------------------------------------
-func (d *Display) DrawDebug(x1, y1 int, text string) {
-	row := y1
-	col := x1
-	for _, r := range []rune(text) {
-		d.Screen.SetContent(col, row, r, nil, d.DebugStyle)
-		col++
-	}
-}
-
-// -----------------------------------------------------------------------------
-func (d *Display) DrawHLine(row int, from, to int, style tcell.Style) {
-	for i := from; i <= to; i++ {
-		d.Screen.SetContent(i, row, tcell.RuneHLine, nil, style)
-	}
-}
-
-// -----------------------------------------------------------------------------
-func (d *Display) DrawVLine(col int, from, to int, style tcell.Style) {
-	for i := from; i < to; i++ {
-		d.Screen.SetContent(col, i, tcell.RuneVLine, nil, style)
-	}
-}
-
-// -----------------------------------------------------------------------------
-func (d *Display) DrawDebugFrame(p *Player, ml *MonsterList) {
-	maxX, maxY := 80, 25
-	d.DrawHLine(maxY, 0, maxX, d.DebugStyle)
-	d.DrawVLine(maxX, 0, maxY, d.DebugStyle)
-	d.Screen.SetContent(maxX, maxY, tcell.RuneLRCorner, nil, d.DebugStyle)
-
-	d.DrawDebug(84, 1, fmt.Sprintf("Moves:  %d", p.moves))
-	d.DrawDebug(84, 2, fmt.Sprintf("Pos: %d, %d", p.X, p.Y))
-	d.DrawDebug(84, 3, fmt.Sprintf("Heal: %d,  Food: %d", p.healCount, p.foodCount))
-	for i, m := range *ml {
-		msg := fmt.Sprintf("%d: %v", i, m.DebugString())
-		d.DrawDebug(84, 5+i, msg)
-	}
+func (d *Display) WaitForKeypress() {
+	d.Screen.PollEvent() // blocks until input from user
 }
 
 // -----------------------------------------------------------------------------
@@ -231,11 +252,6 @@ func (d *Display) GetCommand() (cmd GameCommand) {
 		}
 	}
 	return cmd
-}
-
-// -----------------------------------------------------------------------------
-func (d *Display) WaitForKeypress() {
-	d.Screen.PollEvent() // blocks until input from user
 }
 
 // ============================================================================

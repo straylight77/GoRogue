@@ -82,7 +82,15 @@ func (m *DungeonMap) TileTypeAt(x, y int) TileType {
 }
 
 // -----------------------------------------------------------------------
+func (m *DungeonMap) IsOutOfBounds(x, y int) bool {
+	return x < 0 || x >= MapMaxX || y < 0 || y >= MapMaxY
+}
+
+// -----------------------------------------------------------------------
 func (m *DungeonMap) IsWalkableAt(x, y int) bool {
+	if m.IsOutOfBounds(x, y) {
+		return false
+	}
 	return m.tiles[x][y].IsWalkable()
 }
 

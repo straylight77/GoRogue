@@ -90,6 +90,6 @@ func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) []Coord {
 // -----------------------------------------------------------------------
 func drawPathDebug(disp *Display, path []Coord, ch rune) {
 	for _, pos := range path {
-		disp.Screen.SetContent(pos.X, pos.Y+1, ch, nil, disp.Debug2Style)
+		disp.Screen.SetContent(pos.X, pos.Y+1, ch, nil, disp.Style("debug2"))
 	}
 }
