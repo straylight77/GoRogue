@@ -33,8 +33,8 @@ func drawDebugFrame(d *Display, p *Player, ml *MonsterList) {
 	d.Debugf(84, 1, "Moves:  %d", p.moves)
 	d.Debugf(84, 2, "Pos: %d, %d", p.X, p.Y)
 	//d.Debugf(84, 3, "Heal: %d,  Food: %d", p.healCount, p.foodCount)
-	d.Debugf(84, 4, "path1: algo=%s, iter=%d, len=%d", path1.algo, path1.iter, len(path1.steps))
-	d.Debugf(84, 5, "path2: algo=%s, iter=%d, len=%d", path2.algo, path2.iter, len(path2.steps))
+	d.Debugf(84, 4, "path1: %v", path1)
+	d.Debugf(84, 5, "path2: %v", path2)
 	if dmap != nil {
 		d.Debugf(84, 6, "dmap: iter=%d", dmap.iter)
 	}

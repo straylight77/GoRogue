@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"slices"
 )
 
@@ -36,6 +37,10 @@ type Path struct { // Need to rename all other Path (room connections)
 	steps []Coord
 	algo  string
 	iter  int
+}
+
+func (p Path) String() string {
+	return fmt.Sprintf("len=%d, algo=%s, iter=%d", len(p.steps), p.algo, p.iter)
 }
 
 // A simple Breadth First Seach pathfinding algorithm.  Using A* would be

@@ -15,6 +15,7 @@ var debug = DebugMessageLog{}
 var path1 Path
 var path2 Path
 var dmap *DMap
+var RoomID int
 
 var debugFlag = map[string]bool{
 	"main":     true,
@@ -86,14 +87,14 @@ func main() {
 	//GenerateTestLevel(&dungeon, &player, &monsters)
 	generateRandomLevel(&dungeon, &monsters, &player)
 
-	doneFlag := false
+	done := false
 	var doUpdate bool
 
-	for !doneFlag {
+	for !done {
 		doUpdate = true
 
 		// ===== Test some pathfinding stuff ====
-		pathX, pathY := dungeon.rooms[0].Center()
+		pathX, pathY := dungeon.rooms[RoomID].Center()
 		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
 
 		// ==== Testing Dijkstra Maps ====
@@ -150,7 +151,7 @@ func main() {
 			disp.WaitForKeypress()
 		case CmdQuit:
 			doUpdate = false
-			doneFlag = true
+			done = true
 
 		// Commands that do increment time
 		case CmdWest:
@@ -179,18 +180,23 @@ func main() {
 
 		// Extra debugging and testing stuff
 		case CmdDebug1:
+			doUpdate = false
 			debugFlag["main"] = !debugFlag["main"]
-			doUpdate = false
 		case CmdDebug2:
+			doUpdate = false
 			debugFlag["generate"] = !debugFlag["generate"]
-			doUpdate = false
 		case CmdDebug3:
+			doUpdate = false
 			debugFlag["dmap"] = !debugFlag["dmap"]
-			doUpdate = false
 		case CmdDebug4:
-			debugFlag["path"] = !debugFlag["path"]
 			doUpdate = false
-
+			debugFlag["path"] = !debugFlag["path"]
+		case CmdDebug5:
+			doUpdate = false
+			RoomID++
+			if RoomID >= len(dungeon.rooms) {
+				RoomID = 0
+			}
 		case CmdGenerate:
 			doUpdate = false
 			debug.Clear()
