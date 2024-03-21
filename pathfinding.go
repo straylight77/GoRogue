@@ -5,10 +5,6 @@ import (
 	"slices"
 )
 
-type Coord struct {
-	X, Y int
-}
-
 // -----------------------------------------------------------------------
 type CoordQueue struct {
 	items []Coord
@@ -105,6 +101,8 @@ func drawPathDebug(disp *Display, path Path, ch rune) {
 
 /******************************************************************************
 * Dijkstra Map or Distance Transform
+* https://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized
+* https://www.redblobgames.com/pathfinding/tower-defense/
  */
 
 type DMap struct {
@@ -147,10 +145,12 @@ func (m *DMap) Calculate(dng *DungeonMap) {
 
 	for !frontier.IsEmpty() {
 		current := frontier.Next()
-		nb := dng.getWalkableNeighbours(current)
+		nb := m.neighbours(current)
 		for _, next := range nb {
 			_, reached := m.distance[next]
-			if !reached {
+			if !reached &&
+				dng.IsWalkableAt(next.X, next.Y) &&
+				dng.IsWalkable(current, next) {
 				frontier.Add(next)
 				m.distance[next] = m.distance[current] + 1
 			}
@@ -160,23 +160,9 @@ func (m *DMap) Calculate(dng *DungeonMap) {
 	m.iter = iterations
 }
 
-func (m *DMap) PathFrom(pos Coord) Path {
-	path := Path{
-		algo: "dmap",
-		iter: 0,
-	}
-	current := pos
-	for m.distance[current] != 0 {
-		path.steps = append(path.steps, current)
-		current = m.getLeastNeighbour(current)
-	}
-	slices.Reverse(path.steps)
-	return path
-
-}
-
-func (m *DMap) getLeastNeighbour(pos Coord) Coord {
-	toCheck := []Coord{
+func (m *DMap) neighbours(pos Coord) []Coord {
+	// The order here determines how we traverse the graph
+	return []Coord{
 		// Cardinal directions first
 		{pos.X - 1, pos.Y},
 		{pos.X, pos.Y + 1},
@@ -189,17 +175,46 @@ func (m *DMap) getLeastNeighbour(pos Coord) Coord {
 		{pos.X + 1, pos.Y + 1},
 	}
 
-	minDist := m.distance[pos]
-	minCoord := Coord{-1, -1}
+}
+
+func (m *DMap) PathFrom(pos Coord) Path {
+	path := Path{
+		algo: "dmap",
+		iter: 0,
+	}
+	current := pos
+	for m.distance[current] != 0 {
+		path.steps = append(path.steps, current)
+		current = m.NextStep(current)
+	}
+	slices.Reverse(path.steps)
+	return path
+
+}
+
+func (m *DMap) NextStep(pos Coord) Coord {
+
+	// Reverse the search order since we're 'going downhill' compared to how
+	// the dmap was created
+	toCheck := m.neighbours(pos)
+	slices.Reverse(toCheck)
+
+	// We don't want just any neighbour that has less distance than our
+	// current one, we need to follow the sequence given (ie. the 'next'
+	// distance, not simple the minumum distance).  This will handle
+	// restricted diagonal movement (e.g. through doors, cooridors)
+
+	nextDist := m.distance[pos] - 1
+	nextCoord := Coord{-1, -1}
 	for _, check := range toCheck {
 		dist, ok := m.distance[check]
-		if ok && dist < minDist {
-			minDist = m.distance[check]
-			minCoord = check
+		if ok && dist == nextDist {
+			nextDist = m.distance[check]
+			nextCoord = check
 		}
 	}
-	return minCoord
 
+	return nextCoord
 }
 
 func (m *DMap) Draw(disp *Display) {

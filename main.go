@@ -20,8 +20,8 @@ var RoomID int
 var debugFlag = map[string]bool{
 	"main":     true,
 	"generate": false,
-	"dmap":     false,
-	"path":     false,
+	"dmap":     true,
+	"path":     true,
 }
 
 type GameCommand int
@@ -34,20 +34,26 @@ const (
 	CmdDebug4
 	CmdDebug5
 	CmdQuit
+
 	CmdNorth
-	CmdSouth
+	CmdNorthEast
 	CmdEast
+	CmdSouthEast
+	CmdSouth
+	CmdSouthWest
 	CmdWest
+	CmdNorthWest
+
 	CmdUp
 	CmdDown
 	CmdWait
-	CmdTick     // redundant with CmdNop?
+	CmdTick
 	CmdGenerate // for testing
 	CmdMessages
 )
 
 // -----------------------------------------------------------------------
-func movePlayer(p *Player, dx int, dy int, d *DungeonMap, mlist *MonsterList) {
+func movePlayer(p *Player, dx int, dy int, dng *DungeonMap, mlist *MonsterList) {
 	destX, destY := p.X+dx, p.Y+dy
 
 	// check edges of the map
@@ -65,8 +71,8 @@ func movePlayer(p *Player, dx int, dy int, d *DungeonMap, mlist *MonsterList) {
 	}
 
 	// check dungeon tile
-	destTile := d.TileAt(destX, destY)
-	if destTile.IsWalkable() {
+	pX, pY := p.Pos()
+	if dng.IsWalkable(Coord{pX, pY}, Coord{destX, destY}) {
 		p.SetPos(destX, destY)
 	}
 
@@ -154,14 +160,23 @@ func main() {
 			done = true
 
 		// Commands that do increment time
-		case CmdWest:
-			movePlayer(&player, -1, 0, &dungeon, &monsters)
-		case CmdEast:
-			movePlayer(&player, 1, 0, &dungeon, &monsters)
 		case CmdNorth:
 			movePlayer(&player, 0, -1, &dungeon, &monsters)
+		case CmdNorthEast:
+			movePlayer(&player, 1, -1, &dungeon, &monsters)
+		case CmdEast:
+			movePlayer(&player, 1, 0, &dungeon, &monsters)
+		case CmdSouthEast:
+			movePlayer(&player, 1, 1, &dungeon, &monsters)
 		case CmdSouth:
 			movePlayer(&player, 0, 1, &dungeon, &monsters)
+		case CmdSouthWest:
+			movePlayer(&player, -1, 1, &dungeon, &monsters)
+		case CmdWest:
+			movePlayer(&player, -1, 0, &dungeon, &monsters)
+		case CmdNorthWest:
+			movePlayer(&player, -1, -1, &dungeon, &monsters)
+
 		case CmdDown:
 			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
 				messages.Add("You decend the ancient stairs.")
@@ -309,8 +324,8 @@ func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player, mlist *Monste
 	}
 
 	// Check dungeon tile
-	destTile := d.TileAt(destX, destY)
-	if destTile.IsWalkable() {
+	mX, mY := m.Pos()
+	if d.IsWalkable(Coord{mX, mY}, Coord{destX, destY}) {
 		m.SetPos(destX, destY)
 		return true
 	} else {

@@ -51,6 +51,22 @@ func (t *Tile) IsType(t2 TileType) bool {
 
 /************************************************************************/
 
+type Coord struct {
+	X, Y int
+}
+
+func (c Coord) XY() (int, int) {
+	return c.X, c.Y
+}
+
+func (from Coord) IsDiagonal(to Coord) bool {
+	dx := to.X - from.X
+	dy := to.Y - from.Y
+	return dx != 0 && dy != 0
+}
+
+/************************************************************************/
+
 type DungeonMap struct {
 	tiles [MapMaxX][MapMaxY]Tile
 	rooms []Room
@@ -95,6 +111,21 @@ func (m *DungeonMap) IsWalkableAt(x, y int) bool {
 }
 
 // -----------------------------------------------------------------------
+// Prevent diagonal movement through doors and cooridors
+func (m *DungeonMap) IsWalkable(from, to Coord) bool {
+
+	walkable := m.IsWalkableAt(to.X, to.Y)
+
+	if from.IsDiagonal(to) {
+		if m.TileTypeAt(to.X, to.Y) == TileDoor ||
+			m.TileTypeAt(to.X, to.Y) == TileCorridor {
+			walkable = false
+		}
+	}
+	return walkable
+}
+
+// -----------------------------------------------------------------------
 func (dm *DungeonMap) getWalkableNeighbours(pos Coord) []Coord {
 	toCheck := []Coord{
 		// Cardinal directions first
@@ -110,7 +141,8 @@ func (dm *DungeonMap) getWalkableNeighbours(pos Coord) []Coord {
 	}
 	var final []Coord
 	for _, c := range toCheck {
-		if dm.IsWalkableAt(c.X, c.Y) {
+		//if dm.IsWalkableAt(c.X, c.Y) {
+		if dm.IsWalkable(pos, c) {
 			final = append(final, c)
 		}
 	}
