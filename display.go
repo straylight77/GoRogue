@@ -10,8 +10,6 @@ import (
 var KeyCmdLookup = map[tcell.Key]GameCommand{
 	tcell.KeyEscape: CmdQuit,
 	tcell.KeyCtrlC:  CmdQuit,
-	tcell.KeyCtrlD:  CmdDebug,
-	tcell.KeyCtrlG:  CmdGenerate,
 	tcell.KeyLeft:   CmdWest,
 	tcell.KeyRight:  CmdEast,
 	tcell.KeyUp:     CmdNorth,
@@ -19,6 +17,12 @@ var KeyCmdLookup = map[tcell.Key]GameCommand{
 }
 
 var RuneCmdLookup = map[rune]GameCommand{
+	'1': CmdDebug1,
+	'2': CmdDebug2,
+	'3': CmdDebug3,
+	'4': CmdDebug4,
+	'5': CmdDebug5,
+	'G': CmdGenerate,
 	'.': CmdWait,
 	' ': CmdTick,
 	'Q': CmdQuit,
@@ -183,7 +187,7 @@ func (d *Display) DrawEntity(e Entity) {
 func (d *Display) DrawPlayer(p *Player) {
 	x, y := p.Pos()
 	d.Screen.SetContent(x, y+1, '@', nil, d.Style("default"))
-	//d.Screen.ShowCursor(x, y+1)
+	d.Screen.ShowCursor(x, y+1)
 }
 
 // -----------------------------------------------------------------------------

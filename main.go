@@ -16,11 +16,22 @@ var path1 Path
 var path2 Path
 var dmap *DMap
 
+var debugFlag = map[string]bool{
+	"main":     true,
+	"generate": false,
+	"dmap":     false,
+	"path":     false,
+}
+
 type GameCommand int
 
 const (
 	CmdNop GameCommand = iota
-	CmdDebug
+	CmdDebug1
+	CmdDebug2
+	CmdDebug3
+	CmdDebug4
+	CmdDebug5
 	CmdQuit
 	CmdNorth
 	CmdSouth
@@ -75,7 +86,6 @@ func main() {
 	//GenerateTestLevel(&dungeon, &player, &monsters)
 	generateRandomLevel(&dungeon, &monsters, &player)
 
-	debugFlag := true
 	doneFlag := false
 	var doUpdate bool
 
@@ -94,23 +104,29 @@ func main() {
 
 		// Draw the world
 		disp.Clear()
-		disp.DrawMap(&dungeon, debugFlag)
+		disp.DrawMap(&dungeon, debugFlag["main"])
 		disp.DrawMessages(&messages)
 		disp.Print(0, 24, player.InfoString())
 
 		for _, m := range monsters {
 			mx, my := m.Pos()
-			if dungeon.TileAt(mx, my).visible || debugFlag {
+			if dungeon.TileAt(mx, my).visible || debugFlag["main"] {
 				disp.DrawEntity(m)
 			}
 		}
 		disp.DrawPlayer(&player)
 
-		if debugFlag {
+		if debugFlag["main"] {
 			drawDebugFrame(&disp, &player, &monsters)
-			//drawGenerateDebug(&disp)
 			debug.Draw(&disp, 84, 15)
+		}
+		if debugFlag["generate"] {
+			drawGenerateDebug(&disp)
+		}
+		if debugFlag["dmap"] {
 			dmap.Draw(&disp)
+		}
+		if debugFlag["path"] {
 			//drawPathDebug(&disp, path1, 'x')
 			drawPathDebug(&disp, path2, '*')
 		}
@@ -162,9 +178,19 @@ func main() {
 			//messages.Add("You rest for a moment.")
 
 		// Extra debugging and testing stuff
-		case CmdDebug:
+		case CmdDebug1:
+			debugFlag["main"] = !debugFlag["main"]
 			doUpdate = false
-			debugFlag = !debugFlag
+		case CmdDebug2:
+			debugFlag["generate"] = !debugFlag["generate"]
+			doUpdate = false
+		case CmdDebug3:
+			debugFlag["dmap"] = !debugFlag["dmap"]
+			doUpdate = false
+		case CmdDebug4:
+			debugFlag["path"] = !debugFlag["path"]
+			doUpdate = false
+
 		case CmdGenerate:
 			doUpdate = false
 			debug.Clear()
