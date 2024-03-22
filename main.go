@@ -18,7 +18,7 @@ var dmap *DMap
 var RoomID int
 
 var debugFlag = map[string]bool{
-	"main":     true,
+	"main":     false,
 	"generate": false,
 	"dmap":     false,
 	"path":     false,
@@ -53,32 +53,6 @@ const (
 )
 
 // -----------------------------------------------------------------------
-func movePlayer(p *Player, dx int, dy int, dng *DungeonMap, mlist *MonsterList) {
-	destX, destY := p.X+dx, p.Y+dy
-
-	// check edges of the map
-	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
-		messages.Add("That way is blocked.")
-		return
-	}
-
-	// check for monsters
-	m := mlist.MonsterAt(destX, destY)
-	if m != nil {
-		messages.Add(p.Attack(m))
-		m.State = StateChase
-		return
-	}
-
-	// check dungeon tile
-	pX, pY := p.Pos()
-	if dng.IsWalkable(Coord{pX, pY}, Coord{destX, destY}) {
-		p.SetPos(destX, destY)
-	}
-
-}
-
-// -----------------------------------------------------------------------
 func main() {
 	var cmd GameCommand
 
@@ -97,7 +71,6 @@ func main() {
 	var doUpdate bool
 
 	for !done {
-		doUpdate = true
 
 		// Draw the world
 		disp.Clear()
@@ -132,44 +105,41 @@ func main() {
 		cmd = disp.GetCommand()
 
 		// Handle user's command
+		doUpdate = false
 		switch cmd {
 
 		// Commands that do not increment time
 		case 0: // unkown command, just ignore
-			doUpdate = false
 		case CmdTick:
-			doUpdate = false
 			// Do nothing.  Used to redraw, clear recent messages, etc.
 		case CmdMessages:
-			doUpdate = false
 			disp.DrawMessageHistory(&messages)
 			disp.WaitForKeypress()
 		case CmdQuit:
-			doUpdate = false
 			done = true
 
 		// Commands that do increment time
 		case CmdNorth:
-			movePlayer(&player, 0, -1, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, 0, -1, &dungeon, &monsters)
 		case CmdNorthEast:
-			movePlayer(&player, 1, -1, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, 1, -1, &dungeon, &monsters)
 		case CmdEast:
-			movePlayer(&player, 1, 0, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, 1, 0, &dungeon, &monsters)
 		case CmdSouthEast:
-			movePlayer(&player, 1, 1, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, 1, 1, &dungeon, &monsters)
 		case CmdSouth:
-			movePlayer(&player, 0, 1, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, 0, 1, &dungeon, &monsters)
 		case CmdSouthWest:
-			movePlayer(&player, -1, 1, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, -1, 1, &dungeon, &monsters)
 		case CmdWest:
-			movePlayer(&player, -1, 0, &dungeon, &monsters)
+			doUpdate = movePlayer(&player, -1, 0, &dungeon, &monsters)
 		case CmdNorthWest:
-			movePlayer(&player, -1, -1, &dungeon, &monsters)
-
+			doUpdate = movePlayer(&player, -1, -1, &dungeon, &monsters)
 		case CmdDown:
 			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
 				messages.Add("You decend the ancient stairs.")
 				generateRandomLevel(&dungeon, &monsters, &player)
+				doUpdate = true
 			} else {
 				messages.Add("There are no stairs to go down here.")
 			}
@@ -180,43 +150,31 @@ func main() {
 				messages.Add("There are no stairs to go up here.")
 			}
 		case CmdWait:
+			doUpdate = true
 			//messages.Add("You rest for a moment.")
 
 		// Extra debugging and testing stuff
 		case CmdDebug1:
-			doUpdate = false
 			debugFlag["main"] = !debugFlag["main"]
 		case CmdDebug2:
-			doUpdate = false
 			debugFlag["generate"] = !debugFlag["generate"]
 		case CmdDebug3:
-			doUpdate = false
 			debugFlag["dmap"] = !debugFlag["dmap"]
 		case CmdDebug4:
-			doUpdate = false
 			debugFlag["path"] = !debugFlag["path"]
 		case CmdDebug5:
-			doUpdate = false
 			RoomID++
 			if RoomID >= len(dungeon.rooms) {
 				RoomID = 0
 			}
 		case CmdGenerate:
-			doUpdate = false
 			debug.Clear()
 			generateRandomLevel(&dungeon, &monsters, &player)
 			//GenerateTestLevel(&dungeon, &player, &monsters)
 		}
 
-		// ===== Test some pathfinding stuff ====
-		pathX, pathY := dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
-
-		// ==== Testing Dijkstra Maps ====
-		dmap = newDMap()
-		dmap.AddTarget(Coord{player.X, player.Y})
-		dmap.Calculate(&dungeon)
-		path2 = dmap.PathFrom(Coord{pathX, pathY})
+		// Recalculate the DMap for monsters to use to find the player
+		dmap = newDMap(&dungeon, Coord{player.X, player.Y})
 
 		// Update the player's field of view and visited tiles
 		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
@@ -234,6 +192,11 @@ func main() {
 			updateMonsters(&dungeon, &player, &monsters, &messages)
 			player.Update()
 		}
+
+		// ===== For testing pathfinding =====
+		pathX, pathY := dungeon.rooms[RoomID].Center()
+		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
+		path2 = dmap.PathFrom(Coord{pathX, pathY})
 
 	}
 }
@@ -330,10 +293,38 @@ func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player, mlist *Monste
 	if d.IsWalkable(Coord{mX, mY}, Coord{destX, destY}) {
 		m.SetPos(destX, destY)
 		return true
-	} else {
-		debug.Add("monster %v can't move: %d,%d -> %d,%d", m, mX, mY, destX, destY)
+	}
+
+	return false
+}
+
+// -----------------------------------------------------------------------
+// Returns if the player made a valid move (used to check if time should increment)
+func movePlayer(p *Player, dx int, dy int, dng *DungeonMap, mlist *MonsterList) bool {
+	destX, destY := p.X+dx, p.Y+dy
+
+	// check edges of the map
+	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
+		messages.Add("That way is blocked.")
 		return false
 	}
+
+	// check for monsters
+	m := mlist.MonsterAt(destX, destY)
+	if m != nil {
+		messages.Add(p.Attack(m))
+		m.State = StateChase
+		return true
+	}
+
+	// check dungeon tile
+	pX, pY := p.Pos()
+	if dng.IsWalkable(Coord{pX, pY}, Coord{destX, destY}) {
+		p.SetPos(destX, destY)
+		return true
+	}
+
+	return false
 }
 
 // -----------------------------------------------------------------------

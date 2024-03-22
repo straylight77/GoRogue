@@ -119,26 +119,37 @@ type DMap struct {
 	iter     int
 }
 
-func newDMap() *DMap {
-	return &DMap{
+// In most cases we want to give some targets and calculate right away
+func newDMap(dng *DungeonMap, targets ...Coord) *DMap {
+	m := &DMap{
 		make([]Coord, 0),
 		make(map[Coord]int),
 		0,
 	}
+
+	m.AddTargets(targets...)
+	m.Calculate(dng)
+	return m
 }
 
-func (m *DMap) AddTarget(c Coord) {
-	m.targets = append(m.targets, c)
+func (m *DMap) Reset(dng *DungeonMap, targets ...Coord) {
+	m.Clear()
+	m.AddTargets(targets...)
+	m.Calculate(dng)
+}
+
+func (m *DMap) AddTargets(c ...Coord) {
+	m.targets = append(m.targets, c...)
 }
 
 func (m *DMap) RemoveTarget(c Coord) {
 }
 
-func (m *DMap) ClearTargets() {
-	m.targets = []Coord{}
-}
-
 func (m *DMap) Clear() {
+	m.targets = make([]Coord, 0)
+	m.distance = make(map[Coord]int)
+	m.iter = 0
+
 }
 
 func (m *DMap) Calculate(dng *DungeonMap) {
@@ -193,10 +204,8 @@ func (m *DMap) PathFrom(pos Coord) Path {
 		path.steps = append(path.steps, current)
 		current = m.NextStep(current)
 	}
-	//slices.Reverse(path.steps)
-	path.steps = path.steps[1:]
-	return path
 
+	return path
 }
 
 func (m *DMap) NextStep(pos Coord) Coord {
