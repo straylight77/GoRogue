@@ -5,6 +5,9 @@ type Entity interface {
 	Pos() (int, int)
 	SetPos(int, int)
 	Rune() rune
+	Attack(Entity) string
+	Label() string
+	UpdateHP(amt int)
 }
 
 // -----------------------------------------------------------------------

@@ -66,11 +66,18 @@ func (p *Player) Rune() rune {
 	return p.Symbol
 }
 
-// -----------------------------------------------------------------------
-func (p *Player) Attack(m *Monster) string {
+func (p *Player) Label() string {
+	return "you"
+}
+
+func (p *Player) UpdateHP(amt int) {
+	p.HP += amt
+}
+
+func (p *Player) Attack(m Entity) string {
 	dmg := 1
-	m.HP -= dmg
-	msg := fmt.Sprintf("You hit the %v for %d damage.", m.Name, dmg)
+	m.UpdateHP(-dmg)
+	msg := fmt.Sprintf("You hit %v for %d damage.", m.Label(), dmg)
 	p.healCount++ // this shouldn't decrement when fighting
 	return msg
 }

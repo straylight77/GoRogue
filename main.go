@@ -120,21 +120,21 @@ func main() {
 
 		// Commands that do increment time
 		case CmdNorth:
-			doUpdate = movePlayer(&player, 0, -1, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, 0, -1, &dungeon, &player, &monsters)
 		case CmdNorthEast:
-			doUpdate = movePlayer(&player, 1, -1, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, 1, -1, &dungeon, &player, &monsters)
 		case CmdEast:
-			doUpdate = movePlayer(&player, 1, 0, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, 1, 0, &dungeon, &player, &monsters)
 		case CmdSouthEast:
-			doUpdate = movePlayer(&player, 1, 1, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, 1, 1, &dungeon, &player, &monsters)
 		case CmdSouth:
-			doUpdate = movePlayer(&player, 0, 1, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, 0, 1, &dungeon, &player, &monsters)
 		case CmdSouthWest:
-			doUpdate = movePlayer(&player, -1, 1, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, -1, 1, &dungeon, &player, &monsters)
 		case CmdWest:
-			doUpdate = movePlayer(&player, -1, 0, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, -1, 0, &dungeon, &player, &monsters)
 		case CmdNorthWest:
-			doUpdate = movePlayer(&player, -1, -1, &dungeon, &monsters)
+			doUpdate = moveEntity(&player, -1, -1, &dungeon, &player, &monsters)
 		case CmdDown:
 			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
 				messages.Add("You decend the ancient stairs.")
@@ -219,7 +219,7 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 		switch m.State {
 
 		case StateDormant, StateActive:
-			if (m.isMean && playerCanSee(m, &dungeon)) || m.DistanceFrom(&player) <= 1 {
+			if (m.isMean && playerCanSee(m, &dungeon)) || m.DistanceFrom(&player) <= 2 {
 				m.State = StateChase
 			}
 
@@ -235,7 +235,7 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 				count := 0
 				for !moved && count < 8 {
 					dx, dy := randDirectionCoords()
-					moved = moveMonster(m, dx, dy, &dungeon, &player, &monsters)
+					moved = moveEntity(m, dx, dy, &dungeon, &player, &monsters)
 					count++
 				}
 
@@ -243,7 +243,7 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 				// Pathfinding to the player is already calculated with the dmap
 				m.nextStep = dmap.NextStep(Coord{m.X, m.Y})
 				dx, dy := m.DirectionCoordsTo(m.nextStep.X, m.nextStep.Y)
-				moveMonster(m, dx, dy, &dungeon, &player, &monsters)
+				moveEntity(m, dx, dy, &dungeon, &player, &monsters)
 
 				// For testing, store the next step
 				m.nextStep = dmap.NextStep(Coord{m.X, m.Y})
@@ -266,72 +266,58 @@ func randDirectionCoords() (x, y int) {
 }
 
 // -----------------------------------------------------------------------
-// Returns weather the monster actually did something (moved or attacked)
-func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player, mlist *MonsterList) bool {
-	destX, destY := m.X+dx, m.Y+dy
-	//debug.Add("move: to %d, %d", destX, destY)
-
-	// Check edges of the map
-	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
-		return false
-	}
-
-	// Check if player is there
-	if destX == p.X && destY == p.Y {
-		messages.Add(m.Attack(p))
-		return true
-	}
-
-	// Check for other monsters
-	m2 := mlist.MonsterAt(destX, destY)
-	if m2 != nil {
-		return false
-	}
-
-	// Check dungeon tile
-	mX, mY := m.Pos()
-	if d.IsWalkable(Coord{mX, mY}, Coord{destX, destY}) {
-		m.SetPos(destX, destY)
-		return true
-	}
-
-	return false
-}
-
-// -----------------------------------------------------------------------
-// Returns if the player made a valid move (used to check if time should increment)
-func movePlayer(p *Player, dx int, dy int, dng *DungeonMap, mlist *MonsterList) bool {
-	destX, destY := p.X+dx, p.Y+dy
-
-	// check edges of the map
-	if destX < 0 || destX >= MapMaxX || destY < 0 || destY >= MapMaxY {
-		messages.Add("That way is blocked.")
-		return false
-	}
-
-	// check for monsters
-	m := mlist.MonsterAt(destX, destY)
-	if m != nil {
-		messages.Add(p.Attack(m))
-		m.State = StateChase
-		return true
-	}
-
-	// check dungeon tile
-	pX, pY := p.Pos()
-	if dng.IsWalkable(Coord{pX, pY}, Coord{destX, destY}) {
-		p.SetPos(destX, destY)
-		return true
-	}
-
-	return false
-}
-
-// -----------------------------------------------------------------------
 func playerCanSee(e Entity, d *DungeonMap) bool {
 	eX, eY := e.Pos()
 	t := d.TileAt(eX, eY)
 	return t.visible
+}
+
+// -----------------------------------------------------------------------
+// Returns if the player made a valid move (used to check if time should increment)
+func moveEntity(e Entity, dx int, dy int, dng *DungeonMap, ply *Player, mlist *MonsterList) bool {
+	destX, destY := e.Pos()
+	destX += dx
+	destY += dy
+
+	// Check edges of the map
+	if dng.IsOutOfBounds(destX, destY) {
+		messages.Add("That way is blocked.")
+		return false
+	}
+
+	switch e.(type) {
+
+	case *Monster:
+		// Check if player is there
+		if destX == ply.X && destY == ply.Y {
+			messages.Add(e.Attack(ply))
+			return true
+		}
+
+		// Check for other monsters
+		m2 := mlist.MonsterAt(destX, destY)
+		if m2 != nil {
+			return false
+		}
+
+	case *Player:
+		m := mlist.MonsterAt(destX, destY)
+		if m != nil {
+			messages.Add(e.Attack(m))
+			m.State = StateChase
+			return true
+		}
+
+	}
+
+	// Check dungeon tile
+	origX, origY := e.Pos()
+	if dng.IsWalkable(Coord{origX, origY}, Coord{destX, destY}) {
+		e.SetPos(destX, destY)
+		return true
+	}
+
+	return false
 }
 
 // -----------------------------------------------------------------------

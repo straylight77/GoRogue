@@ -180,11 +180,6 @@ func (m *Monster) DirectionCoordsTo(eX, eY int) (dx int, dy int) {
 	return dx, dy
 }
 
-func (m *Monster) Attack(p *Player) string {
-	p.HP += -1
-	return fmt.Sprintf("The %v attacks.", m)
-}
-
 func (m Monster) String() string {
 	return m.Name
 }
@@ -202,4 +197,17 @@ func (m *Monster) Pos() (int, int) {
 
 func (m *Monster) Rune() rune {
 	return m.Symbol
+}
+
+func (m *Monster) Label() string {
+	return "the " + m.Name
+}
+
+func (m *Monster) UpdateHP(amt int) {
+	m.HP += amt
+}
+
+func (m *Monster) Attack(e Entity) string {
+	e.UpdateHP(-1)
+	return fmt.Sprintf("The %v attacks %s.", m, e.Label())
 }
