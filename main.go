@@ -20,8 +20,8 @@ var RoomID int
 var debugFlag = map[string]bool{
 	"main":     true,
 	"generate": false,
-	"dmap":     true,
-	"path":     true,
+	"dmap":     false,
+	"path":     false,
 }
 
 type GameCommand int
@@ -99,16 +99,6 @@ func main() {
 	for !done {
 		doUpdate = true
 
-		// ===== Test some pathfinding stuff ====
-		pathX, pathY := dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
-
-		// ==== Testing Dijkstra Maps ====
-		dmap = newDMap()
-		dmap.AddTarget(Coord{player.X, player.Y})
-		dmap.Calculate(&dungeon)
-		path2 = dmap.PathFrom(Coord{pathX, pathY})
-
 		// Draw the world
 		disp.Clear()
 		disp.DrawMap(&dungeon, debugFlag["main"])
@@ -134,8 +124,7 @@ func main() {
 			dmap.Draw(&disp)
 		}
 		if debugFlag["path"] {
-			//drawPathDebug(&disp, path1, 'x')
-			drawPathDebug(&disp, path2, '*')
+			drawPathDebugIdx(&disp, path2)
 		}
 
 		disp.Show()
@@ -219,6 +208,16 @@ func main() {
 			//GenerateTestLevel(&dungeon, &player, &monsters)
 		}
 
+		// ===== Test some pathfinding stuff ====
+		pathX, pathY := dungeon.rooms[RoomID].Center()
+		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
+
+		// ==== Testing Dijkstra Maps ====
+		dmap = newDMap()
+		dmap.AddTarget(Coord{player.X, player.Y})
+		dmap.Calculate(&dungeon)
+		path2 = dmap.PathFrom(Coord{pathX, pathY})
+
 		// Update the player's field of view and visited tiles
 		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
 		dungeon.playerFOV(&player)
@@ -278,11 +277,14 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 				}
 
 			} else {
-				// Do pathfinding to the player and take the first step
-				// What happens when player goes out of sight?
-				m.path = findPathBFS(&dungeon, m.X, m.Y, player.X, player.Y)
-				dx, dy := m.DirectionCoordsTo(m.path.steps[0].X, m.path.steps[0].Y)
+				// Pathfinding to the player is already calculated with the dmap
+				m.nextStep = dmap.NextStep(Coord{m.X, m.Y})
+				dx, dy := m.DirectionCoordsTo(m.nextStep.X, m.nextStep.Y)
 				moveMonster(m, dx, dy, &dungeon, &player, &monsters)
+
+				// For testing, store the next step
+				m.nextStep = dmap.NextStep(Coord{m.X, m.Y})
+
 			}
 		}
 
@@ -329,6 +331,7 @@ func moveMonster(m *Monster, dx, dy int, d *DungeonMap, p *Player, mlist *Monste
 		m.SetPos(destX, destY)
 		return true
 	} else {
+		debug.Add("monster %v can't move: %d,%d -> %d,%d", m, mX, mY, destX, destY)
 		return false
 	}
 }

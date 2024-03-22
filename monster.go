@@ -120,7 +120,7 @@ type Monster struct {
 	isMean   bool // once visible, start chasing player
 	isGreedy bool // move towards any nearby gold
 	randMove int
-	path     Path
+	nextStep Coord
 }
 
 const (
@@ -144,7 +144,14 @@ func newMonster(id int) *Monster {
 }
 
 func (m *Monster) DebugString() string {
-	return fmt.Sprintf("%c (%d,%d) hp=%d state=%d", m.Symbol, m.X, m.Y, m.HP, m.State)
+	return fmt.Sprintf(
+		"%c (%d,%d) hp=%d state=%d, step=%v",
+		m.Symbol,
+		m.X,
+		m.Y,
+		m.HP,
+		m.State,
+		m.nextStep)
 }
 
 // Returns the Chebyshev Distance from the given Entity
@@ -157,7 +164,6 @@ func (m *Monster) DistanceFrom(e Entity) int {
 
 func (m *Monster) DirectionCoordsTo(eX, eY int) (dx int, dy int) {
 	//eX, eY := e.Pos()
-
 	dx = 0
 	if eX < m.X {
 		dx = -1

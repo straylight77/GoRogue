@@ -118,7 +118,9 @@ func (m *DungeonMap) IsWalkable(from, to Coord) bool {
 
 	if from.IsDiagonal(to) {
 		if m.TileTypeAt(to.X, to.Y) == TileDoor ||
-			m.TileTypeAt(to.X, to.Y) == TileCorridor {
+			m.TileTypeAt(to.X, to.Y) == TileCorridor ||
+			m.TileTypeAt(from.X, from.Y) == TileDoor ||
+			m.TileTypeAt(from.X, from.Y) == TileCorridor {
 			walkable = false
 		}
 	}
@@ -141,7 +143,6 @@ func (dm *DungeonMap) getWalkableNeighbours(pos Coord) []Coord {
 	}
 	var final []Coord
 	for _, c := range toCheck {
-		//if dm.IsWalkableAt(c.X, c.Y) {
 		if dm.IsWalkable(pos, c) {
 			final = append(final, c)
 		}

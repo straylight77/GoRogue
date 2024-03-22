@@ -99,6 +99,14 @@ func drawPathDebug(disp *Display, path Path, ch rune) {
 	}
 }
 
+// -----------------------------------------------------------------------
+func drawPathDebugIdx(disp *Display, path Path) {
+	for i, pos := range path.steps {
+		ch := rune('1' + i%10 - 1)
+		disp.Screen.SetContent(pos.X, pos.Y+1, ch, nil, disp.Style("debug2"))
+	}
+}
+
 /******************************************************************************
 * Dijkstra Map or Distance Transform
 * https://www.roguebasin.com/index.php/Dijkstra_Maps_Visualized
@@ -134,6 +142,7 @@ func (m *DMap) Clear() {
 }
 
 func (m *DMap) Calculate(dng *DungeonMap) {
+
 	frontier := CoordQueue{}
 	iterations := 0
 
@@ -148,9 +157,7 @@ func (m *DMap) Calculate(dng *DungeonMap) {
 		nb := m.neighbours(current)
 		for _, next := range nb {
 			_, reached := m.distance[next]
-			if !reached &&
-				dng.IsWalkableAt(next.X, next.Y) &&
-				dng.IsWalkable(current, next) {
+			if !reached && dng.IsWalkable(current, next) {
 				frontier.Add(next)
 				m.distance[next] = m.distance[current] + 1
 			}
@@ -174,7 +181,6 @@ func (m *DMap) neighbours(pos Coord) []Coord {
 		{pos.X + 1, pos.Y - 1},
 		{pos.X + 1, pos.Y + 1},
 	}
-
 }
 
 func (m *DMap) PathFrom(pos Coord) Path {
@@ -187,7 +193,8 @@ func (m *DMap) PathFrom(pos Coord) Path {
 		path.steps = append(path.steps, current)
 		current = m.NextStep(current)
 	}
-	slices.Reverse(path.steps)
+	//slices.Reverse(path.steps)
+	path.steps = path.steps[1:]
 	return path
 
 }
