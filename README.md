@@ -8,6 +8,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 ## Feature Roadmap
 ```
 [X] Basic dungeon map and walking around 
+    [X] Diagonal movement (restrict doorways and cooridors)
 [X] Random level generation 
     [X] Dungeon layout (3X3 Rogue-style)
     [ ] Randomized monsters with "party rooms"
