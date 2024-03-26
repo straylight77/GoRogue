@@ -6,15 +6,14 @@ import "math/rand"
 var dungeon DungeonMap
 var player Player
 var monsters MonsterList
-
 var messages MessageLog
+var dmap *DMap
 
 var disp Display
 var debug = DebugMessageLog{}
 
 var path1 Path
 var path2 Path
-var dmap *DMap
 var RoomID int
 
 var debugFlag = map[string]bool{
@@ -54,7 +53,6 @@ const (
 
 // -----------------------------------------------------------------------
 func main() {
-	var cmd GameCommand
 
 	// Initialization and setup
 	disp = Display{}
@@ -69,6 +67,7 @@ func main() {
 
 	done := false
 	var doUpdate bool
+	var cmd GameCommand
 
 	for !done {
 
@@ -219,7 +218,7 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 		switch m.State {
 
 		case StateDormant, StateActive:
-			if (m.isMean && playerCanSee(m, &dungeon)) || m.DistanceFrom(&player) <= 2 {
+			if (m.isMean && dungeon.CanSee(m)) || m.DistanceFrom(&player) <= 2 {
 				m.State = StateChase
 			}
 
@@ -231,13 +230,8 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 
 			} else if m.randMove > rand.Intn(100) {
 				// Move randomly
-				moved := false
-				count := 0
-				for !moved && count < 8 {
-					dx, dy := randDirectionCoords()
-					moved = moveEntity(m, dx, dy, &dungeon, &player, &monsters)
-					count++
-				}
+				dx, dy := dungeon.RandDirectionCoords(m.X, m.Y)
+				moveEntity(m, dx, dy, &dungeon, &player, &monsters)
 
 			} else {
 				// Pathfinding to the player is already calculated with the dmap
@@ -252,24 +246,6 @@ func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) 
 		}
 
 	}
-}
-
-// -----------------------------------------------------------------------
-func randDirectionCoords() (x, y int) {
-	count := 0
-	for (x == 0 && y == 0) && count < 10 {
-		x = rand.Intn(3) - 1 // between -1 and 1
-		y = rand.Intn(3) - 1 // between -1 and 1
-		count++
-	}
-	return
-}
-
-// -----------------------------------------------------------------------
-func playerCanSee(e Entity, d *DungeonMap) bool {
-	eX, eY := e.Pos()
-	t := d.TileAt(eX, eY)
-	return t.visible
 }
 
 // -----------------------------------------------------------------------

@@ -1,5 +1,7 @@
 package main
 
+import "math/rand"
+
 const (
 	MapMaxX, MapMaxY = 80, 23
 )
@@ -128,6 +130,31 @@ func (m *DungeonMap) IsWalkable(from, to Coord) bool {
 }
 
 // -----------------------------------------------------------------------
+// Returns a random direction, as the delta in coordinates (dx, dy), that
+// are always walkable or 0,0 if there are no options available.
+func (m *DungeonMap) RandDirectionCoords(origX, origY int) (dx, dy int) {
+	orig := Coord{origX, origY}
+	var cList []Coord
+	for x := -1; x <= 1; x++ {
+		for y := -1; y <= 1; y++ {
+			dest := Coord{origX + x, origY + y}
+			if dest != orig && m.IsWalkable(orig, dest) {
+				cList = append(cList, Coord{x, y})
+			}
+		}
+	}
+
+	if len(cList) > 0 {
+		idx := rand.Intn(len(cList))
+		debug.Add("rand: [%d] %v", len(cList), cList)
+		c := cList[idx]
+		return c.X, c.Y
+	} else {
+		return 0, 0
+	}
+}
+
+// -----------------------------------------------------------------------
 func (dm *DungeonMap) getWalkableNeighbours(pos Coord) []Coord {
 	toCheck := []Coord{
 		// Cardinal directions first
@@ -189,6 +216,13 @@ func (d *DungeonMap) SetVisible(x1, y1, w, h int, val bool) {
 			}
 		}
 	}
+}
+
+// -----------------------------------------------------------------------
+func (d *DungeonMap) CanSee(e Entity) bool {
+	eX, eY := e.Pos()
+	t := d.TileAt(eX, eY)
+	return t.visible
 }
 
 // -----------------------------------------------------------------------
