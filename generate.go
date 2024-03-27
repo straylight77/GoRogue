@@ -7,32 +7,33 @@ import (
 var graph *RoomGraph = &RoomGraph{}
 
 // ----------------------------------------------------------------------------
-// Entry point from main() to build a new dungeon level
-func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
+// func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
+func generateRandomLevel(gs *GameState) {
 	debug.Clear()
-	dm.Clear()
-	ml.Clear()
+	gs.dungeon.Clear()
+	gs.monsters.Clear()
 
 	graph = newRandomGraph()
 
 	graph.MakeCellBounds()
 	graph.MakeRandomRooms()
-	x, y := buildMap(graph, dm)
+	x, y := buildMap(graph, gs.dungeon)
 
 	// Populate with monsters
 	N := 5
 	for i := 0; i < N; i++ {
 		r := graph.RandCell(1)
+		// TODO: use Coord
 		mX, mY := graph.rooms[r].RandPoint()
-		if mX != p.X && mY != p.Y && ml.MonsterAt(mX, mY) == nil {
-			monsters.Add(randomMonster(p.depth), mX, mY)
+		if mX != gs.player.X && mY != gs.player.Y && gs.monsters.MonsterAt(mX, mY) == nil {
+			gs.monsters.Add(randomMonster(gs.player.depth), mX, mY)
 		} else {
 			i--
 		}
 	}
 
-	p.SetPos(x, y)
-	p.depth++
+	gs.player.SetPos(x, y)
+	gs.player.depth++
 
 }
 

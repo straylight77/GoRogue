@@ -70,13 +70,16 @@ func (p *Player) Label() string {
 	return "you"
 }
 
-func (p *Player) UpdateHP(amt int) {
+func (p *Player) AdjustHP(amt int) {
 	p.HP += amt
+	if p.HP > p.maxHP {
+		p.HP = p.maxHP
+	}
 }
 
 func (p *Player) Attack(m Entity) string {
 	dmg := 1
-	m.UpdateHP(-dmg)
+	m.AdjustHP(-dmg)
 	msg := fmt.Sprintf("You hit %v for %d damage.", m.Label(), dmg)
 	p.healCount++ // this shouldn't decrement when fighting
 	return msg
@@ -115,14 +118,6 @@ func (p *Player) ResetHealCount() {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) ChangeHP(delta int) {
-	p.HP += delta
-	if p.HP > p.maxHP {
-		p.HP = p.maxHP
-	}
-}
-
-// -----------------------------------------------------------------------
 func (p *Player) Update() {
 
 	// At 300 start being hungry, at 150 weak
@@ -135,10 +130,10 @@ func (p *Player) Update() {
 	p.healCount--
 	if p.healCount == 0 {
 		if p.Level < 8 {
-			p.ChangeHP(1)
+			p.AdjustHP(1)
 		} else {
 			amt := rand.Intn(p.Level - 7)
-			p.ChangeHP(amt)
+			p.AdjustHP(amt)
 		}
 		p.ResetHealCount()
 	}

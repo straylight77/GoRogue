@@ -26,20 +26,20 @@ func (log *DebugMessageLog) Draw(disp *Display, startX, startY int) {
 }
 
 // -----------------------------------------------------------------------------
-func drawDebugFrame(d *Display, p *Player, ml *MonsterList) {
+func drawDebugFrame(d *Display, gs *GameState) {
 	maxX, maxY := 80, 25
 	d.DrawBox(-1, -1, maxX+1, maxY+1, "debug")
 
-	d.Debugf(84, 1, "Moves:  %d", p.moves)
-	d.Debugf(84, 2, "Pos: %d, %d", p.X, p.Y)
+	d.Debugf(84, 1, "Moves:  %d", gs.player.moves)
+	d.Debugf(84, 2, "Pos: %d, %d", gs.player.X, gs.player.Y)
 	//d.Debugf(84, 3, "Heal: %d,  Food: %d", p.healCount, p.foodCount)
 	d.Debugf(84, 4, "path1: %v", path1)
 	d.Debugf(84, 5, "path2: %v", path2)
-	if dmap != nil {
-		d.Debugf(84, 6, "dmap: iter=%d", dmap.iter)
+	if gs.dmap != nil {
+		d.Debugf(84, 6, "dmap: iter=%d", gs.dmap.iter)
 	}
 
-	for i, m := range *ml {
+	for i, m := range *gs.monsters {
 		d.Debugf(84, 8+i, "%d: %v", i, m.DebugString())
 	}
 }

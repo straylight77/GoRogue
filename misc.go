@@ -7,7 +7,7 @@ type Entity interface {
 	Rune() rune
 	Attack(Entity) string
 	Label() string
-	UpdateHP(amt int)
+	AdjustHP(amt int)
 }
 
 // -----------------------------------------------------------------------

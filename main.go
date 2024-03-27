@@ -1,20 +1,6 @@
 package main
 
-import "math/rand"
-
-// wrap these into GameState?  Will have handleCommand()?
-var dungeon DungeonMap
-var player Player
-var monsters MonsterList
-var messages MessageLog
-var dmap *DMap
-
-var disp Display
-var debug = DebugMessageLog{}
-
-var path1 Path
-var path2 Path
-var RoomID int
+var debug DebugMessageLog
 
 var debugFlag = map[string]bool{
 	"main":     false,
@@ -22,6 +8,11 @@ var debugFlag = map[string]bool{
 	"dmap":     false,
 	"path":     false,
 }
+
+// For testing
+var path1 Path
+var path2 Path
+var RoomID int
 
 type GameCommand int
 
@@ -54,100 +45,64 @@ const (
 // -----------------------------------------------------------------------
 func main() {
 
-	// Initialization and setup
-	disp = Display{}
-	disp.Init()
-	defer disp.Quit()
+	// Initialization
+	var display Display
+	display.Init()
+	defer display.Quit()
 
-	player.Init()
+	// Set up the initial game state
+	var state GameState
+	state.Init()
 
-	// Create a dungeon level
-	//GenerateTestLevel(&dungeon, &player, &monsters)
-	generateRandomLevel(&dungeon, &monsters, &player)
+	var doUpdate bool   // If game time has passed this iteration
+	var cmd GameCommand // Determined from user's input
 
+	// Main Game Loop
 	done := false
-	var doUpdate bool
-	var cmd GameCommand
-
 	for !done {
 
 		// Draw the world
-		disp.Clear()
-		disp.DrawMap(&dungeon, debugFlag["main"])
-		disp.DrawMessages(&messages)
-		disp.Print(0, 24, player.InfoString())
+		draw(&display, &state)
+		drawDebug(&display, &state)
+		display.Show()
 
-		for _, m := range monsters {
-			mx, my := m.Pos()
-			if dungeon.TileAt(mx, my).visible || debugFlag["main"] {
-				disp.DrawEntity(m)
-			}
-		}
-		disp.DrawPlayer(&player)
-
-		if debugFlag["main"] {
-			drawDebugFrame(&disp, &player, &monsters)
-			debug.Draw(&disp, 84, 15)
-		}
-		if debugFlag["generate"] {
-			drawGenerateDebug(&disp)
-		}
-		if debugFlag["dmap"] {
-			dmap.Draw(&disp)
-		}
-		if debugFlag["path"] {
-			drawPathDebugIdx(&disp, path2)
-		}
-
-		disp.Show()
-
-		cmd = disp.GetCommand()
+		cmd = display.GetCommand(state.messages)
+		doUpdate = false
 
 		// Handle user's command
-		doUpdate = false
 		switch cmd {
 
 		// Commands that do not increment time
-		case 0: // unkown command, just ignore
+		case 0: // unknown command, just ignore
 		case CmdTick:
 			// Do nothing.  Used to redraw, clear recent messages, etc.
 		case CmdMessages:
-			disp.DrawMessageHistory(&messages)
-			disp.WaitForKeypress()
+			display.DrawMessageHistory(state.messages)
+			display.WaitForKeypress()
 		case CmdQuit:
 			done = true
 
 		// Commands that do increment time
 		case CmdNorth:
-			doUpdate = moveEntity(&player, 0, -1, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, 0, -1)
 		case CmdNorthEast:
-			doUpdate = moveEntity(&player, 1, -1, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, 1, -1)
 		case CmdEast:
-			doUpdate = moveEntity(&player, 1, 0, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, 1, 0)
 		case CmdSouthEast:
-			doUpdate = moveEntity(&player, 1, 1, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, 1, 1)
 		case CmdSouth:
-			doUpdate = moveEntity(&player, 0, 1, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, 0, 1)
 		case CmdSouthWest:
-			doUpdate = moveEntity(&player, -1, 1, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, -1, 1)
 		case CmdWest:
-			doUpdate = moveEntity(&player, -1, 0, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, -1, 0)
 		case CmdNorthWest:
-			doUpdate = moveEntity(&player, -1, -1, &dungeon, &player, &monsters)
+			doUpdate = state.MoveEntity(state.player, -1, -1)
 		case CmdDown:
-			if dungeon.TileAt(player.X, player.Y).typ == TileStairsDn {
-				messages.Add("You decend the ancient stairs.")
-				generateRandomLevel(&dungeon, &monsters, &player)
-				doUpdate = true
-			} else {
-				messages.Add("There are no stairs to go down here.")
-			}
+			doUpdate = state.GoDownstairs()
 		case CmdUp:
-			if dungeon.TileAt(player.X, player.Y).typ == TileStairsUp {
-				messages.Add("Your way is magically blocked.")
-			} else {
-				messages.Add("There are no stairs to go up here.")
-			}
+			doUpdate = state.GoUpstairs()
 		case CmdWait:
 			doUpdate = true
 			//messages.Add("You rest for a moment.")
@@ -163,161 +118,87 @@ func main() {
 			debugFlag["path"] = !debugFlag["path"]
 		case CmdDebug5:
 			RoomID++
-			if RoomID >= len(dungeon.rooms) {
+			if RoomID >= len(state.dungeon.rooms) {
 				RoomID = 0
 			}
 		case CmdGenerate:
 			debug.Clear()
-			generateRandomLevel(&dungeon, &monsters, &player)
-			//GenerateTestLevel(&dungeon, &player, &monsters)
+			generateRandomLevel(&state)
+			//GenerateTestLevel(&state)
 		}
 
-		// Recalculate the DMap for monsters to use to find the player
-		dmap = newDMap(&dungeon, Coord{player.X, player.Y})
+		// Do updates that happen regardless of game time
+		state.Pathfinding()
+		state.UpdatePlayerFOV()
 
-		// Update the player's field of view and visited tiles
-		dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
-		dungeon.playerFOV(&player)
-
-		// If the player is in a room, light it up
-		for _, r := range dungeon.rooms {
-			if r.InRoom(player.X, player.Y) {
-				dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)
-			}
-		}
-
-		// Do world updates
+		// Do updates of the game world
 		if doUpdate {
-			updateMonsters(&dungeon, &player, &monsters, &messages)
-			player.Update()
+			state.UpdateMonsters()
+			state.player.Update()
 		}
 
-		// ===== For testing pathfinding =====
-		pathX, pathY := dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(&dungeon, player.X, player.Y, pathX, pathY)
-		path2 = dmap.PathFrom(Coord{pathX, pathY})
-
+		// For testing pathfinding
+		pathX, pathY := state.dungeon.rooms[RoomID].Center()
+		path1 = findPathBFS(state.dungeon, state.player.X, state.player.Y, pathX, pathY)
+		path2 = state.dmap.PathFrom(Coord{pathX, pathY})
 	}
 }
 
 // -----------------------------------------------------------------------
-func updateMonsters(d *DungeonMap, p *Player, ml *MonsterList, msg *MessageLog) {
-	for i, m := range *ml {
+func draw(display *Display, state *GameState) {
+	display.Clear()
+	display.DrawMap(state.dungeon, debugFlag["main"])
+	display.DrawMessages(state.messages)
+	display.Print(0, 24, state.player.InfoString())
 
-		// Remove any slain monsters
-		if m.HP <= 0 {
-			ml.Remove(i)
-			msg.Add("You defeated the %s!", m.Name)
-			m := p.AddXP(m.XP)
-			if m != "" {
-				msg.Add(m)
-			}
-			continue
+	for _, m := range *state.monsters {
+		mx, my := m.Pos()
+		if state.dungeon.TileAt(mx, my).visible || debugFlag["main"] {
+			display.DrawEntity(m)
 		}
+	}
+	display.DrawPlayer(state.player)
+}
 
-		switch m.State {
-
-		case StateDormant, StateActive:
-			if (m.isMean && dungeon.CanSee(m)) || m.DistanceFrom(&player) <= 2 {
-				m.State = StateChase
-			}
-
-		case StateChase:
-
-			if !m.isMean && m.DistanceFrom(&player) > 6 {
-				// For non-mean monsters, go dormant when far away
-				m.State = StateDormant
-
-			} else if m.randMove > rand.Intn(100) {
-				// Move randomly
-				dx, dy := dungeon.RandDirectionCoords(m.X, m.Y)
-				moveEntity(m, dx, dy, &dungeon, &player, &monsters)
-
-			} else {
-				// Pathfinding to the player is already calculated with the dmap
-				m.nextStep = dmap.NextStep(Coord{m.X, m.Y})
-				dx, dy := m.DirectionCoordsTo(m.nextStep.X, m.nextStep.Y)
-				moveEntity(m, dx, dy, &dungeon, &player, &monsters)
-
-				// For testing, store the next step
-				m.nextStep = dmap.NextStep(Coord{m.X, m.Y})
-
-			}
-		}
-
+// -----------------------------------------------------------------------
+func drawDebug(display *Display, state *GameState) {
+	if debugFlag["main"] {
+		drawDebugFrame(display, state)
+		debug.Draw(display, 84, 15)
+	}
+	if debugFlag["generate"] {
+		drawGenerateDebug(display)
+	}
+	if debugFlag["dmap"] {
+		state.dmap.Draw(display)
+	}
+	if debugFlag["path"] {
+		drawPathDebugIdx(display, path2)
 	}
 }
 
 // -----------------------------------------------------------------------
-// Returns if the player made a valid move (used to check if time should increment)
-func moveEntity(e Entity, dx int, dy int, dng *DungeonMap, ply *Player, mlist *MonsterList) bool {
-	destX, destY := e.Pos()
-	destX += dx
-	destY += dy
+func GenerateTestLevel(gs *GameState) {
 
-	// Check edges of the map
-	if dng.IsOutOfBounds(destX, destY) {
-		messages.Add("That way is blocked.")
-		return false
-	}
+	gs.dungeon.Clear()
+	gs.monsters.Clear()
 
-	switch e.(type) {
+	x1, y1 := gs.dungeon.CreateRoom(44, 6, 13, 7)
+	x2, y2 := gs.dungeon.CreateRoom(25, 15, 11, 7)
+	x3, y3 := gs.dungeon.CreateRoom(18, 2, 20, 7)
+	gs.dungeon.ConnectRooms(x1, y1, x3, y3, East)
+	gs.dungeon.ConnectRooms(x2, y2, x3, y3, South)
+	//gs.dungeon.ConnectRooms(x1, y1, x2, y2, South)
 
-	case *Monster:
-		// Check if player is there
-		if destX == ply.X && destY == ply.Y {
-			messages.Add(e.Attack(ply))
-			return true
-		}
+	//gs.dungeon.SetTile(x1, y1, TileStairsUp)
+	gs.dungeon.SetTile(x2, y2, TileStairsDn)
+	gs.monsters.Add(randomMonster(gs.player.depth), 20, 4)
+	gs.monsters.Add(randomMonster(gs.player.depth), x2, y2)
+	gs.monsters.Add(randomMonster(gs.player.depth), x3, y3)
+	gs.monsters.Add(randomMonster(gs.player.depth), 29, 17)
+	//gs.monsters.Add(newMonster(2), 44, 5)
 
-		// Check for other monsters
-		m2 := mlist.MonsterAt(destX, destY)
-		if m2 != nil {
-			return false
-		}
-
-	case *Player:
-		m := mlist.MonsterAt(destX, destY)
-		if m != nil {
-			messages.Add(e.Attack(m))
-			m.State = StateChase
-			return true
-		}
-
-	}
-
-	// Check dungeon tile
-	origX, origY := e.Pos()
-	if dng.IsWalkable(Coord{origX, origY}, Coord{destX, destY}) {
-		e.SetPos(destX, destY)
-		return true
-	}
-
-	return false
-}
-
-// -----------------------------------------------------------------------
-func GenerateTestLevel(m *DungeonMap, p *Player, ml *MonsterList) {
-
-	m.Clear()
-	ml.Clear()
-
-	x1, y1 := m.CreateRoom(44, 6, 13, 7)
-	x2, y2 := m.CreateRoom(25, 15, 11, 7)
-	x3, y3 := m.CreateRoom(18, 2, 20, 7)
-	m.ConnectRooms(x1, y1, x3, y3, East)
-	m.ConnectRooms(x2, y2, x3, y3, South)
-	//m.ConnectRooms(x1, y1, x2, y2, South)
-
-	//m.SetTile(x1, y1, TileStairsUp)
-	m.SetTile(x2, y2, TileStairsDn)
-	monsters.Add(randomMonster(player.depth), 20, 4)
-	monsters.Add(randomMonster(player.depth), x2, y2)
-	monsters.Add(randomMonster(player.depth), x3, y3)
-	monsters.Add(randomMonster(player.depth), 29, 17)
-	//monsters.Add(newMonster(2), 44, 5)
-
-	p.SetPos(x1, y1)
-	p.depth++
+	gs.player.SetPos(x1, y1)
+	//gs.player.depth++
 
 }

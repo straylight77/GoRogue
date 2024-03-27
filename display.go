@@ -247,7 +247,7 @@ func (d *Display) WaitForKeypress() {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) GetCommand() (cmd GameCommand) {
+func (d *Display) GetCommand(msg *MessageLog) (cmd GameCommand) {
 
 	var ok bool
 	ev := d.Screen.PollEvent() // blocks until input from user
@@ -265,11 +265,11 @@ func (d *Display) GetCommand() (cmd GameCommand) {
 		switch key {
 		case tcell.KeyRune:
 			if cmd, ok = RuneCmdLookup[rn]; !ok {
-				messages.Add("I don't know that command (%c)", rn)
+				msg.Add("I don't know that command (%c)", rn)
 			}
 		default:
 			if cmd, ok = KeyCmdLookup[key]; !ok {
-				messages.Add("I don't know that command (%v)", tcell.KeyNames[key])
+				msg.Add("I don't know that command (%v)", tcell.KeyNames[key])
 			}
 		}
 	}

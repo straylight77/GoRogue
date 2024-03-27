@@ -203,11 +203,11 @@ func (m *Monster) Label() string {
 	return "the " + m.Name
 }
 
-func (m *Monster) UpdateHP(amt int) {
+func (m *Monster) AdjustHP(amt int) {
 	m.HP += amt
 }
 
 func (m *Monster) Attack(e Entity) string {
-	e.UpdateHP(-1)
+	e.AdjustHP(-1)
 	return fmt.Sprintf("The %v attacks %s.", m, e.Label())
 }
