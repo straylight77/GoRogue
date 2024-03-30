@@ -25,12 +25,11 @@ func (gs *GameState) Init() {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool {
-	destX, destY := e.Pos()
-	destX += dx
-	destY += dy
+	delta := Coord{dx, dy}
+	dest := e.Pos().Sum(delta)
 
 	// Check edges of the map
-	if gs.dungeon.IsOutOfBounds(destX, destY) {
+	if gs.dungeon.IsOutOfBounds(dest.X, dest.Y) {
 		gs.messages.Add("As you gaze into the abyss, it begins to gaze back into you...")
 		return false
 	}
@@ -40,20 +39,20 @@ func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool {
 
 	case *Monster:
 		// If player is there attack them
-		if destX == gs.player.X && destY == gs.player.Y {
+		if dest == gs.player.Pos() {
 			gs.messages.Add(e.Attack(gs.player))
 			return true
 		}
 
 		// If another monster is there, don't move
-		m2 := gs.monsters.MonsterAt(destX, destY)
+		m2 := gs.monsters.MonsterAt(dest.X, dest.Y)
 		if m2 != nil {
 			return false
 		}
 
 	case *Player:
 		// If a monster is there, attack it
-		m := gs.monsters.MonsterAt(destX, destY)
+		m := gs.monsters.MonsterAt(dest.X, dest.Y)
 		if m != nil {
 			gs.messages.Add(e.Attack(m))
 			m.State = StateChase
@@ -62,9 +61,9 @@ func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool {
 	}
 
 	// Finally, check if the dungeon tile blocks movement or not
-	origX, origY := e.Pos()
-	if gs.dungeon.IsWalkable(Coord{origX, origY}, Coord{destX, destY}) {
-		e.SetPos(destX, destY)
+	orig := e.Pos()
+	if gs.dungeon.IsWalkable(orig, dest) {
+		e.SetPos(dest)
 		return true
 	}
 

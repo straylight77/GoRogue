@@ -53,13 +53,13 @@ func (p *Player) Init() {
 
 // implement the Entity interface
 
-func (p *Player) SetPos(newX, newY int) {
-	p.X = newX
-	p.Y = newY
+func (p *Player) SetPos(newPos Coord) {
+	p.X = newPos.X
+	p.Y = newPos.Y
 }
 
-func (p *Player) Pos() (int, int) {
-	return p.X, p.Y
+func (p *Player) Pos() Coord {
+	return Coord{p.X, p.Y}
 }
 
 func (p *Player) Rune() rune {

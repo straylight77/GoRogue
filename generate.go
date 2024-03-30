@@ -17,7 +17,7 @@ func generateRandomLevel(gs *GameState) {
 
 	graph.MakeCellBounds()
 	graph.MakeRandomRooms()
-	x, y := buildMap(graph, gs.dungeon)
+	pos := buildMap(graph, gs.dungeon)
 
 	// Populate with monsters
 	N := 5
@@ -32,14 +32,15 @@ func generateRandomLevel(gs *GameState) {
 		}
 	}
 
-	gs.player.SetPos(x, y)
+	gs.player.SetPos(pos)
 	gs.player.depth++
 
 }
 
 // ----------------------------------------------------------------------------
 // Takes a completed RoomGraph and changes the tiles in DungeonMap appropriately
-func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
+// Returns the position of the Stairs Up (in order to set the Player's position)
+func buildMap(g *RoomGraph, d *DungeonMap) Coord {
 
 	// create the rooms on the dungeon map
 	for _, r := range g.rooms {
@@ -86,7 +87,7 @@ func buildMap(g *RoomGraph, d *DungeonMap) (int, int) {
 	sX, sY := g.rooms[c2].RandPoint()
 	d.SetTile(sX, sY, TileStairsDn)
 
-	return pX, pY
+	return Coord{pX, pY}
 }
 
 /*****************************************************************************/

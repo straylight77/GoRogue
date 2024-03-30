@@ -2,8 +2,8 @@ package main
 
 // -----------------------------------------------------------------------
 type Entity interface {
-	Pos() (int, int)
-	SetPos(int, int)
+	Pos() Coord
+	SetPos(Coord)
 	Rune() rune
 	Attack(Entity) string
 	Label() string

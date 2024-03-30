@@ -156,9 +156,9 @@ func (m *Monster) DebugString() string {
 
 // Returns the Chebyshev Distance from the given Entity
 func (m *Monster) DistanceFrom(e Entity) int {
-	x2, y2 := e.Pos()
-	dx := abs(x2 - m.X)
-	dy := abs(y2 - m.Y)
+	pos := e.Pos()
+	dx := abs(pos.X - m.X)
+	dy := abs(pos.Y - m.Y)
 	return max(dx, dy)
 }
 
@@ -186,13 +186,13 @@ func (m Monster) String() string {
 
 // Implement the Entity interface
 
-func (m *Monster) SetPos(newX, newY int) {
-	m.X = newX
-	m.Y = newY
+func (m *Monster) SetPos(newPos Coord) {
+	m.X = newPos.X
+	m.Y = newPos.Y
 }
 
-func (m *Monster) Pos() (int, int) {
-	return m.X, m.Y
+func (m *Monster) Pos() Coord {
+	return Coord{m.X, m.Y}
 }
 
 func (m *Monster) Rune() rune {

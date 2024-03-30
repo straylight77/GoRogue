@@ -241,7 +241,7 @@ func (d *DungeonMap) SetVisible(x1, y1, w, h int, val bool) {
 
 // -----------------------------------------------------------------------
 func (d *DungeonMap) CanSee(e Entity) bool {
-	eX, eY := e.Pos()
+	eX, eY := e.Pos().XY()
 	t := d.TileAt(eX, eY)
 	return t.visible
 }
