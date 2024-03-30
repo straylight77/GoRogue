@@ -1,6 +1,9 @@
 package main
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+)
 
 const (
 	MapMaxX, MapMaxY = 80, 23
@@ -57,6 +60,10 @@ type Coord struct {
 	X, Y int
 }
 
+func (c Coord) String() string {
+	return fmt.Sprintf("(%d,%d)", c.X, c.Y)
+}
+
 func (c Coord) XY() (int, int) {
 	return c.X, c.Y
 }
@@ -65,6 +72,20 @@ func (from Coord) IsDiagonal(to Coord) bool {
 	dx := to.X - from.X
 	dy := to.Y - from.Y
 	return dx != 0 && dy != 0
+}
+
+func (from Coord) Distance(to Coord) int {
+	dx := abs(to.X - from.X)
+	dy := abs(to.Y - from.Y)
+	return max(dx, dy)
+}
+
+func (c1 Coord) Sum(c2 Coord) Coord {
+	return Coord{c1.X + c2.X, c1.Y + c2.Y}
+}
+
+func (c1 Coord) Diff(c2 Coord) Coord {
+	return Coord{c1.X - c2.X, c1.Y - c2.Y}
 }
 
 /************************************************************************/
