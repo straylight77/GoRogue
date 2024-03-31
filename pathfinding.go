@@ -43,17 +43,15 @@ func (p Path) String() string {
 // more optimal but the complexity is low for this game (small map, only
 // a few monsters chasing at any given time.)
 // https://www.redblobgames.com/pathfinding/a-star/introduction.html
-func findPathBFS(dm *DungeonMap, x1, y1 int, x2, y2 int) Path {
+func findPathBFS(dm *DungeonMap, start, end Coord) Path {
 	// Declarations
-	start := Coord{x1, y1}
-	end := Coord{x2, y2}
 	frontier := CoordQueue{}
 	cameFrom := map[Coord]Coord{}
 	pathCount := 0
 
 	// Initialize
 	frontier.Add(start)
-	cameFrom[start] = Coord{start.X, start.Y}
+	cameFrom[start] = start
 
 	// While path not found yet or no more explorable areas
 	_, foundPath := cameFrom[end]

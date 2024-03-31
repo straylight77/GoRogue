@@ -139,7 +139,7 @@ func main() {
 
 		// For testing pathfinding
 		dest := state.dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(state.dungeon, state.player.X, state.player.Y, dest.X, dest.Y)
+		path1 = findPathBFS(state.dungeon, state.player.Pos(), dest)
 		path2 = state.dmap.PathFrom(dest)
 	}
 }
@@ -188,15 +188,12 @@ func GenerateTestLevel(gs *GameState) {
 	gs.dungeon.ConnectRooms(p1, p3, East)
 	gs.dungeon.ConnectRooms(p2, p3, South)
 
-	//gs.dungeon.SetTile(x1, y1, TileStairsUp)
 	gs.dungeon.SetTile(p2, TileStairsDn)
 	gs.monsters.Add(randomMonster(gs.player.depth), Coord{20, 4})
 	gs.monsters.Add(randomMonster(gs.player.depth), p2)
 	gs.monsters.Add(randomMonster(gs.player.depth), p3)
 	gs.monsters.Add(randomMonster(gs.player.depth), Coord{29, 17})
-	//gs.monsters.Add(newMonster(2), 44, 5)
 
 	gs.player.SetPos(p1)
 	//gs.player.depth++
-
 }
