@@ -84,21 +84,21 @@ func main() {
 
 		// Commands that do increment time
 		case CmdNorth:
-			doUpdate = state.MoveEntity(state.player, 0, -1)
+			doUpdate = state.MoveEntity(state.player, Coord{0, -1})
 		case CmdNorthEast:
-			doUpdate = state.MoveEntity(state.player, 1, -1)
+			doUpdate = state.MoveEntity(state.player, Coord{1, -1})
 		case CmdEast:
-			doUpdate = state.MoveEntity(state.player, 1, 0)
+			doUpdate = state.MoveEntity(state.player, Coord{1, 0})
 		case CmdSouthEast:
-			doUpdate = state.MoveEntity(state.player, 1, 1)
+			doUpdate = state.MoveEntity(state.player, Coord{1, 1})
 		case CmdSouth:
-			doUpdate = state.MoveEntity(state.player, 0, 1)
+			doUpdate = state.MoveEntity(state.player, Coord{0, 1})
 		case CmdSouthWest:
-			doUpdate = state.MoveEntity(state.player, -1, 1)
+			doUpdate = state.MoveEntity(state.player, Coord{-1, 1})
 		case CmdWest:
-			doUpdate = state.MoveEntity(state.player, -1, 0)
+			doUpdate = state.MoveEntity(state.player, Coord{-1, 0})
 		case CmdNorthWest:
-			doUpdate = state.MoveEntity(state.player, -1, -1)
+			doUpdate = state.MoveEntity(state.player, Coord{-1, -1})
 		case CmdDown:
 			doUpdate = state.GoDownstairs()
 		case CmdUp:

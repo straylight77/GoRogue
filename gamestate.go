@@ -24,8 +24,7 @@ func (gs *GameState) Init() {
 }
 
 // -----------------------------------------------------------------------
-func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool { //TODO
-	delta := Coord{dx, dy}
+func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
 	dest := e.Pos().Sum(delta)
 
 	// Check edges of the map
@@ -61,8 +60,7 @@ func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool { //TODO
 	}
 
 	// Finally, check if the dungeon tile blocks movement or not
-	orig := e.Pos()
-	if gs.dungeon.IsWalkable(orig, dest) {
+	if gs.dungeon.IsWalkable(e.Pos(), dest) {
 		e.SetPos(dest)
 		return true
 	}
@@ -114,6 +112,7 @@ func (gs *GameState) UpdateMonsters() {
 		case StateDormant:
 			if (m.isMean && gs.dungeon.CanSee(m)) || m.Pos().Distance(gs.player.Pos()) <= 2 {
 				m.State = StateChase
+				//gs.messages.Add("The %s wakes up.", m.Name)
 			}
 
 		case StateChase:
@@ -125,13 +124,13 @@ func (gs *GameState) UpdateMonsters() {
 			} else if m.randMove > rand.Intn(100) {
 				// Move randomly randMove% of the time
 				delta := gs.dungeon.RandDirectionCoords(m.Pos())
-				gs.MoveEntity(m, delta.X, delta.Y) //TODO
+				gs.MoveEntity(m, delta)
 
 			} else {
 				// Pathfinding to the player is already calculated with the dmap
-				m.nextStep = gs.dmap.NextStep(Coord{m.X, m.Y})
+				m.nextStep = gs.dmap.NextStep(m.Pos())
 				delta := m.DirectionCoordsTo(m.nextStep)
-				gs.MoveEntity(m, delta.X, delta.Y) //TODO
+				gs.MoveEntity(m, delta)
 
 				// For testing, store the next step
 				m.nextStep = gs.dmap.NextStep(Coord{m.X, m.Y})
