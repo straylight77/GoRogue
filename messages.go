@@ -12,6 +12,9 @@ type MessageLog struct {
 }
 
 func (log *MessageLog) Add(format string, vals ...any) {
+	if format == "" {
+		return
+	}
 	msg := fmt.Sprintf(format, vals...)
 	log.messages = append(log.messages, msg)
 }

@@ -84,21 +84,21 @@ func main() {
 
 		// Commands that do increment time
 		case CmdNorth:
-			doUpdate = state.MoveEntity(state.player, 0, -1)
+			doUpdate = state.MoveEntity(state.player, Coord{0, -1})
 		case CmdNorthEast:
-			doUpdate = state.MoveEntity(state.player, 1, -1)
+			doUpdate = state.MoveEntity(state.player, Coord{1, -1})
 		case CmdEast:
-			doUpdate = state.MoveEntity(state.player, 1, 0)
+			doUpdate = state.MoveEntity(state.player, Coord{1, 0})
 		case CmdSouthEast:
-			doUpdate = state.MoveEntity(state.player, 1, 1)
+			doUpdate = state.MoveEntity(state.player, Coord{1, 1})
 		case CmdSouth:
-			doUpdate = state.MoveEntity(state.player, 0, 1)
+			doUpdate = state.MoveEntity(state.player, Coord{0, 1})
 		case CmdSouthWest:
-			doUpdate = state.MoveEntity(state.player, -1, 1)
+			doUpdate = state.MoveEntity(state.player, Coord{-1, 1})
 		case CmdWest:
-			doUpdate = state.MoveEntity(state.player, -1, 0)
+			doUpdate = state.MoveEntity(state.player, Coord{-1, 0})
 		case CmdNorthWest:
-			doUpdate = state.MoveEntity(state.player, -1, -1)
+			doUpdate = state.MoveEntity(state.player, Coord{-1, -1})
 		case CmdDown:
 			doUpdate = state.GoDownstairs()
 		case CmdUp:
@@ -123,8 +123,8 @@ func main() {
 			}
 		case CmdGenerate:
 			debug.Clear()
-			generateRandomLevel(&state)
-			//GenerateTestLevel(&state)
+			//generateRandomLevel(&state)
+			GenerateTestLevel(&state)
 		}
 
 		// Do updates that happen regardless of game time
@@ -133,14 +133,15 @@ func main() {
 
 		// Do updates of the game world
 		if doUpdate {
-			state.UpdateMonsters()
+			state.PruneMonsters()
+			state.MonstersAct()
 			state.player.Update()
 		}
 
 		// For testing pathfinding
-		pathX, pathY := state.dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(state.dungeon, state.player.X, state.player.Y, pathX, pathY)
-		path2 = state.dmap.PathFrom(Coord{pathX, pathY})
+		dest := state.dungeon.rooms[RoomID].Center()
+		path1 = findPathBFS(state.dungeon, state.player.Pos(), dest)
+		path2 = state.dmap.PathFrom(dest)
 	}
 }
 
@@ -152,8 +153,7 @@ func draw(display *Display, state *GameState) {
 	display.Print(0, 24, state.player.InfoString())
 
 	for _, m := range *state.monsters {
-		mx, my := m.Pos()
-		if state.dungeon.TileAt(mx, my).visible || debugFlag["main"] {
+		if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
 			display.DrawEntity(m)
 		}
 	}
@@ -183,22 +183,18 @@ func GenerateTestLevel(gs *GameState) {
 	gs.dungeon.Clear()
 	gs.monsters.Clear()
 
-	x1, y1 := gs.dungeon.CreateRoom(44, 6, 13, 7)
-	x2, y2 := gs.dungeon.CreateRoom(25, 15, 11, 7)
-	x3, y3 := gs.dungeon.CreateRoom(18, 2, 20, 7)
-	gs.dungeon.ConnectRooms(x1, y1, x3, y3, East)
-	gs.dungeon.ConnectRooms(x2, y2, x3, y3, South)
-	//gs.dungeon.ConnectRooms(x1, y1, x2, y2, South)
+	p1 := gs.dungeon.CreateRoom(Coord{44, 6}, 13, 7)
+	p2 := gs.dungeon.CreateRoom(Coord{25, 15}, 11, 7)
+	p3 := gs.dungeon.CreateRoom(Coord{18, 2}, 20, 7)
+	gs.dungeon.ConnectRooms(p1, p3, East)
+	gs.dungeon.ConnectRooms(p2, p3, South)
 
-	//gs.dungeon.SetTile(x1, y1, TileStairsUp)
-	gs.dungeon.SetTile(x2, y2, TileStairsDn)
-	gs.monsters.Add(randomMonster(gs.player.depth), 20, 4)
-	gs.monsters.Add(randomMonster(gs.player.depth), x2, y2)
-	gs.monsters.Add(randomMonster(gs.player.depth), x3, y3)
-	gs.monsters.Add(randomMonster(gs.player.depth), 29, 17)
-	//gs.monsters.Add(newMonster(2), 44, 5)
+	gs.dungeon.SetTile(p2, TileStairsDn)
+	gs.monsters.Add(randomMonster(gs.player.depth), Coord{20, 4})
+	gs.monsters.Add(randomMonster(gs.player.depth), p2)
+	gs.monsters.Add(randomMonster(gs.player.depth), p3)
+	gs.monsters.Add(randomMonster(gs.player.depth), Coord{29, 17})
 
-	gs.player.SetPos(x1, y1)
+	gs.player.SetPos(p1)
 	//gs.player.depth++
-
 }

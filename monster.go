@@ -83,8 +83,8 @@ func randomMonster(depth int) *Monster {
 
 type MonsterList []*Monster
 
-func (ml *MonsterList) Add(m *Monster, x, y int) {
-	m.X, m.Y = x, y
+func (ml *MonsterList) Add(m *Monster, pos Coord) {
+	m.X, m.Y = pos.XY()
 	*ml = append(*ml, m)
 }
 
@@ -96,9 +96,9 @@ func (ml *MonsterList) Clear() {
 	*ml = nil
 }
 
-func (ml MonsterList) MonsterAt(x, y int) *Monster {
+func (ml MonsterList) MonsterAt(pos Coord) *Monster {
 	for _, m := range ml {
-		if m.X == x && m.Y == y {
+		if m.Pos() == pos {
 			return m
 		}
 	}
@@ -154,30 +154,21 @@ func (m *Monster) DebugString() string {
 		m.nextStep)
 }
 
-// Returns the Chebyshev Distance from the given Entity
-func (m *Monster) DistanceFrom(e Entity) int {
-	x2, y2 := e.Pos()
-	dx := abs(x2 - m.X)
-	dy := abs(y2 - m.Y)
-	return max(dx, dy)
-}
-
-func (m *Monster) DirectionCoordsTo(eX, eY int) (dx int, dy int) {
-	//eX, eY := e.Pos()
-	dx = 0
-	if eX < m.X {
+func (m *Monster) DirectionCoordsTo(pos Coord) Coord {
+	dx := 0
+	if pos.X < m.X {
 		dx = -1
-	} else if eX > m.X {
+	} else if pos.X > m.X {
 		dx = 1
 	}
-	dy = 0
-	if eY < m.Y {
+	dy := 0
+	if pos.Y < m.Y {
 		dy = -1
-	} else if eY > m.Y {
+	} else if pos.Y > m.Y {
 		dy = 1
 	}
 
-	return dx, dy
+	return Coord{dx, dy}
 }
 
 func (m Monster) String() string {
@@ -186,13 +177,13 @@ func (m Monster) String() string {
 
 // Implement the Entity interface
 
-func (m *Monster) SetPos(newX, newY int) {
-	m.X = newX
-	m.Y = newY
+func (m *Monster) SetPos(newPos Coord) {
+	m.X = newPos.X
+	m.Y = newPos.Y
 }
 
-func (m *Monster) Pos() (int, int) {
-	return m.X, m.Y
+func (m *Monster) Pos() Coord {
+	return Coord{m.X, m.Y}
 }
 
 func (m *Monster) Rune() rune {

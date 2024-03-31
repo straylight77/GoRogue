@@ -188,13 +188,13 @@ func (d *Display) DrawVLine(col int, from, to int, styleName string) {
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawEntity(e Entity) {
-	x, y := e.Pos()
+	x, y := e.Pos().XY()
 	d.Screen.SetContent(x, y+1, e.Rune(), nil, d.Style("default"))
 }
 
 // -----------------------------------------------------------------------------
 func (d *Display) DrawPlayer(p *Player) {
-	x, y := p.Pos()
+	x, y := p.Pos().XY()
 	d.Screen.SetContent(x, y+1, '@', nil, d.Style("default"))
 	d.Screen.ShowCursor(x, y+1)
 }

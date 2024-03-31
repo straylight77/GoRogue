@@ -31,7 +31,7 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	d.DrawBox(-1, -1, maxX+1, maxY+1, "debug")
 
 	d.Debugf(84, 1, "Moves:  %d", gs.player.moves)
-	d.Debugf(84, 2, "Pos: %d, %d", gs.player.X, gs.player.Y)
+	d.Debugf(84, 2, "Pos: %v", gs.player.Pos())
 	//d.Debugf(84, 3, "Heal: %d,  Food: %d", p.healCount, p.foodCount)
 	d.Debugf(84, 4, "path1: %v", path1)
 	d.Debugf(84, 5, "path2: %v", path2)
@@ -70,8 +70,8 @@ func drawGenerateDebug(disp *Display) {
 
 	for i, r := range graph.rooms {
 		disp.Debugf(0, 28+i, "%d: %v", i, r)
-		cX, cY := r.Center()
-		disp.Debug(cX, cY+1, "X") // Y+1 to convert to map coords
+		c := r.Center()
+		disp.Debug(c.X, c.Y+1, "X") // Y+1 to convert to map coords
 	}
 
 	for i := 0; i < 9; i++ {
