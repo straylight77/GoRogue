@@ -24,9 +24,10 @@ func generateRandomLevel(gs *GameState) {
 	for i := 0; i < N; i++ {
 		r := graph.RandCell(1)
 		// TODO: use Coord
-		mX, mY := graph.rooms[r].RandPoint()
-		if mX != gs.player.X && mY != gs.player.Y && gs.monsters.MonsterAt(mX, mY) == nil {
-			gs.monsters.Add(randomMonster(gs.player.depth), mX, mY)
+		pos := graph.rooms[r].RandPoint()
+		//if mX != gs.player.X && mY != gs.player.Y && gs.monsters.MonsterAt(mX, mY) == nil {
+		if pos != gs.player.Pos() && gs.monsters.MonsterAt(pos.X, pos.Y) == nil {
+			gs.monsters.Add(randomMonster(gs.player.depth), pos.X, pos.Y)
 		} else {
 			i--
 		}
@@ -79,15 +80,15 @@ func buildMap(g *RoomGraph, d *DungeonMap) Coord {
 
 	// place the player in a random location (as well as the stairs up)
 	c1 := g.RandCell(1)
-	pX, pY := g.rooms[c1].RandPoint()
-	d.SetTile(pX, pY, TileStairsUp)
+	pos1 := g.rooms[c1].RandPoint()
+	d.SetTile(pos1, TileStairsUp)
 
 	// place the stairs down in a random location
 	c2 := g.RandCell(1)
-	sX, sY := g.rooms[c2].RandPoint()
-	d.SetTile(sX, sY, TileStairsDn)
+	pos2 := g.rooms[c2].RandPoint()
+	d.SetTile(pos2, TileStairsDn)
 
-	return Coord{pX, pY}
+	return pos1
 }
 
 /*****************************************************************************/
@@ -354,22 +355,26 @@ type Room struct {
 }
 
 // Returns the screen coord of the room's center
-func (r Room) Center() (x int, y int) {
+func (r Room) Center() (x int, y int) { //TODO
 	x = r.X + r.W/2
 	y = r.Y + r.H/2
 	return
 }
 
+func (r Room) TopLeft() Coord {
+	return Coord{r.X, r.Y}
+}
+
 // Returns a random point within the room ensuring it's not on a wall
-func (r Room) RandPoint() (x int, y int) {
-	x = r.X + rand.Intn(r.W-2) + 1
-	y = r.Y + rand.Intn(r.H-2) + 1
-	return
+func (r Room) RandPoint() Coord {
+	x := r.X + rand.Intn(r.W-2) + 1
+	y := r.Y + rand.Intn(r.H-2) + 1
+	return Coord{x, y}
 }
 
 // Returns the coord of a random point on the wall of the given direction
 func (r Room) RandWallPoint(dir Direction) (x, y int) {
-	x, y = r.RandPoint()
+	x, y = r.RandPoint().XY()
 	switch dir {
 	case North:
 		y = r.Y

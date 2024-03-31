@@ -152,8 +152,7 @@ func draw(display *Display, state *GameState) {
 	display.Print(0, 24, state.player.InfoString())
 
 	for _, m := range *state.monsters {
-		mx, my := m.Pos().XY()
-		if state.dungeon.TileAt(mx, my).visible || debugFlag["main"] {
+		if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
 			display.DrawEntity(m)
 		}
 	}
@@ -191,7 +190,7 @@ func GenerateTestLevel(gs *GameState) {
 	//gs.dungeon.ConnectRooms(x1, y1, x2, y2, South)
 
 	//gs.dungeon.SetTile(x1, y1, TileStairsUp)
-	gs.dungeon.SetTile(x2, y2, TileStairsDn)
+	gs.dungeon.SetTile(Coord{x2, y2}, TileStairsDn)
 	gs.monsters.Add(randomMonster(gs.player.depth), 20, 4)
 	gs.monsters.Add(randomMonster(gs.player.depth), x2, y2)
 	gs.monsters.Add(randomMonster(gs.player.depth), x3, y3)

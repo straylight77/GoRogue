@@ -24,12 +24,12 @@ func (gs *GameState) Init() {
 }
 
 // -----------------------------------------------------------------------
-func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool {
+func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool { //TODO
 	delta := Coord{dx, dy}
 	dest := e.Pos().Sum(delta)
 
 	// Check edges of the map
-	if gs.dungeon.IsOutOfBounds(dest.X, dest.Y) {
+	if gs.dungeon.IsOutOfBounds(dest) {
 		gs.messages.Add("As you gaze into the abyss, it begins to gaze back into you...")
 		return false
 	}
@@ -72,7 +72,7 @@ func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) GoDownstairs() bool {
-	if gs.dungeon.TileTypeAt(gs.player.X, gs.player.Y) == TileStairsDn {
+	if gs.dungeon.TileTypeAt(gs.player.Pos()) == TileStairsDn {
 		gs.messages.Add("You descend the ancient stairs.")
 		generateRandomLevel(gs)
 		return true
@@ -84,7 +84,7 @@ func (gs *GameState) GoDownstairs() bool {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) GoUpstairs() bool {
-	if gs.dungeon.TileTypeAt(gs.player.X, gs.player.Y) == TileStairsUp {
+	if gs.dungeon.TileTypeAt(gs.player.Pos()) == TileStairsUp {
 		gs.messages.Add("Your way is magically blocked.")
 	} else {
 		gs.messages.Add("There are no stairs to go up here.")
@@ -111,20 +111,20 @@ func (gs *GameState) UpdateMonsters() {
 		switch m.State {
 
 		case StateDormant:
-			if (m.isMean && gs.dungeon.CanSee(m)) || m.DistanceFrom(gs.player) <= 2 {
+			if (m.isMean && gs.dungeon.CanSee(m)) || m.Pos().Distance(gs.player.Pos()) <= 2 {
 				m.State = StateChase
 			}
 
 		case StateChase:
 
-			if !m.isMean && m.DistanceFrom(gs.player) > 6 {
+			if !m.isMean && m.Pos().Distance(gs.player.Pos()) > 6 {
 				// For non-mean monsters, go dormant when far away
 				m.State = StateDormant
 
 			} else if m.randMove > rand.Intn(100) {
 				// Move randomly randMove% of the time
-				dx, dy := gs.dungeon.RandDirectionCoords(m.X, m.Y)
-				gs.MoveEntity(m, dx, dy)
+				delta := gs.dungeon.RandDirectionCoords(m.Pos())
+				gs.MoveEntity(m, delta.X, delta.Y)
 
 			} else {
 				// Pathfinding to the player is already calculated with the dmap
@@ -148,13 +148,13 @@ func (gs *GameState) Pathfinding() {
 // -----------------------------------------------------------------------
 // Update the player's field of view and visited tiles
 func (gs *GameState) UpdatePlayerFOV() {
-	gs.dungeon.SetVisible(0, 0, MapMaxX, MapMaxY, false)
-	gs.dungeon.playerFOV(gs.player)
+	gs.dungeon.SetVisible(Coord{0, 0}, MapMaxX, MapMaxY, false)
+	gs.dungeon.playerFOV(gs.player.Pos())
 
 	// If the player is in a room, light it up
 	for _, r := range gs.dungeon.rooms {
 		if r.InRoom(gs.player.X, gs.player.Y) {
-			gs.dungeon.SetVisible(r.X, r.Y, r.W+1, r.H+1, true)
+			gs.dungeon.SetVisible(r.TopLeft(), r.W+1, r.H+1, true)
 		}
 	}
 

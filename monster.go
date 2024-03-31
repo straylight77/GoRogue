@@ -96,7 +96,7 @@ func (ml *MonsterList) Clear() {
 	*ml = nil
 }
 
-func (ml MonsterList) MonsterAt(x, y int) *Monster {
+func (ml MonsterList) MonsterAt(x, y int) *Monster { //TODO
 	for _, m := range ml {
 		if m.X == x && m.Y == y {
 			return m
@@ -152,14 +152,6 @@ func (m *Monster) DebugString() string {
 		m.HP,
 		m.State,
 		m.nextStep)
-}
-
-// Returns the Chebyshev Distance from the given Entity
-func (m *Monster) DistanceFrom(e Entity) int {
-	pos := e.Pos()
-	dx := abs(pos.X - m.X)
-	dy := abs(pos.Y - m.Y)
-	return max(dx, dy)
 }
 
 func (m *Monster) DirectionCoordsTo(eX, eY int) (dx int, dy int) {
