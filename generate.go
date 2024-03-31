@@ -24,8 +24,8 @@ func generateRandomLevel(gs *GameState) {
 	for i := 0; i < N; i++ {
 		r := graph.RandCell(1)
 		pos := graph.rooms[r].RandPoint()
-		if pos != gs.player.Pos() && gs.monsters.MonsterAt(pos.X, pos.Y) == nil {
-			gs.monsters.Add(randomMonster(gs.player.depth), pos.X, pos.Y)
+		if pos != gs.player.Pos() && gs.monsters.MonsterAt(pos) == nil {
+			gs.monsters.Add(randomMonster(gs.player.depth), pos)
 		} else {
 			i--
 		}
@@ -395,11 +395,11 @@ func (r *Room) SetSize(x, y, w, h int) {
 }
 
 // Returns true if the given x,y coord in within the bounds of the room
-func (r *Room) InRoom(x, y int) bool {
-	return r.X-1 < x &&
-		x < r.X+r.W+1 &&
-		r.Y-1 < y &&
-		y < r.Y+r.H+1
+func (r *Room) InRoom(pos Coord) bool {
+	return r.X-1 < pos.X &&
+		pos.X < r.X+r.W+1 &&
+		r.Y-1 < pos.Y &&
+		pos.Y < r.Y+r.H+1
 }
 
 /*****************************************************************************/

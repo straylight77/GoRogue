@@ -190,10 +190,10 @@ func GenerateTestLevel(gs *GameState) {
 
 	//gs.dungeon.SetTile(x1, y1, TileStairsUp)
 	gs.dungeon.SetTile(p2, TileStairsDn)
-	gs.monsters.Add(randomMonster(gs.player.depth), 20, 4)
-	gs.monsters.Add(randomMonster(gs.player.depth), p2.X, p2.Y) //TODO
-	gs.monsters.Add(randomMonster(gs.player.depth), p3.X, p3.Y) //TODO
-	gs.monsters.Add(randomMonster(gs.player.depth), 29, 17)
+	gs.monsters.Add(randomMonster(gs.player.depth), Coord{20, 4})
+	gs.monsters.Add(randomMonster(gs.player.depth), p2)
+	gs.monsters.Add(randomMonster(gs.player.depth), p3)
+	gs.monsters.Add(randomMonster(gs.player.depth), Coord{29, 17})
 	//gs.monsters.Add(newMonster(2), 44, 5)
 
 	gs.player.SetPos(p1)

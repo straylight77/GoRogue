@@ -45,14 +45,14 @@ func (gs *GameState) MoveEntity(e Entity, dx, dy int) bool { //TODO
 		}
 
 		// If another monster is there, don't move
-		m2 := gs.monsters.MonsterAt(dest.X, dest.Y)
+		m2 := gs.monsters.MonsterAt(dest)
 		if m2 != nil {
 			return false
 		}
 
 	case *Player:
 		// If a monster is there, attack it
-		m := gs.monsters.MonsterAt(dest.X, dest.Y)
+		m := gs.monsters.MonsterAt(dest)
 		if m != nil {
 			gs.messages.Add(e.Attack(m))
 			m.State = StateChase
@@ -98,6 +98,7 @@ func (gs *GameState) UpdateMonsters() {
 	for i, m := range *gs.monsters {
 
 		// Remove any slain monsters
+		// TODO move this into a separate function under MonsterList
 		if m.HP <= 0 {
 			gs.monsters.Remove(i)
 			gs.messages.Add("You defeated the %s!", m.Name)
@@ -124,13 +125,13 @@ func (gs *GameState) UpdateMonsters() {
 			} else if m.randMove > rand.Intn(100) {
 				// Move randomly randMove% of the time
 				delta := gs.dungeon.RandDirectionCoords(m.Pos())
-				gs.MoveEntity(m, delta.X, delta.Y)
+				gs.MoveEntity(m, delta.X, delta.Y) //TODO
 
 			} else {
 				// Pathfinding to the player is already calculated with the dmap
 				m.nextStep = gs.dmap.NextStep(Coord{m.X, m.Y})
-				dx, dy := m.DirectionCoordsTo(m.nextStep.X, m.nextStep.Y)
-				gs.MoveEntity(m, dx, dy)
+				delta := m.DirectionCoordsTo(m.nextStep)
+				gs.MoveEntity(m, delta.X, delta.Y) //TODO
 
 				// For testing, store the next step
 				m.nextStep = gs.dmap.NextStep(Coord{m.X, m.Y})
@@ -142,7 +143,7 @@ func (gs *GameState) UpdateMonsters() {
 // -----------------------------------------------------------------------
 func (gs *GameState) Pathfinding() {
 	// Recalculate the DMap for monsters to use to find the player
-	gs.dmap = newDMap(gs.dungeon, Coord{gs.player.X, gs.player.Y})
+	gs.dmap = newDMap(gs.dungeon, gs.player.Pos())
 }
 
 // -----------------------------------------------------------------------
@@ -153,7 +154,7 @@ func (gs *GameState) UpdatePlayerFOV() {
 
 	// If the player is in a room, light it up
 	for _, r := range gs.dungeon.rooms {
-		if r.InRoom(gs.player.X, gs.player.Y) {
+		if r.InRoom(gs.player.Pos()) {
 			gs.dungeon.SetVisible(r.TopLeft(), r.W+1, r.H+1, true)
 		}
 	}

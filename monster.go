@@ -83,8 +83,8 @@ func randomMonster(depth int) *Monster {
 
 type MonsterList []*Monster
 
-func (ml *MonsterList) Add(m *Monster, x, y int) {
-	m.X, m.Y = x, y
+func (ml *MonsterList) Add(m *Monster, pos Coord) {
+	m.X, m.Y = pos.XY()
 	*ml = append(*ml, m)
 }
 
@@ -96,9 +96,9 @@ func (ml *MonsterList) Clear() {
 	*ml = nil
 }
 
-func (ml MonsterList) MonsterAt(x, y int) *Monster { //TODO
+func (ml MonsterList) MonsterAt(pos Coord) *Monster {
 	for _, m := range ml {
-		if m.X == x && m.Y == y {
+		if m.Pos() == pos {
 			return m
 		}
 	}
@@ -154,22 +154,21 @@ func (m *Monster) DebugString() string {
 		m.nextStep)
 }
 
-func (m *Monster) DirectionCoordsTo(eX, eY int) (dx int, dy int) {
-	//eX, eY := e.Pos()
-	dx = 0
-	if eX < m.X {
+func (m *Monster) DirectionCoordsTo(pos Coord) Coord {
+	dx := 0
+	if pos.X < m.X {
 		dx = -1
-	} else if eX > m.X {
+	} else if pos.X > m.X {
 		dx = 1
 	}
-	dy = 0
-	if eY < m.Y {
+	dy := 0
+	if pos.Y < m.Y {
 		dy = -1
-	} else if eY > m.Y {
+	} else if pos.Y > m.Y {
 		dy = 1
 	}
 
-	return dx, dy
+	return Coord{dx, dy}
 }
 
 func (m Monster) String() string {
