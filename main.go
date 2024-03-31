@@ -133,7 +133,8 @@ func main() {
 
 		// Do updates of the game world
 		if doUpdate {
-			state.UpdateMonsters()
+			state.PruneMonsters()
+			state.MonstersAct()
 			state.player.Update()
 		}
 

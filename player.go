@@ -86,9 +86,8 @@ func (p *Player) Attack(m Entity) string {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) AddXP(amt int) string {
+func (p *Player) AddXP(amt int) {
 	p.XP += amt
-	return p.CheckLevel()
 }
 
 // -----------------------------------------------------------------------
@@ -101,6 +100,7 @@ func (p *Player) CheckLevel() string {
 		}
 		level++
 	}
+	//debug.Add("level: xp=%d, ply=%d level=%d", p.XP, p.Level, level)
 	if p.Level < level {
 		msg = fmt.Sprintf("Welcome to level %d!", level)
 	}

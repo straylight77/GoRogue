@@ -91,22 +91,22 @@ func (gs *GameState) GoUpstairs() bool {
 }
 
 // -----------------------------------------------------------------------
-func (gs *GameState) UpdateMonsters() {
-
+func (gs *GameState) PruneMonsters() {
 	for i, m := range *gs.monsters {
-
-		// Remove any slain monsters
-		// TODO move this into a separate function under MonsterList
 		if m.HP <= 0 {
 			gs.monsters.Remove(i)
 			gs.messages.Add("You defeated the %s!", m.Name)
-			m := gs.player.AddXP(m.XP)
-			if m != "" {
-				gs.messages.Add(m)
-			}
-			continue
+			gs.player.AddXP(m.XP)
 		}
+	}
+	// This is the only place XP is awarded so check player level
+	msg := gs.player.CheckLevel()
+	gs.messages.Add(msg)
+}
 
+// -----------------------------------------------------------------------
+func (gs *GameState) MonstersAct() {
+	for _, m := range *gs.monsters {
 		switch m.State {
 
 		case StateDormant:
