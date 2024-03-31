@@ -243,59 +243,57 @@ func (d *DungeonMap) SetVisible(start Coord, w, h int, val bool) {
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) ConnectRooms(x1, y1 int, x2, y2 int, startDir Direction) { //TODO
+func (m *DungeonMap) ConnectRooms(p1, p2 Coord, startDir Direction) {
 	HDir := East
 	VDir := South
 
-	if x2 < x1 {
+	if p2.X < p1.X {
 		HDir = West
 	}
-	if y2 < y1 {
+	if p2.Y < p1.Y {
 		VDir = North
 	}
 
-	dx := x2 - x1
-	dy := y2 - y1
+	dx := p2.X - p1.X
+	dy := p2.Y - p1.Y
 
-	var x, y int
+	var next Coord
+
 	switch startDir {
 	case North, South:
 		seg1Len := dy / 2
 		seg3Len := dy - seg1Len
-		x, y = m.CreateCorridor(x1, y1, VDir, seg1Len)
-		x, y = m.CreateCorridor(x, y, HDir, dx)
-		x, y = m.CreateCorridor(x, y, VDir, seg3Len)
+		next = m.CreateCorridor(p1, VDir, seg1Len)
+		next = m.CreateCorridor(next, HDir, dx)
+		next = m.CreateCorridor(next, VDir, seg3Len)
 	case East, West:
 		seg1Len := dx / 2
 		seg3Len := dx - seg1Len
-		x, y = m.CreateCorridor(x1, y1, HDir, seg1Len)
-		x, y = m.CreateCorridor(x, y, VDir, dy)
-		x, y = m.CreateCorridor(x, y, HDir, seg3Len)
+		next = m.CreateCorridor(p1, HDir, seg1Len)
+		next = m.CreateCorridor(next, VDir, dy)
+		next = m.CreateCorridor(next, HDir, seg3Len)
 	}
-	m.ConvertTile(x2, y2, IgnoreTiles)
+	m.ConvertTile(p2, IgnoreTiles)
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) CreateCorridor(x1, y1 int, dir Direction, length int) (int, int) {
+func (m *DungeonMap) CreateCorridor(pos Coord, dir Direction, length int) Coord {
 
 	//allow length to be given as negative
 	if length < 0 {
 		length = -1 * length
 	}
 
-	dx, dy := getDirectionCoords(dir)
-	x, y := x1, y1
+	delta := getDirectionCoords(dir)
 	for i := length; i > 0; i-- {
-		m.ConvertTile(x, y, IgnoreTiles)
-		x += dx
-		y += dy
+		m.ConvertTile(pos, IgnoreTiles)
+		pos = pos.Sum(delta)
 	}
-	return x, y
+	return pos
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) ConvertTile(x, y int, ignore bool) {
-	pos := Coord{x, y}
+func (m *DungeonMap) ConvertTile(pos Coord, ignore bool) {
 	if ignore {
 		m.SetTile(pos, TileCorridor)
 	} else {
@@ -307,37 +305,36 @@ func (m *DungeonMap) ConvertTile(x, y int, ignore bool) {
 			m.SetTile(pos, TileCorridor)
 		}
 	}
-
 }
 
 // -----------------------------------------------------------------------
-func (m *DungeonMap) CreateRoom(x1, y1 int, w, h int) (int, int) {
+func (m *DungeonMap) CreateRoom(pos Coord, w, h int) Coord {
 	h -= 1
 	w -= 1
 
-	for x := x1; x < x1+w; x++ {
-		m.SetTile(Coord{x, y1}, TileWallH)
-		m.SetTile(Coord{x, y1 + h}, TileWallH)
+	for x := pos.X; x < pos.X+w; x++ {
+		m.SetTile(Coord{x, pos.Y}, TileWallH)
+		m.SetTile(Coord{x, pos.Y + h}, TileWallH)
 	}
 
-	for y := y1; y < y1+h; y++ {
-		m.SetTile(Coord{x1, y}, TileWallV)
-		m.SetTile(Coord{x1 + w, y}, TileWallV)
+	for y := pos.Y; y < pos.Y+h; y++ {
+		m.SetTile(Coord{pos.X, y}, TileWallV)
+		m.SetTile(Coord{pos.X + w, y}, TileWallV)
 	}
 
-	for x := x1 + 1; x < x1+w; x++ {
-		for y := y1 + 1; y < y1+h; y++ {
+	for x := pos.X + 1; x < pos.X+w; x++ {
+		for y := pos.Y + 1; y < pos.Y+h; y++ {
 			m.SetTile(Coord{x, y}, TileFloor)
 		}
 	}
 
-	m.SetTile(Coord{x1, y1}, TileWallUL)
-	m.SetTile(Coord{x1 + w, y1}, TileWallUR)
-	m.SetTile(Coord{x1, y1 + h}, TileWallLL)
-	m.SetTile(Coord{x1 + w, y1 + h}, TileWallLR)
+	m.SetTile(pos, TileWallUL)
+	m.SetTile(pos.Sum(Coord{w, 0}), TileWallUR)
+	m.SetTile(pos.Sum(Coord{0, h}), TileWallLL)
+	m.SetTile(pos.Sum(Coord{w, h}), TileWallLR)
 
-	m.rooms = append(m.rooms, Room{X: x1, Y: y1, W: w, H: h})
+	m.rooms = append(m.rooms, Room{X: pos.X, Y: pos.Y, W: w, H: h})
 
 	// return the coords of the room center
-	return x1 + (w / 2), y1 + (h / 2)
+	return pos.Sum(Coord{w / 2, h / 2})
 }

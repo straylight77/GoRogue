@@ -23,9 +23,7 @@ func generateRandomLevel(gs *GameState) {
 	N := 5
 	for i := 0; i < N; i++ {
 		r := graph.RandCell(1)
-		// TODO: use Coord
 		pos := graph.rooms[r].RandPoint()
-		//if mX != gs.player.X && mY != gs.player.Y && gs.monsters.MonsterAt(mX, mY) == nil {
 		if pos != gs.player.Pos() && gs.monsters.MonsterAt(pos.X, pos.Y) == nil {
 			gs.monsters.Add(randomMonster(gs.player.depth), pos.X, pos.Y)
 		} else {
@@ -46,7 +44,7 @@ func buildMap(g *RoomGraph, d *DungeonMap) Coord {
 	// create the rooms on the dungeon map
 	for _, r := range g.rooms {
 		if r.mark == 1 {
-			d.CreateRoom(r.X, r.Y, r.W, r.H)
+			d.CreateRoom(r.TopLeft(), r.W, r.H)
 		}
 	}
 
@@ -54,27 +52,27 @@ func buildMap(g *RoomGraph, d *DungeonMap) Coord {
 	for _, p := range g.corridors {
 		if p.mark == 0 { // ignore dropped corridors (-1)
 
-			var x1, y1, x2, y2 int
+			var p1, p2 Coord
 
 			// If the room has been dropped use, its center. Otherwise use a
 			// random point on the wall closest to the destination cell.
 			dir1 := g.Direction(p.origID, p.destID)
 			if g.rooms[p.origID].mark == 1 {
-				x1, y1 = g.rooms[p.origID].RandWallPoint(dir1)
+				p1 = g.rooms[p.origID].RandWallPoint(dir1)
 			} else {
-				x1, y1 = g.rooms[p.origID].Center()
+				p1 = g.rooms[p.origID].Center()
 			}
 
 			// Same logic as above for the destination room
 			dir2 := g.Direction(p.destID, p.origID)
 			if g.rooms[p.destID].mark == 1 {
-				x2, y2 = g.rooms[p.destID].RandWallPoint(dir2)
+				p2 = g.rooms[p.destID].RandWallPoint(dir2)
 			} else {
-				x2, y2 = g.rooms[p.destID].Center()
+				p2 = g.rooms[p.destID].Center()
 			}
 
 			//debug.Add("making corridor: %d -> %d, dir=%v", p.origID, p.destID, dir)
-			d.ConnectRooms(x1, y1, x2, y2, dir1)
+			d.ConnectRooms(p1, p2, dir1)
 		}
 	}
 
@@ -355,10 +353,10 @@ type Room struct {
 }
 
 // Returns the screen coord of the room's center
-func (r Room) Center() (x int, y int) { //TODO
-	x = r.X + r.W/2
-	y = r.Y + r.H/2
-	return
+func (r Room) Center() Coord {
+	x := r.X + r.W/2
+	y := r.Y + r.H/2
+	return Coord{x, y}
 }
 
 func (r Room) TopLeft() Coord {
@@ -373,8 +371,8 @@ func (r Room) RandPoint() Coord {
 }
 
 // Returns the coord of a random point on the wall of the given direction
-func (r Room) RandWallPoint(dir Direction) (x, y int) {
-	x, y = r.RandPoint().XY()
+func (r Room) RandWallPoint(dir Direction) Coord {
+	x, y := r.RandPoint().XY()
 	switch dir {
 	case North:
 		y = r.Y
@@ -385,7 +383,7 @@ func (r Room) RandWallPoint(dir Direction) (x, y int) {
 	case West:
 		x = r.X
 	}
-	return
+	return Coord{x, y}
 }
 
 // Updates the dimensions of the room

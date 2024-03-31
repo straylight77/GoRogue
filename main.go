@@ -123,8 +123,8 @@ func main() {
 			}
 		case CmdGenerate:
 			debug.Clear()
-			generateRandomLevel(&state)
-			//GenerateTestLevel(&state)
+			//generateRandomLevel(&state)
+			GenerateTestLevel(&state)
 		}
 
 		// Do updates that happen regardless of game time
@@ -138,9 +138,9 @@ func main() {
 		}
 
 		// For testing pathfinding
-		pathX, pathY := state.dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(state.dungeon, state.player.X, state.player.Y, pathX, pathY)
-		path2 = state.dmap.PathFrom(Coord{pathX, pathY})
+		dest := state.dungeon.rooms[RoomID].Center()
+		path1 = findPathBFS(state.dungeon, state.player.X, state.player.Y, dest.X, dest.Y)
+		path2 = state.dmap.PathFrom(dest)
 	}
 }
 
@@ -182,22 +182,21 @@ func GenerateTestLevel(gs *GameState) {
 	gs.dungeon.Clear()
 	gs.monsters.Clear()
 
-	x1, y1 := gs.dungeon.CreateRoom(44, 6, 13, 7)
-	x2, y2 := gs.dungeon.CreateRoom(25, 15, 11, 7)
-	x3, y3 := gs.dungeon.CreateRoom(18, 2, 20, 7)
-	gs.dungeon.ConnectRooms(x1, y1, x3, y3, East)
-	gs.dungeon.ConnectRooms(x2, y2, x3, y3, South)
-	//gs.dungeon.ConnectRooms(x1, y1, x2, y2, South)
+	p1 := gs.dungeon.CreateRoom(Coord{44, 6}, 13, 7)
+	p2 := gs.dungeon.CreateRoom(Coord{25, 15}, 11, 7)
+	p3 := gs.dungeon.CreateRoom(Coord{18, 2}, 20, 7)
+	gs.dungeon.ConnectRooms(p1, p3, East)
+	gs.dungeon.ConnectRooms(p2, p3, South)
 
 	//gs.dungeon.SetTile(x1, y1, TileStairsUp)
-	gs.dungeon.SetTile(Coord{x2, y2}, TileStairsDn)
+	gs.dungeon.SetTile(p2, TileStairsDn)
 	gs.monsters.Add(randomMonster(gs.player.depth), 20, 4)
-	gs.monsters.Add(randomMonster(gs.player.depth), x2, y2)
-	gs.monsters.Add(randomMonster(gs.player.depth), x3, y3)
+	gs.monsters.Add(randomMonster(gs.player.depth), p2.X, p2.Y) //TODO
+	gs.monsters.Add(randomMonster(gs.player.depth), p3.X, p3.Y) //TODO
 	gs.monsters.Add(randomMonster(gs.player.depth), 29, 17)
 	//gs.monsters.Add(newMonster(2), 44, 5)
 
-	gs.player.SetPos(Coord{x1, y1})
+	gs.player.SetPos(p1)
 	//gs.player.depth++
 
 }

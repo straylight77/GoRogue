@@ -35,7 +35,7 @@ func (d Direction) String() string {
 	}
 }
 
-func getDirectionCoords(dir Direction) (int, int) {
+func getDirectionCoords(dir Direction) Coord {
 	dx, dy := 0, 0
 	switch dir {
 	case North:
@@ -47,7 +47,7 @@ func getDirectionCoords(dir Direction) (int, int) {
 	case West:
 		dx = -1
 	}
-	return dx, dy
+	return Coord{dx, dy}
 }
 
 // -----------------------------------------------------------------------
