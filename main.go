@@ -14,6 +14,10 @@ var path1 Path
 var path2 Path
 var RoomID int
 
+const (
+	WanderTimer = 70 // For spawning wandering monsters
+)
+
 type GameCommand int
 
 const (
@@ -123,8 +127,8 @@ func main() {
 			}
 		case CmdGenerate:
 			debug.Clear()
-			//generateRandomLevel(&state)
-			GenerateTestLevel(&state)
+			generateRandomLevel(&state)
+			//GenerateTestLevel(&state)
 		}
 
 		// Do updates that happen regardless of game time
@@ -136,6 +140,7 @@ func main() {
 			state.PruneMonsters()
 			state.MonstersAct()
 			state.player.Update()
+			state.WanderingMonsters()
 		}
 
 		// For testing pathfinding

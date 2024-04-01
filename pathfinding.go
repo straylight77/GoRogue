@@ -166,6 +166,7 @@ func (m *DMap) Calculate(dng *DungeonMap) {
 		nb := m.neighbours(current)
 		for _, next := range nb {
 			_, reached := m.distance[next]
+			//TODO check for monsters as well
 			if !reached && dng.IsWalkable(current, next) {
 				frontier.Add(next)
 				m.distance[next] = m.distance[current] + 1

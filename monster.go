@@ -18,6 +18,7 @@ type MonsterTemplate struct {
 	Dmg      string
 	Name     string
 	isMean   bool
+	noWander bool
 	randMove int // chance that it will move randomly (percentage)
 }
 
@@ -29,32 +30,32 @@ type MonsterTemplate struct {
 // (apparently called "vorpalness" in original Rogue source code)
 // https://datadrivengamer.blogspot.com/2019/05/identifying-mechanics-of-rogue.html
 var MonsterLib = []MonsterTemplate{
-	{'K', 0, 2, 1, 7, "1d4", "kobold", true, 0},
-	{'J', 0, 2, 1, 7, "1d2", "jackal", true, 0},
-	{'B', 0, 1, 1, 3, "1d2", "bat", false, 50}, // 50% chance to move randomly
-	{'S', 0, 3, 1, 5, "1d3", "snake", true, 0},
-	{'H', 0, 3, 1, 5, "1d8", "hobgoblin", true, 0},
-	{'E', 0, 5, 1, 9, "0d0", "floating eye", false, 0}, // paralyzes 2-3 turns
-	{'A', 0, 10, 2, 3, "1d6", "giant ant", true, 0},    // decrease str
-	{'O', 15, 5, 1, 6, "1d7", "orc", true, 0},
-	{'Z', 0, 7, 2, 8, "1d8", "zombie", true, 0},
-	{'G', 10, 8, 1, 5, "1d6", "gnome", false, 0},
-	{'L', 0, 10, 3, 8, "1d1", "leprechaun", false, 0}, // steal gold unless save vs magic
-	{'C', 15, 15, 4, 4, "1d6/1d6", "centaur", false, 0},
-	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster", true, 0}, // -1 to armor being worn
-	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "quasit", true, 0},
-	{'N', 100, 40, 3, 9, "0d0", "nymph", false, 0}, // steals random magic item from inventory
-	{'Y', 30, 50, 4, 6, "1d6/1d6", "yeti", false, 0},
-	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "troll", true, 0},
-	{'W', 0, 55, 5, 4, "1d6", "wraith", true, 0},              // 15% chance to drain level and 1d10 max hp
-	{'F', 0, 85, 8, 3, "0d0", "violet fungi", true, 0},        // grapple, damage is 1 then 2 then 3 etc.
-	{'I', 0, 120, 8, 3, "4d4", "invisible stalker", true, 20}, // 20% chance to move randomly
-	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "xorn", true, 0},
-	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk", true, 0}, // confuses for 20-39 turns, only once
-	{'M', 30, 140, 7, 7, "3d4", "mimic", false, 0},
-	{'V', 30, 380, 8, 1, "1d10", "vampire", true, 0},
-	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "dragon", false, 0},
-	{'P', 70, 7000, 15, 6, "2d12/2d4", "purple worm", false, 0},
+	{'K', 0, 2, 1, 7, "1d4", "kobold", true, false, 0},
+	{'J', 0, 2, 1, 7, "1d2", "jackal", true, false, 0},
+	{'B', 0, 1, 1, 3, "1d2", "bat", false, false, 50}, // 50% chance to move randomly
+	{'S', 0, 3, 1, 5, "1d3", "snake", true, false, 0},
+	{'H', 0, 3, 1, 5, "1d8", "hobgoblin", true, false, 0},
+	{'E', 0, 5, 1, 9, "0d0", "floating eye", false, true, 0}, // paralyzes 2-3 turns
+	{'A', 0, 10, 2, 3, "1d6", "giant ant", true, false, 0},   // decrease str
+	{'O', 15, 5, 1, 6, "1d7", "orc", true, false, 0},
+	{'Z', 0, 7, 2, 8, "1d8", "zombie", true, false, 0},
+	{'G', 10, 8, 1, 5, "1d6", "gnome", false, false, 0},
+	{'L', 0, 10, 3, 8, "1d1", "leprechaun", false, true, 0}, // steal gold unless save vs magic
+	{'C', 15, 15, 4, 4, "1d6/1d6", "centaur", false, false, 0},
+	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster", true, false, 0}, // -1 to armor being worn
+	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "quasit", true, false, 0},
+	{'N', 100, 40, 3, 9, "0d0", "nymph", false, true, 0}, // steals random magic item from inventory
+	{'Y', 30, 50, 4, 6, "1d6/1d6", "yeti", false, false, 0},
+	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "troll", true, true, 0},
+	{'W', 0, 55, 5, 4, "1d6", "wraith", true, false, 0},              // 15% chance to drain level and 1d10 max hp
+	{'F', 0, 85, 8, 3, "0d0", "violet fungi", true, true, 0},         // grapple, damage is 1 then 2 then 3 etc.
+	{'I', 0, 120, 8, 3, "4d4", "invisible stalker", true, false, 20}, // 20% chance to move randomly
+	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "xorn", true, false, 0},
+	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk", true, false, 0}, // confuses for 20-39 turns, only once
+	{'M', 30, 140, 7, 7, "3d4", "mimic", false, true, 0},
+	{'V', 30, 380, 8, 1, "1d10", "vampire", true, false, 0},
+	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "dragon", false, true, 0},
+	{'P', 70, 7000, 15, 6, "2d12/2d4", "purple worm", false, true, 0},
 }
 
 // Uses public variable MonsterLib
@@ -119,6 +120,7 @@ type Monster struct {
 	State    int
 	isMean   bool // once visible, start chasing player
 	isGreedy bool // move towards any nearby gold
+	noWander bool
 	randMove int
 	nextStep Coord
 }
@@ -138,6 +140,7 @@ func newMonster(id int) *Monster {
 		XP:       mt.XP,
 		Symbol:   mt.Symbol,
 		isMean:   mt.isMean,
+		noWander: mt.noWander,
 		randMove: mt.randMove,
 	}
 	return m

@@ -7,7 +7,6 @@ import (
 var graph *RoomGraph = &RoomGraph{}
 
 // ----------------------------------------------------------------------------
-// func generateRandomLevel(dm *DungeonMap, ml *MonsterList, p *Player) {
 func generateRandomLevel(gs *GameState) {
 	debug.Clear()
 	gs.dungeon.Clear()
@@ -19,20 +18,59 @@ func generateRandomLevel(gs *GameState) {
 	graph.MakeRandomRooms()
 	pos := buildMap(graph, gs.dungeon)
 
-	// Populate with monsters
-	N := 5
-	for i := 0; i < N; i++ {
-		r := graph.RandCell(1)
-		pos := graph.rooms[r].RandPoint()
-		if pos != gs.player.Pos() && gs.monsters.MonsterAt(pos) == nil {
-			gs.monsters.Add(randomMonster(gs.player.depth), pos)
-		} else {
-			i--
-		}
-	}
-
 	gs.player.SetPos(pos)
 	gs.player.depth++
+
+	populateMonsters(gs)
+
+	//populateItems(gs)
+
+	// If no food has been spawned in three dungeon levels, then spawn food.
+	// Otherwise, there is an equal chance of the item being food, a potion,
+	// a scroll, a weapon, armor, ring, or stick.
+
+	// When spawning food, there is a 10% chance of spawning a slime-mold.
+	// There’s no difference except eating a slime-mold grants 1 XP and
+	// produces a different message.
+
+}
+
+// ----------------------------------------------------------------------------
+// 50% chance that any given room will have gold.
+// Rooms with gold have an 80% chance of having a monster.
+// Rooms without gold have a 25% chance of having a monster.
+func populateMonsters(gs *GameState) {
+	var gold, monster bool
+	for i, r := range graph.rooms {
+
+		gold = false
+		monster = false
+
+		if r.mark != 1 {
+			continue
+		}
+
+		// 50% chance that any given room will have gold.
+		if rand.Intn(100) < 50 {
+			gold = true
+
+			// Rooms with gold have an 80% chance of having a monster.
+			if rand.Intn(100) < 80 {
+				monster = true
+				m := randomMonster(gs.player.depth)
+				gs.monsters.Add(m, r.RandPoint())
+			}
+
+		} else {
+			// Rooms without gold have a 25% chance of having a monster.
+			if rand.Intn(100) < 25 {
+				monster = true
+				m := randomMonster(gs.player.depth)
+				gs.monsters.Add(m, r.RandPoint())
+			}
+		}
+		debug.Add("room %d: gold=%-5v monster=%-5v", i, gold, monster)
+	}
 
 }
 

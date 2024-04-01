@@ -30,9 +30,12 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	maxX, maxY := 80, 25
 	d.DrawBox(-1, -1, maxX+1, maxY+1, "debug")
 
-	d.Debugf(84, 1, "Moves:  %d", gs.player.moves)
-	d.Debugf(84, 2, "Pos: %v", gs.player.Pos())
-	//d.Debugf(84, 3, "Heal: %d,  Food: %d", p.healCount, p.foodCount)
+	d.Debugf(84, 1, "Moves: %d, Pos: %v", gs.player.moves, gs.player.Pos())
+	d.Debugf(84, 3, "M=%d, H=%d, F=%d, W=%d",
+		gs.player.moves,
+		gs.player.healCount,
+		gs.player.foodCount,
+		gs.wander)
 	d.Debugf(84, 4, "path1: %v", path1)
 	d.Debugf(84, 5, "path2: %v", path2)
 	if gs.dmap != nil {

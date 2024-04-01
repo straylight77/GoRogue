@@ -9,6 +9,7 @@ type GameState struct {
 	monsters *MonsterList
 	messages *MessageLog
 	dmap     *DMap
+	wander   int
 }
 
 // -----------------------------------------------------------------------
@@ -18,6 +19,7 @@ func (gs *GameState) Init() {
 	gs.player = &Player{}
 	gs.monsters = &MonsterList{}
 	gs.messages = &MessageLog{}
+	gs.wander = WanderTimer
 
 	gs.player.Init()
 	generateRandomLevel(gs)
@@ -117,12 +119,8 @@ func (gs *GameState) MonstersAct() {
 
 		case StateChase:
 
-			if !m.isMean && m.Pos().Distance(gs.player.Pos()) > 6 {
-				// For non-mean monsters, go dormant when far away
-				m.State = StateDormant
-
-			} else if m.randMove > rand.Intn(100) {
-				// Move randomly randMove% of the time
+			if m.randMove > rand.Intn(100) {
+				// Move randomly randMove% of the time (e.g. bats)
 				delta := gs.dungeon.RandDirectionCoords(m.Pos())
 				gs.MoveEntity(m, delta)
 
@@ -158,4 +156,38 @@ func (gs *GameState) UpdatePlayerFOV() {
 		}
 	}
 
+}
+
+// -----------------------------------------------------------------------
+// After 70 turns, a “wander” daemon activates. When activated, every fourth
+// move has a 1/6th chance that a monster will spawn and deactivate the daemon.
+// Monsters spawned this way will immediately be hostile toward the player.
+func (gs *GameState) WanderingMonsters() {
+	if gs.wander > 0 {
+		gs.wander--
+	} else {
+		if gs.player.moves%4 == 0 && rand.Intn(100) < 16 {
+
+			// Find a random room that the player is not in
+			r := rand.Intn(len(gs.dungeon.rooms))
+			rm := gs.dungeon.rooms[r]
+			for rm.InRoom(gs.player.Pos()) {
+				r = rand.Intn(len(gs.dungeon.rooms))
+				rm = gs.dungeon.rooms[r]
+			}
+
+			// Spawn a new wandering monster that is hostile
+			m := randomMonster(gs.player.depth)
+			for m.noWander {
+				m = randomMonster(gs.player.depth)
+			}
+
+			m.State = StateChase
+			gs.monsters.Add(m, rm.RandPoint())
+			debug.Add("spawned: %v", m)
+
+			// Reset the countdown
+			gs.wander = WanderTimer
+		}
+	}
 }
