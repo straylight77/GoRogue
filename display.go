@@ -95,6 +95,7 @@ func (d *Display) Quit() {
 	maybePanic := recover()
 	d.Screen.Fini()
 	if maybePanic != nil {
+		//log.Fatalf("%+v", maybePanic)
 		panic(maybePanic)
 	}
 }
@@ -225,6 +226,7 @@ func (d *Display) DrawMessages(log *MessageLog) {
 	if log.HasUnread() {
 		s := log.LatestAsStr()
 		drawTextWrap(d.Screen, 0, 0, 80, 3, d.Style("default"), s)
+		//d.Print(0, 0, s)
 		log.ClearUnread()
 	}
 }
@@ -247,29 +249,37 @@ func (d *Display) WaitForKeypress() {
 }
 
 // -----------------------------------------------------------------------------
+// Handles all events appropriateley (e.g. resizing) but this functions will only
+// return when a key event is received.  Will return 0 if the command is not
+// recognized along with creating a game message.
 func (d *Display) GetCommand(msg *MessageLog) (cmd GameCommand) {
 
-	var ok bool
-	ev := d.Screen.PollEvent() // blocks until input from user
+	gotEventKey := false
+	for !gotEventKey {
 
-	// do 'display level' processing, otherwise find the GameCommand to return
-	switch ev := ev.(type) {
-	case *tcell.EventResize:
-		d.Screen.Clear()
-		d.Screen.Sync()
+		ev := d.Screen.PollEvent()
+		//debug.Add("event: %T", ev)
 
-	case *tcell.EventKey:
-		key := ev.Key()
-		rn := ev.Rune()
+		switch ev := ev.(type) {
+		case *tcell.EventResize:
+			//d.Screen.Clear()
+			d.Screen.Sync()
 
-		switch key {
-		case tcell.KeyRune:
-			if cmd, ok = RuneCmdLookup[rn]; !ok {
-				msg.Add("I don't know that command (%c)", rn)
-			}
-		default:
-			if cmd, ok = KeyCmdLookup[key]; !ok {
-				msg.Add("I don't know that command (%v)", tcell.KeyNames[key])
+		case *tcell.EventKey:
+			gotEventKey = true
+			key := ev.Key()
+			rn := ev.Rune()
+
+			var ok bool
+			switch key {
+			case tcell.KeyRune:
+				if cmd, ok = RuneCmdLookup[rn]; !ok {
+					msg.Add("I don't know that command (%c)", rn)
+				}
+			default:
+				if cmd, ok = KeyCmdLookup[key]; !ok {
+					msg.Add("I don't know that command (%v)", tcell.KeyNames[key])
+				}
 			}
 		}
 	}

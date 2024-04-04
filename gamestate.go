@@ -112,9 +112,9 @@ func (gs *GameState) MonstersAct() {
 		switch m.State {
 
 		case StateDormant:
-			if (m.isMean && gs.dungeon.CanSee(m)) || m.Pos().Distance(gs.player.Pos()) <= 2 {
+			if m.isMean && gs.dungeon.CanSee(m) && rand.Intn(100) < 67 {
 				m.State = StateChase
-				//gs.messages.Add("The %s wakes up.", m.Name)
+				gs.messages.Add("The %s wakes up.", m.Name)
 			}
 
 		case StateChase:

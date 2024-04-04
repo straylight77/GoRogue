@@ -2,7 +2,7 @@ module github.com/straylight77/GoRogue
 
 go 1.22.0
 
-require github.com/gdamore/tcell/v2 v2.7.1
+require github.com/gdamore/tcell/v2 v2.7.4
 
 require (
 	github.com/gdamore/encoding v1.0.0 // indirect

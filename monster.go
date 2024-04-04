@@ -136,7 +136,7 @@ func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
 	m := &Monster{
 		Name:     mt.Name,
-		HP:       mt.Level,
+		HP:       mt.Level + 1,
 		XP:       mt.XP,
 		Symbol:   mt.Symbol,
 		isMean:   mt.isMean,

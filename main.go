@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 var debug DebugMessageLog
 
 var debugFlag = map[string]bool{
@@ -58,6 +60,8 @@ func main() {
 	var state GameState
 	state.Init()
 
+	state.messages.Add("Welcome to the Dungeons of Doom!")
+
 	var doUpdate bool   // If game time has passed this iteration
 	var cmd GameCommand // Determined from user's input
 
@@ -65,19 +69,31 @@ func main() {
 	done := false
 	for !done {
 
-		// Draw the world
+		// Some updates required for the rest of the game loop
+		state.Pathfinding()
+		state.UpdatePlayerFOV()
+
+		// DEBUG: For testing pathfinding
+		dest := state.dungeon.rooms[RoomID].Center()
+		path1 = findPathBFS(state.dungeon, state.player.Pos(), dest)
+		path2 = state.dmap.PathFrom(dest)
+
+		// Draw the game world and refresh the display
+		display.Clear()
 		draw(&display, &state)
 		drawDebug(&display, &state)
 		display.Show()
 
+		// Get user's command (this blocks until we get a key event)
 		cmd = display.GetCommand(state.messages)
-		doUpdate = false
 
 		// Handle user's command
+		doUpdate = false
 		switch cmd {
 
 		// Commands that do not increment time
-		case 0: // unknown command, just ignore
+		case 0:
+			// unknown command, just ignore
 		case CmdTick:
 			// Do nothing.  Used to redraw, clear recent messages, etc.
 		case CmdMessages:
@@ -129,11 +145,9 @@ func main() {
 			debug.Clear()
 			generateRandomLevel(&state)
 			//GenerateTestLevel(&state)
+		default:
+			state.messages.Add("Unknown command.")
 		}
-
-		// Do updates that happen regardless of game time
-		state.Pathfinding()
-		state.UpdatePlayerFOV()
 
 		// Do updates of the game world
 		if doUpdate {
@@ -142,17 +156,13 @@ func main() {
 			state.player.Update()
 			state.WanderingMonsters()
 		}
-
-		// For testing pathfinding
-		dest := state.dungeon.rooms[RoomID].Center()
-		path1 = findPathBFS(state.dungeon, state.player.Pos(), dest)
-		path2 = state.dmap.PathFrom(dest)
 	}
+	display.Quit()
+	fmt.Println("Thanks for playing!")
 }
 
 // -----------------------------------------------------------------------
 func draw(display *Display, state *GameState) {
-	display.Clear()
 	display.DrawMap(state.dungeon, debugFlag["main"])
 	display.DrawMessages(state.messages)
 	display.Print(0, 24, state.player.InfoString())

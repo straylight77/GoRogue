@@ -41,9 +41,10 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	if gs.dmap != nil {
 		d.Debugf(84, 6, "dmap: iter=%d", gs.dmap.iter)
 	}
+	d.Debugf(84, 7, "messages: idx=%d, len=%d", gs.messages.idx, len(gs.messages.messages))
 
 	for i, m := range *gs.monsters {
-		d.Debugf(84, 8+i, "%d: %v", i, m.DebugString())
+		d.Debugf(84, 9+i, "%d: %v", i, m.DebugString())
 	}
 }
 
