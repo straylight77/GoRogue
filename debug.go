@@ -31,20 +31,24 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	d.DrawBox(-1, -1, maxX+1, maxY+1, "debug")
 
 	d.Debugf(84, 1, "Moves: %d, Pos: %v", gs.player.moves, gs.player.Pos())
-	d.Debugf(84, 3, "M=%d, H=%d, F=%d, W=%d",
+	d.Debugf(84, 3, "M=%d, H=%d, F=%d, W=%d, SF=%d",
 		gs.player.moves,
 		gs.player.healCount,
 		gs.player.foodCount,
-		gs.wander)
+		gs.wander,
+		gs.spawnFoodTimer)
 	d.Debugf(84, 4, "path1: %v", path1)
 	d.Debugf(84, 5, "path2: %v", path2)
 	if gs.dmap != nil {
 		d.Debugf(84, 6, "dmap: iter=%d", gs.dmap.iter)
 	}
-	d.Debugf(84, 7, "messages: idx=%d, len=%d", gs.messages.idx, len(gs.messages.messages))
 
-	for i, m := range *gs.monsters {
-		d.Debugf(84, 9+i, "%d: %v", i, m.DebugString())
+	//for i, m := range *gs.monsters {
+	//	d.Debugf(84, 9+i, "%d: %v", i, m.DebugString())
+	//}
+
+	for i, item := range gs.player.inventory {
+		d.Debugf(84, 9+i, "%c) %v", 'a'+i, item.InvString())
 	}
 }
 

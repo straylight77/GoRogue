@@ -38,6 +38,8 @@ var RuneCmdLookup = map[rune]GameCommand{
 	'7': CmdNorthWest,
 	'8': CmdNorth,
 	'9': CmdNorthEast,
+	'i': CmdInventory,
+	'e': CmdEat,
 }
 
 var TileRunes = map[TileType]rune{
@@ -243,6 +245,18 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 	d.Print(0, 0, "MESSAGE HISTORY:")
 	for i, m := range log.Last(20) {
 		d.Printf(0, i+1, "%d: %v", i, m)
+	}
+	d.Printf(0, 22, "Press any key to continue...")
+	d.Screen.HideCursor()
+	d.Show()
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) DrawInventory(p *Player) {
+	d.Clear()
+	d.Print(0, 0, "YOUR INVENTORY:")
+	for i, item := range p.inventory {
+		d.Printf(0, i+1, "%c) %v", 'a'+i, item.InvString())
 	}
 	d.Printf(0, 22, "Press any key to continue...")
 	d.Screen.HideCursor()

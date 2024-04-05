@@ -31,6 +31,7 @@ const (
 	CmdDebug5
 	CmdQuit
 
+	CmdWait
 	CmdNorth
 	CmdNorthEast
 	CmdEast
@@ -39,13 +40,14 @@ const (
 	CmdSouthWest
 	CmdWest
 	CmdNorthWest
-
 	CmdUp
 	CmdDown
-	CmdWait
+	CmdEat
+
 	CmdTick
 	CmdGenerate // for testing
 	CmdMessages
+	CmdInventory
 )
 
 // -----------------------------------------------------------------------
@@ -66,10 +68,6 @@ func main() {
 	// Main Game Loop
 	done := false
 	for !done {
-
-		// Do updates required for the rest of the game loop
-		state.Pathfinding()
-		state.UpdatePlayerFOV()
 
 		// DEBUG: For testing pathfinding
 		dest := state.dungeon.rooms[RoomID].Center()
@@ -96,6 +94,9 @@ func main() {
 			// Do nothing.  Used to redraw, clear recent messages, etc.
 		case CmdMessages:
 			display.DrawMessageHistory(state.messages)
+			display.WaitForKeypress()
+		case CmdInventory:
+			display.DrawInventory(state.player)
 			display.WaitForKeypress()
 		case CmdQuit:
 			done = true
@@ -124,6 +125,11 @@ func main() {
 		case CmdWait:
 			doUpdate = true
 			//messages.Add("You rest for a moment.")
+		case CmdEat:
+			// TODO: get user's inventory item selection
+			// TODO: if it's a food type, eat it
+			// TODO: and remove it from inventory
+			doUpdate = true
 
 		// Extra debugging and testing stuff
 		case CmdDebug1:
@@ -151,6 +157,9 @@ func main() {
 		state.CheckItems()
 
 		// Do updates of the game world
+		state.Pathfinding()
+		state.UpdatePlayerFOV()
+
 		if doUpdate {
 			state.PruneMonsters()
 			state.MonstersAct()
@@ -204,6 +213,7 @@ func GenerateTestLevel(gs *GameState) {
 
 	gs.dungeon.Clear()
 	gs.monsters.Clear()
+	gs.items.Clear()
 
 	p1 := gs.dungeon.CreateRoom(Coord{44, 6}, 13, 7)
 	p2 := gs.dungeon.CreateRoom(Coord{25, 15}, 11, 7)
@@ -222,6 +232,6 @@ func GenerateTestLevel(gs *GameState) {
 	c := Coord{2, 1}
 	gs.items[p1.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
 	gs.items[p2.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
-	gs.items[p3.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
+	gs.items[p3.Sum(c)] = Food{}
 	//gs.player.depth++
 }

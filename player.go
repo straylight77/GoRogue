@@ -41,6 +41,7 @@ type Player struct {
 	Gold      int
 	healCount int
 	foodCount int
+	inventory []Item
 }
 
 func (p *Player) Init() {
@@ -84,6 +85,18 @@ func (p *Player) Attack(m Entity) string {
 	msg := fmt.Sprintf("You hit %v for %d damage.", m.Label(), dmg)
 	p.healCount++ // this shouldn't decrement when fighting
 	return msg
+}
+
+// -----------------------------------------------------------------------
+func (p *Player) Pickup(item Item) bool {
+	switch item.(type) {
+	case Gold:
+		p.Gold += item.Qty()
+		return true
+	default:
+		p.inventory = append(p.inventory, item)
+		return true
+	}
 }
 
 // -----------------------------------------------------------------------

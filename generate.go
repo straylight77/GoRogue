@@ -11,6 +11,7 @@ func generateRandomLevel(gs *GameState) {
 	debug.Clear()
 	gs.dungeon.Clear()
 	gs.monsters.Clear()
+	gs.items.Clear()
 
 	graph = newRandomGraph()
 
@@ -23,16 +24,7 @@ func generateRandomLevel(gs *GameState) {
 
 	populateMonsters(gs)
 
-	//populateItems(gs)
-
-	// If no food has been spawned in three dungeon levels, then spawn food.
-	// Otherwise, there is an equal chance of the item being food, a potion,
-	// a scroll, a weapon, armor, ring, or stick.
-
-	// When spawning food, there is a 10% chance of spawning a slime-mold.
-	// There’s no difference except eating a slime-mold grants 1 XP and
-	// produces a different message.
-
+	populateItems(gs)
 }
 
 // ----------------------------------------------------------------------------
@@ -40,11 +32,7 @@ func generateRandomLevel(gs *GameState) {
 // Rooms with gold have an 80% chance of having a monster.
 // Rooms without gold have a 25% chance of having a monster.
 func populateMonsters(gs *GameState) {
-	var gold, monster bool
-	for i, r := range graph.rooms {
-
-		gold = false
-		monster = false
+	for _, r := range graph.rooms {
 
 		if r.mark != 1 {
 			continue
@@ -52,14 +40,12 @@ func populateMonsters(gs *GameState) {
 
 		// 50% chance that any given room will have gold.
 		if rand.Intn(100) < 50 {
-			gold = true
 			pos := r.RandPoint()
 			amt := randGoldAmt(gs.player.depth)
 			gs.items[pos] = Gold{amt}
 
 			// Rooms with gold have an 80% chance of having a monster.
 			if rand.Intn(100) < 80 {
-				monster = true
 				m := randomMonster(gs.player.depth)
 				gs.monsters.Add(m, r.RandPoint())
 			}
@@ -67,13 +53,30 @@ func populateMonsters(gs *GameState) {
 		} else {
 			// Rooms without gold have a 25% chance of having a monster.
 			if rand.Intn(100) < 25 {
-				monster = true
 				m := randomMonster(gs.player.depth)
 				gs.monsters.Add(m, r.RandPoint())
 			}
 		}
-		debug.Add("room %d: gold=%-5v monster=%-5v", i, gold, monster)
 	}
+}
+
+// ----------------------------------------------------------------------------
+func populateItems(gs *GameState) {
+	// If no food has been spawned in three dungeon levels, then spawn food.
+	// Otherwise, there is an equal chance of the item being food, a potion,
+	// a scroll, a weapon, armor, ring, or stick.
+
+	gs.spawnFoodTimer--
+
+	if gs.spawnFoodTimer == 0 {
+		pos := graph.RandLocation()
+		gs.items[pos] = Food{}
+		gs.spawnFoodTimer = 3
+	}
+
+	// for now just add another ration (for testing inventory)
+	pos := graph.RandLocation()
+	gs.items[pos] = Food{}
 
 }
 
@@ -383,6 +386,14 @@ func (g *RoomGraph) RandNeighbour(cell int, mark int) int {
 
 	idx := rand.Intn(len(nbList))
 	return nbList[idx]
+}
+
+// ----------------------------------------------------------------------------
+// Returns a random point within a random non-deleted room
+func (g *RoomGraph) RandLocation() Coord {
+	id := graph.RandCell(1)
+	rm := graph.rooms[id]
+	return rm.RandPoint()
 }
 
 /*****************************************************************************/

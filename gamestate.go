@@ -3,14 +3,15 @@ package main
 import "math/rand"
 
 type GameState struct {
-	done     bool
-	dungeon  *DungeonMap
-	player   *Player
-	monsters *MonsterList
-	messages *MessageLog
-	dmap     *DMap
-	wander   int
-	items    ItemList
+	done           bool
+	dungeon        *DungeonMap
+	player         *Player
+	monsters       *MonsterList
+	messages       *MessageLog
+	dmap           *DMap
+	wander         int
+	spawnFoodTimer int
+	items          ItemList
 }
 
 // -----------------------------------------------------------------------
@@ -22,9 +23,12 @@ func (gs *GameState) Init() {
 	gs.items = ItemList{}
 	gs.messages = &MessageLog{}
 	gs.wander = WanderTimer
+	gs.spawnFoodTimer = 3
 
 	gs.player.Init()
 	generateRandomLevel(gs)
+	gs.Pathfinding()
+	gs.UpdatePlayerFOV()
 
 	gs.messages.Add("Welcome to the Dungeons of Doom!")
 }
@@ -76,7 +80,7 @@ func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) GoDownstairs() bool {
-	if gs.dungeon.TileTypeAt(gs.player.Pos()) == TileStairsDn {
+	if gs.dungeon.TileTypeAt(gs.player.Pos()) == TileStairsDn || debugFlag["main"] {
 		gs.messages.Add("You descend the ancient stairs.")
 		generateRandomLevel(gs)
 		return true
@@ -100,9 +104,10 @@ func (gs *GameState) GoUpstairs() bool {
 func (gs *GameState) CheckItems() {
 	for pos, item := range gs.items {
 		if pos == gs.player.Pos() {
-			item.Pickup(gs.player)
-			gs.messages.Add("You pick up %v.", item)
-			delete(gs.items, pos)
+			if gs.player.Pickup(item) {
+				gs.messages.Add("You pick up %v.", item)
+				delete(gs.items, pos)
+			}
 		}
 	}
 }
