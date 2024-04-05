@@ -16,7 +16,20 @@ const (
 	Stick
 	Weapon
 	Armor
+	Amulet
 )
+
+var itemRunes = map[ItemType]rune{
+	Gold:   '*',
+	Food:   '%',
+	Potion: '!',
+	Scroll: '?',
+	Ring:   '=',
+	Stick:  '/',
+	Weapon: ')',
+	Armor:  ']',
+	Amulet: '&',
+}
 
 // -----------------------------------------------------------------------
 type Item struct {
@@ -26,29 +39,26 @@ type Item struct {
 	val2 int
 }
 
-func (i Item) Rune() rune {
-	switch i.typ {
-	case 0:
-		return '*'
-	case 1:
-		return '%'
-	default:
-		return '?'
+func (item Item) Rune() rune {
+	ch, ok := itemRunes[item.typ]
+	if !ok {
+		ch = '0' // shouldn't see this but here's a default just in case
 	}
+	return ch
 }
 
-func (i Item) String() string {
-	switch i.typ {
-	case 0:
-		return fmt.Sprintf("%d pieces of gold", i.qty)
-	case 1:
-		if i.qty == 1 {
+func (item Item) String() string {
+	switch item.typ {
+	case Gold:
+		return fmt.Sprintf("%d pieces of gold", item.qty)
+	case Food:
+		if item.qty == 1 {
 			return "a ration of food"
 		} else {
-			return fmt.Sprintf("%d rations of food", i.qty)
+			return fmt.Sprintf("%d rations of food", item.qty)
 		}
 	default:
-		return "mysterious artifact"
+		return "mysterious artifact" // default value just in case
 	}
 }
 
