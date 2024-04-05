@@ -8,32 +8,34 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 ## Feature Roadmap
 ```
 [X] Basic dungeon map and walking around 
-    [X] Diagonal movement (restrict doorways and cooridors)
 [X] Random level generation 
     [X] Dungeon layout (3X3 Rogue-style)
-    [ ] Randomized monsters with "party rooms"
-    [ ] Randomized items and treasure
-    [ ] Dark rooms
+    [X] Randomized monsters
+    [X] Randomized gold
+    [ ] Randomized items
     [ ] Traps
-    [ ] Secret doors
+    [ ] Dark rooms
+    [ ] Hidden doors
 [X] Monsters
-    [X] All specific basic stats
+    [X] Stats for all monsters
     [X] Basic states (dormant, chasing player)
     [X] Random movement (e.g. bats or confusion) 
     [X] Chasing the player (pathfinding)
-    [ ] Spawning wandering monsters 
+    [X] Spawning wandering monsters 
 [ ] Player
-    [ ] Combat (original AD&D rules)
     [X] Awarding XP and leveling up
     [X] Natural healing
     [ ] Hunger
+    [ ] Inventory
+    [ ] Combat (original AD&D rules)
 [ ] Items
-    [ ] Gold
+    [X] Gold
+    [ ] Food
     [ ] Potions
     [ ] Scrolls
     [ ] Weapons
     [ ] Armor
-    [ ] rings
+    [ ] Rings
     [ ] Sticks
 [ ] Gameplay
     [ ] Title screen
