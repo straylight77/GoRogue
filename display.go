@@ -196,7 +196,7 @@ func (d *Display) DrawEntity(e Entity) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawItem(pos Coord, i Item) {
+func (d *Display) DrawItem(pos Coord, i *Item) {
 	x, y := pos.XY()
 	d.Screen.SetContent(x, y+1, i.Rune(), nil, d.Style("default"))
 }
@@ -256,7 +256,7 @@ func (d *Display) DrawInventory(p *Player) {
 	d.Clear()
 	d.Print(0, 0, "YOUR INVENTORY:")
 	for i, item := range p.inventory {
-		d.Printf(0, i+1, "%c) %v", 'a'+i, item.InvString())
+		d.Printf(0, i+1, "%c) %v", 'a'+i, item)
 	}
 	d.Printf(0, 22, "Press any key to continue...")
 	d.Screen.HideCursor()

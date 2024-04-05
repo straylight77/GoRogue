@@ -48,7 +48,7 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	//}
 
 	for i, item := range gs.player.inventory {
-		d.Debugf(84, 9+i, "%c) %v", 'a'+i, item.InvString())
+		d.Debugf(84, 9+i, "%c) %v", 'a'+i, item)
 	}
 }
 

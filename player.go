@@ -41,7 +41,7 @@ type Player struct {
 	Gold      int
 	healCount int
 	foodCount int
-	inventory []Item
+	inventory []*Item
 }
 
 func (p *Player) Init() {
@@ -88,10 +88,10 @@ func (p *Player) Attack(m Entity) string {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) Pickup(item Item) bool {
-	switch item.(type) {
+func (p *Player) Pickup(item *Item) bool {
+	switch item.typ {
 	case Gold:
-		p.Gold += item.Qty()
+		p.Gold += item.qty
 		return true
 	default:
 		p.inventory = append(p.inventory, item)

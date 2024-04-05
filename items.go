@@ -5,39 +5,60 @@ import (
 	"math/rand"
 )
 
-// -----------------------------------------------------------------------
-type Item interface {
-	Rune() rune
-	InvString() string
-	Qty() int
-}
+type ItemType int
+
+const (
+	Gold ItemType = iota
+	Food
+	Potion
+	Scroll
+	Ring
+	Stick
+	Weapon
+	Armor
+)
 
 // -----------------------------------------------------------------------
-type ItemList map[Coord]Item
+type Item struct {
+	typ  ItemType
+	qty  int
+	val1 int
+	val2 int
+}
 
-func (list *ItemList) Clear() {
-	clear(*list)
+func (i Item) Rune() rune {
+	switch i.typ {
+	case 0:
+		return '*'
+	case 1:
+		return '%'
+	default:
+		return '?'
+	}
+}
+
+func (i Item) String() string {
+	switch i.typ {
+	case 0:
+		return fmt.Sprintf("%d pieces of gold", i.qty)
+	case 1:
+		if i.qty == 1 {
+			return "a ration of food"
+		} else {
+			return fmt.Sprintf("%d rations of food", i.qty)
+		}
+	default:
+		return "mysterious artifact"
+	}
 }
 
 // -----------------------------------------------------------------------
-type Gold struct {
-	amt int
+func newGold(qty int) *Item {
+	return &Item{typ: Gold, qty: qty}
 }
 
-func (g Gold) Rune() rune {
-	return '*'
-}
-
-func (g Gold) Qty() int {
-	return g.amt
-}
-
-func (g Gold) String() string {
-	return fmt.Sprintf("%d pieces of gold", g.amt)
-}
-
-func (g Gold) InvString() string {
-	return fmt.Sprintf("%d pieces of gold", g.amt)
+func newRation() *Item {
+	return &Item{typ: Food, qty: 1}
 }
 
 func randGoldAmt(depth int) int {
@@ -45,23 +66,8 @@ func randGoldAmt(depth int) int {
 }
 
 // -----------------------------------------------------------------------
-type Food struct {
-	typ int
-	qty int
-}
+type ItemList map[Coord]*Item
 
-func (f Food) Rune() rune {
-	return '%'
-}
-
-func (f Food) Qty() int {
-	return f.qty
-}
-
-func (f Food) String() string {
-	return "a ration"
-}
-
-func (f Food) InvString() string {
-	return fmt.Sprintf("a ration of food")
+func (list *ItemList) Clear() {
+	clear(*list)
 }

@@ -230,8 +230,7 @@ func GenerateTestLevel(gs *GameState) {
 	gs.player.SetPos(p1)
 
 	c := Coord{2, 1}
-	gs.items[p1.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
-	gs.items[p2.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
-	gs.items[p3.Sum(c)] = Food{}
+	gs.items[p1.Sum(c)] = newGold(randGoldAmt(gs.player.depth))
+	gs.items[p3.Sum(c)] = newRation()
 	//gs.player.depth++
 }

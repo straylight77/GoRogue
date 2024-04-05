@@ -42,7 +42,7 @@ func populateMonsters(gs *GameState) {
 		if rand.Intn(100) < 50 {
 			pos := r.RandPoint()
 			amt := randGoldAmt(gs.player.depth)
-			gs.items[pos] = Gold{amt}
+			gs.items[pos] = newGold(amt)
 
 			// Rooms with gold have an 80% chance of having a monster.
 			if rand.Intn(100) < 80 {
@@ -70,13 +70,13 @@ func populateItems(gs *GameState) {
 
 	if gs.spawnFoodTimer == 0 {
 		pos := graph.RandLocation()
-		gs.items[pos] = Food{}
+		gs.items[pos] = newRation()
 		gs.spawnFoodTimer = 3
 	}
 
 	// for now just add another ration (for testing inventory)
 	pos := graph.RandLocation()
-	gs.items[pos] = Food{}
+	gs.items[pos] = newRation()
 
 }
 
