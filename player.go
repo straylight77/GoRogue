@@ -38,6 +38,7 @@ type Player struct {
 	maxHP     int
 	Level     int
 	XP        int
+	Gold      int
 	healCount int
 	foodCount int
 }
@@ -144,8 +145,9 @@ func (p *Player) Update() {
 // -----------------------------------------------------------------------
 func (p *Player) InfoString() string {
 	info := fmt.Sprintf(
-		"Level:%2d  Gold: 4       Hp:%2d(%2d)  Str:16(16)  Arm: 4   Exp: %d/%d",
+		"Level: %-2d  Gold: %-5d  Hp: %2d(%2d)  Str: 16(16)  Arm: 4   Exp: %d/%d",
 		p.depth,
+		p.Gold,
 		p.HP,
 		p.maxHP,
 		p.Level,

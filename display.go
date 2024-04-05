@@ -194,6 +194,12 @@ func (d *Display) DrawEntity(e Entity) {
 }
 
 // -----------------------------------------------------------------------------
+func (d *Display) DrawItem(pos Coord, i Item) {
+	x, y := pos.XY()
+	d.Screen.SetContent(x, y+1, i.Rune(), nil, d.Style("default"))
+}
+
+// -----------------------------------------------------------------------------
 func (d *Display) DrawPlayer(p *Player) {
 	x, y := p.Pos().XY()
 	d.Screen.SetContent(x, y+1, '@', nil, d.Style("default"))

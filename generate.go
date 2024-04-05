@@ -53,6 +53,9 @@ func populateMonsters(gs *GameState) {
 		// 50% chance that any given room will have gold.
 		if rand.Intn(100) < 50 {
 			gold = true
+			pos := r.RandPoint()
+			amt := randGoldAmt(gs.player.depth)
+			gs.items[pos] = Gold{amt}
 
 			// Rooms with gold have an 80% chance of having a monster.
 			if rand.Intn(100) < 80 {

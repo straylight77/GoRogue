@@ -10,6 +10,7 @@ type GameState struct {
 	messages *MessageLog
 	dmap     *DMap
 	wander   int
+	items    ItemList
 }
 
 // -----------------------------------------------------------------------
@@ -18,11 +19,14 @@ func (gs *GameState) Init() {
 	gs.dungeon = &DungeonMap{}
 	gs.player = &Player{}
 	gs.monsters = &MonsterList{}
+	gs.items = ItemList{}
 	gs.messages = &MessageLog{}
 	gs.wander = WanderTimer
 
 	gs.player.Init()
 	generateRandomLevel(gs)
+
+	gs.messages.Add("Welcome to the Dungeons of Doom!")
 }
 
 // -----------------------------------------------------------------------
@@ -90,6 +94,17 @@ func (gs *GameState) GoUpstairs() bool {
 		gs.messages.Add("There are no stairs to go up here.")
 	}
 	return false
+}
+
+// -----------------------------------------------------------------------
+func (gs *GameState) CheckItems() {
+	for pos, item := range gs.items {
+		if pos == gs.player.Pos() {
+			item.Pickup(gs.player)
+			gs.messages.Add("You pick up %v.", item)
+			delete(gs.items, pos)
+		}
+	}
 }
 
 // -----------------------------------------------------------------------

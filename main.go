@@ -60,8 +60,6 @@ func main() {
 	var state GameState
 	state.Init()
 
-	state.messages.Add("Welcome to the Dungeons of Doom!")
-
 	var doUpdate bool   // If game time has passed this iteration
 	var cmd GameCommand // Determined from user's input
 
@@ -69,7 +67,7 @@ func main() {
 	done := false
 	for !done {
 
-		// Some updates required for the rest of the game loop
+		// Do updates required for the rest of the game loop
 		state.Pathfinding()
 		state.UpdatePlayerFOV()
 
@@ -143,11 +141,14 @@ func main() {
 			}
 		case CmdGenerate:
 			debug.Clear()
-			generateRandomLevel(&state)
-			//GenerateTestLevel(&state)
+			//generateRandomLevel(&state)
+			GenerateTestLevel(&state)
 		default:
 			state.messages.Add("Unknown command.")
 		}
+
+		// Check for objects on the ground
+		state.CheckItems()
 
 		// Do updates of the game world
 		if doUpdate {
@@ -166,6 +167,12 @@ func draw(display *Display, state *GameState) {
 	display.DrawMap(state.dungeon, debugFlag["main"])
 	display.DrawMessages(state.messages)
 	display.Print(0, 24, state.player.InfoString())
+
+	for pos, item := range state.items {
+		if state.dungeon.TileAt(pos).visible || debugFlag["main"] {
+			display.DrawItem(pos, item)
+		}
+	}
 
 	for _, m := range *state.monsters {
 		if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
@@ -211,5 +218,10 @@ func GenerateTestLevel(gs *GameState) {
 	gs.monsters.Add(randomMonster(gs.player.depth), Coord{29, 17})
 
 	gs.player.SetPos(p1)
+
+	c := Coord{2, 1}
+	gs.items[p1.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
+	gs.items[p2.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
+	gs.items[p3.Sum(c)] = Gold{randGoldAmt(gs.player.depth)}
 	//gs.player.depth++
 }
