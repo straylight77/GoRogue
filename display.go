@@ -39,7 +39,8 @@ var RuneCmdLookup = map[rune]GameCommand{
 	'8': CmdNorth,
 	'9': CmdNorthEast,
 	'i': CmdInventory,
-	'e': CmdEat,
+	'c': CmdConsume,
+	'e': CmdEquip,
 }
 
 var TileRunes = map[TileType]rune{
@@ -253,8 +254,20 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawInventory(p *Player) {
 	d.Clear()
+
+	if p.weapon != nil {
+		d.Printf(0, 0, "Weapon: %v", p.weapon)
+	} else {
+		d.Printf(0, 0, "Weapon: -empty-")
+	}
+	if p.armor != nil {
+		d.Printf(0, 1, " Armor: %v", p.armor)
+	} else {
+		d.Printf(0, 1, " Armor: -empty-")
+	}
+
 	for i, item := range p.inventory {
-		d.Printf(0, i, "%c) %v", 'a'+i, item)
+		d.Printf(0, 2+i, "%c) %v", 'a'+i, item)
 	}
 	d.Printf(0, 24, "Press any key to continue...")
 	d.Screen.HideCursor()

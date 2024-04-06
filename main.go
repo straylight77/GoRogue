@@ -45,7 +45,8 @@ const (
 	CmdNorthWest
 	CmdUp
 	CmdDown
-	CmdEat
+	CmdConsume
+	CmdEquip
 
 	CmdTick
 	CmdGenerate // for testing
@@ -128,19 +129,52 @@ func main() {
 		case CmdWait:
 			doUpdate = true
 			//messages.Add("You rest for a moment.")
-		case CmdEat:
-			idx := display.PromptInventory("Eat what?", state.player)
-			debug.Add("eat: %d", idx)
+
+		case CmdConsume:
+			idx := display.PromptInventory("Consume what?", state.player)
 			if idx != -1 {
 				item := state.player.inventory[idx]
-				if item.typ == Food {
-					state.messages.Add("You eat %v", item)
+				switch item.typ {
+				case Food:
+					state.messages.Add("You eat %v.", item)
 					state.player.AdjustFoodCount(item.Nutrition())
 					state.player.RemoveItem(idx)
-					doUpdate = true
-				} else {
-					state.messages.Add("That's not an item you can eat.")
+				default:
+					state.messages.Add("That's not an item you can consume.")
 				}
+				doUpdate = true
+			}
+
+		case CmdEquip:
+			idx := display.PromptInventory("Equip what?", state.player)
+			if idx != -1 {
+				item := state.player.inventory[idx]
+				//debug.Add("equip: %d %v", idx, item)
+				switch item.typ {
+				case Weapon:
+					if state.player.weapon != nil {
+						state.player.Pickup(state.player.weapon)
+						state.messages.Add("You return %v to your pack.", state.player.weapon)
+						state.player.weapon = nil
+					}
+					state.messages.Add("You are now wielding %v.", item)
+					state.player.weapon = item
+					state.player.RemoveItem(idx)
+				case Armor:
+					if state.player.armor != nil {
+						state.player.Pickup(state.player.armor)
+						state.messages.Add("You take off %v.", state.player.armor)
+						state.player.armor = nil
+					}
+
+					state.messages.Add("You are now wearing %v.", item)
+					state.player.armor = item
+					state.player.AC = item.val1
+					state.player.RemoveItem(idx)
+				default:
+					state.messages.Add("You cannot equip that item.")
+				}
+				doUpdate = true
 			}
 
 		// Extra debugging and testing stuff
@@ -243,7 +277,7 @@ func GenerateTestLevel(gs *GameState) {
 
 	c := Coord{2, 1}
 	gs.items[p1.Sum(c)] = newGold(randGoldAmt(gs.player.depth))
-	gs.items[p3.Sum(c)] = newRation()
-	gs.items[p2.Sum(c)] = newWeapon()
+	gs.items[p3.Sum(c)] = randWeapon()
+	gs.items[p2.Sum(c)] = randWeapon()
 	//gs.player.depth++
 }

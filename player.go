@@ -34,6 +34,7 @@ type Player struct {
 	Symbol    rune
 	moves     int
 	depth     int
+	AC        int
 	HP        int
 	maxHP     int
 	Level     int
@@ -42,15 +43,17 @@ type Player struct {
 	healCount int
 	foodCount int
 	inventory []*Item
+	weapon    *Item
+	armor     *Item
 }
 
 func (p *Player) Init() {
 	p.HP = 10
 	p.maxHP = 10
+	p.AC = 0
 	p.Level = 1
 	p.foodCount = NutritionTime
 	p.ResetHealCount()
-
 }
 
 // implement the Entity interface
@@ -178,11 +181,12 @@ func (p *Player) Update(msg *MessageLog) {
 // -----------------------------------------------------------------------
 func (p *Player) InfoString() string {
 	info := fmt.Sprintf(
-		"Level: %-2d  Gold: %-5d  Hp: %2d(%2d)  Str: 16(16)  Arm: 4   Exp: %d/%d",
+		"Level: %-2d  Gold: %-5d  Hp: %2d(%2d)  Str: 16(16)  Arm: %-2d   Exp: %d/%d",
 		p.depth,
 		p.Gold,
 		p.HP,
 		p.maxHP,
+		p.AC,
 		p.Level,
 		p.XP,
 	)

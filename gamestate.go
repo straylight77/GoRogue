@@ -27,7 +27,10 @@ func (gs *GameState) Init() {
 
 	gs.player.Init()
 	gs.player.Pickup(newRation())
-	gs.player.Pickup(newRation())
+	gs.player.Pickup(newWeapon("mace"))
+	gs.player.Pickup(newArmor())
+	//gs.player.Pickup(newWeapon("dagger"))
+	//gs.player.Pickup(newArmor())
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()
@@ -108,7 +111,7 @@ func (gs *GameState) CheckItems() {
 	for pos, item := range gs.items {
 		if pos == gs.player.Pos() {
 			if gs.player.Pickup(item) {
-				gs.messages.Add("You pick up %v.", item)
+				gs.messages.Add("You pick up %v.", item.GndString())
 				delete(gs.items, pos)
 			}
 		}
