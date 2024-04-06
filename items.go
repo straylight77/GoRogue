@@ -33,10 +33,15 @@ var itemRunes = map[ItemType]rune{
 
 // -----------------------------------------------------------------------
 type Item struct {
-	typ  ItemType
-	qty  int
-	val1 int
-	val2 int
+	typ     ItemType
+	name    string
+	val1    int
+	val2    int
+	val3    int
+	val4    int
+	ench    int
+	magical bool
+	cursed  bool
 }
 
 func (item Item) Rune() rune {
@@ -50,25 +55,56 @@ func (item Item) Rune() rune {
 func (item Item) String() string {
 	switch item.typ {
 	case Gold:
-		return fmt.Sprintf("%d pieces of gold", item.qty)
-	case Food:
-		if item.qty == 1 {
-			return "a ration of food"
-		} else {
-			return fmt.Sprintf("%d rations of food", item.qty)
-		}
+		return fmt.Sprintf("%d pieces of gold", item.val1)
 	default:
-		return "mysterious artifact" // default value just in case
+		return fmt.Sprintf("a %v", item.name)
 	}
+}
+
+func (item Item) GoldQty() int {
+	return item.val1
+}
+
+func (item Item) Nutrition() int {
+	return item.val1
+}
+
+func (item Item) MeleeDamage() int {
+	sum := 0
+	for i := 0; i < item.val1; i++ {
+		sum += rand.Intn(item.val2)
+	}
+	return sum
+}
+
+func (item Item) isMagical() bool {
+	return item.magical
+}
+
+func (item Item) isCursed() bool {
+	return item.cursed
 }
 
 // -----------------------------------------------------------------------
 func newGold(qty int) *Item {
-	return &Item{typ: Gold, qty: qty}
+	return &Item{typ: Gold, val1: qty}
 }
 
 func newRation() *Item {
-	return &Item{typ: Food, qty: 1}
+	return &Item{
+		typ:  Food,
+		name: "ration",
+		val1: NutritionTime,
+	}
+}
+
+func newWeapon() *Item {
+	return &Item{
+		typ:  Weapon,
+		name: "longsword",
+		val1: 1,
+		val2: 8,
+	}
 }
 
 func randGoldAmt(depth int) int {

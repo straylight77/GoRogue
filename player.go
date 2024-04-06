@@ -48,7 +48,7 @@ func (p *Player) Init() {
 	p.HP = 10
 	p.maxHP = 10
 	p.Level = 1
-	p.foodCount = 2000
+	p.foodCount = NutritionTime
 	p.ResetHealCount()
 
 }
@@ -87,16 +87,28 @@ func (p *Player) Attack(m Entity) string {
 	return msg
 }
 
+func (p *Player) AdjustFoodCount(amt int) {
+	p.foodCount += amt
+	if p.foodCount > NutritionTime {
+		p.foodCount = NutritionTime
+	}
+}
+
 // -----------------------------------------------------------------------
 func (p *Player) Pickup(item *Item) bool {
 	switch item.typ {
 	case Gold:
-		p.Gold += item.qty
+		p.Gold += item.GoldQty()
 		return true
 	default:
 		p.inventory = append(p.inventory, item)
 		return true
 	}
+}
+
+// -----------------------------------------------------------------------
+func (p *Player) RemoveItem(idx int) {
+	p.inventory = append(p.inventory[:idx], p.inventory[idx+1:]...)
 }
 
 // -----------------------------------------------------------------------
@@ -132,11 +144,19 @@ func (p *Player) ResetHealCount() {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) Update() {
+func (p *Player) Update(msg *MessageLog) {
 
 	// At 300 start being hungry, at 150 weak
 	// At 0, every turn 20% chance you faint which paralyzes for 4-11 turns
+	f1 := p.foodCount
 	p.foodCount--
+	if f1 > HungerLimit && p.foodCount <= HungerLimit {
+		msg.Add("You are starting to get hungry.")
+	}
+	if f1 > WeakLimit && p.foodCount <= WeakLimit {
+		msg.Add("You are starting to feel weak.")
+		//TODO: handle feinting from hunger
+	}
 
 	// Levels 1-7, heal one point every [21-LVL*2] turns without fighting.
 	// Levels 8+, heal between 1 and [LVL-7] points every three turns without fighting.

@@ -25,12 +25,12 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 [ ] Player
     [X] Awarding XP and leveling up
     [X] Natural healing
-    [ ] Hunger
-    [ ] Inventory
+    [X] Hunger
+    [X] Inventory
     [ ] Combat (original AD&D rules)
 [ ] Items
     [X] Gold
-    [ ] Food
+    [X] Food
     [ ] Potions
     [ ] Scrolls
     [ ] Weapons

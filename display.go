@@ -242,11 +242,10 @@ func (d *Display) DrawMessages(log *MessageLog) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawMessageHistory(log *MessageLog) {
 	d.Clear()
-	d.Print(0, 0, "MESSAGE HISTORY:")
-	for i, m := range log.Last(20) {
-		d.Printf(0, i+1, "%d: %v", i, m)
+	for i, m := range log.Last(22) {
+		d.Printf(0, i, "%v", m)
 	}
-	d.Printf(0, 22, "Press any key to continue...")
+	d.Printf(0, 24, "Press any key to continue...")
 	d.Screen.HideCursor()
 	d.Show()
 }
@@ -254,13 +253,49 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 // -----------------------------------------------------------------------------
 func (d *Display) DrawInventory(p *Player) {
 	d.Clear()
-	d.Print(0, 0, "YOUR INVENTORY:")
 	for i, item := range p.inventory {
-		d.Printf(0, i+1, "%c) %v", 'a'+i, item)
+		d.Printf(0, i, "%c) %v", 'a'+i, item)
 	}
-	d.Printf(0, 22, "Press any key to continue...")
+	d.Printf(0, 24, "Press any key to continue...")
 	d.Screen.HideCursor()
 	d.Show()
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) PromptInventory(prompt string, p *Player) int {
+	lo := 'a'
+	hi := rune(int(lo) + len(p.inventory) - 1)
+	//TODO: handle an empty inventory
+	str := fmt.Sprintf("%s (%c-%c, ? for list, ESC to cancel)", prompt, lo, hi)
+
+	d.Print(0, 0, str)
+	d.Screen.ShowCursor(len(str), 0)
+	d.Show()
+
+	ch := d.PromptRune()
+	if ch == '?' {
+		d.DrawInventory(p)
+		ch = d.PromptRune()
+	}
+	if ch >= lo && ch <= hi {
+		return int(ch - 'a')
+	}
+	return -1
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) PromptRune() rune {
+	ev := d.Screen.PollEvent()
+
+	switch ev := ev.(type) {
+	case *tcell.EventKey:
+		if ev.Key() == tcell.KeyEscape {
+			return -1
+		} else {
+			return ev.Rune()
+		}
+	}
+	return 0
 }
 
 // -----------------------------------------------------------------------------

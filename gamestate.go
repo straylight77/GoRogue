@@ -26,6 +26,9 @@ func (gs *GameState) Init() {
 	gs.spawnFoodTimer = 3
 
 	gs.player.Init()
+	gs.player.Pickup(newRation())
+	gs.player.Pickup(newRation())
+
 	generateRandomLevel(gs)
 	gs.Pathfinding()
 	gs.UpdatePlayerFOV()

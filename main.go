@@ -17,7 +17,10 @@ var path2 Path
 var RoomID int
 
 const (
-	WanderTimer = 70 // For spawning wandering monsters
+	WanderTimer   = 70 // For spawning wandering monsters
+	NutritionTime = 1300
+	HungerLimit   = 300
+	WeakLimit     = 150
 )
 
 type GameCommand int
@@ -126,10 +129,19 @@ func main() {
 			doUpdate = true
 			//messages.Add("You rest for a moment.")
 		case CmdEat:
-			// TODO: get user's inventory item selection
-			// TODO: if it's a food type, eat it
-			// TODO: and remove it from inventory
-			doUpdate = true
+			idx := display.PromptInventory("Eat what?", state.player)
+			debug.Add("eat: %d", idx)
+			if idx != -1 {
+				item := state.player.inventory[idx]
+				if item.typ == Food {
+					state.messages.Add("You eat %v", item)
+					state.player.AdjustFoodCount(item.Nutrition())
+					state.player.RemoveItem(idx)
+					doUpdate = true
+				} else {
+					state.messages.Add("That's not an item you can eat.")
+				}
+			}
 
 		// Extra debugging and testing stuff
 		case CmdDebug1:
@@ -163,7 +175,7 @@ func main() {
 		if doUpdate {
 			state.PruneMonsters()
 			state.MonstersAct()
-			state.player.Update()
+			state.player.Update(state.messages)
 			state.WanderingMonsters()
 		}
 	}
@@ -232,5 +244,6 @@ func GenerateTestLevel(gs *GameState) {
 	c := Coord{2, 1}
 	gs.items[p1.Sum(c)] = newGold(randGoldAmt(gs.player.depth))
 	gs.items[p3.Sum(c)] = newRation()
+	gs.items[p2.Sum(c)] = newWeapon()
 	//gs.player.depth++
 }
