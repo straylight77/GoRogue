@@ -28,9 +28,9 @@ func (gs *GameState) Init() {
 	gs.player.Init()
 	gs.player.Pickup(newRation())
 	gs.player.Pickup(newWeapon("mace"))
-	gs.player.Pickup(newArmor())
-	//gs.player.Pickup(newWeapon("dagger"))
-	//gs.player.Pickup(newArmor())
+	gs.player.Pickup(newArmor("leather armor"))
+	gs.player.Pickup(randWeapon())
+	gs.player.Pickup(randArmor())
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()

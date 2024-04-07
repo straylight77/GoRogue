@@ -255,19 +255,23 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 func (d *Display) DrawInventory(p *Player) {
 	d.Clear()
 
+	equipCol := 60
+
 	if p.weapon != nil {
-		d.Printf(0, 0, "Weapon: %v", p.weapon)
+		d.Printf(equipCol, 1, "Wpn: %v", p.weapon)
 	} else {
-		d.Printf(0, 0, "Weapon: -empty-")
+		d.Printf(equipCol, 1, "Wpn:  (empty)")
 	}
 	if p.armor != nil {
-		d.Printf(0, 1, " Armor: %v", p.armor)
+		d.Printf(equipCol, 2, "Arm: %v", p.armor)
 	} else {
-		d.Printf(0, 1, " Armor: -empty-")
+		d.Printf(equipCol, 2, "Arm:  (empty)")
 	}
+	d.Printf(equipCol, 3, "Lef:  (empty)")
+	d.Printf(equipCol, 4, "Rgt:  (empty)")
 
 	for i, item := range p.inventory {
-		d.Printf(0, 2+i, "%c) %v", 'a'+i, item)
+		d.Printf(0, 1+i, "%c) %v", 'a'+i, item)
 	}
 	d.Printf(0, 24, "Press any key to continue...")
 	d.Screen.HideCursor()

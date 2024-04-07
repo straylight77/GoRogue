@@ -64,19 +64,21 @@ func (item Item) GndString() string {
 }
 
 func (item Item) String() string {
+	cursed := ""
+	if item.IsCursed() {
+		cursed = " {cursed}"
+	}
+
 	switch item.typ {
 	case Gold:
 		return fmt.Sprintf("%d pieces of gold", item.val1)
 	case Weapon:
 		minDmg := item.val1 + item.ench
 		maxDmg := item.val2 + item.ench
-		cursed := ""
-		if item.IsCursed() {
-			cursed = " {cursed}"
-		}
 		return fmt.Sprintf("%+d %s [%d-%d]%s", item.ench, item.name, minDmg, maxDmg, cursed)
 	case Armor:
-		return fmt.Sprintf("+%d %s [%d]", item.ench, item.name, item.val1+item.ench)
+		prot := item.val1 - item.ench
+		return fmt.Sprintf("%+d %s [%d]%s", item.ench, item.name, prot, cursed)
 	default:
 		return item.name
 	}
@@ -177,27 +179,63 @@ func randWeapon() *Item {
 		}
 		i--
 	}
-
-	// 10% chance of a cursed weapon with -1 to -3 penalty, and a 5% chance
-	// of an enchanted weapon with a +1 to +3 bonus.
-	if rand.Intn(100) < 5 { // enchanted
-		item.magical = true
-		item.ench = rand.Intn(2) + 1
-	} else if rand.Intn(100) < 10 { // cursed
-		item.cursed = true
-		item.ench = -1 * (rand.Intn(2) + 1)
-	}
-
+	randEnchant(item, 5, 10)
 	return item
 }
 
+func randEnchant(item *Item, enchantProb int, cursedProb int) {
+	// 10% chance of a cursed weapon with -1 to -3 penalty, and a 5% chance
+	// of an enchanted weapon with a +1 to +3 bonus.
+	if rand.Intn(100) < enchantProb { // enchanted
+		item.magical = true
+		item.ench = rand.Intn(2) + 1
+	} else if rand.Intn(100) < cursedProb { // cursed
+		item.cursed = true
+		item.ench = -1 * (rand.Intn(2) + 1)
+	}
+}
+
 // -----------------------------------------------------------------------
-func newArmor() *Item {
+type ArmorTemplate struct {
+	AC    int
+	worth int
+}
+
+var ArmorLib = map[string]ArmorTemplate{
+	"leather armor": {8, 0},
+	"ring mail":     {7, 0},
+	"scale mail":    {6, 3},
+	"chain mail":    {5, 75},
+	"splint mail":   {4, 80},
+	"banded mail":   {3, 90},
+	"plate armor":   {2, 440},
+}
+
+func newArmor(name string) *Item {
+	t, ok := ArmorLib[name]
+	if !ok {
+		panic(name)
+	}
+
 	return &Item{
 		typ:  Armor,
-		name: "leather armor",
-		val1: 8,
+		name: name,
+		val1: t.AC,
 	}
+}
+
+func randArmor() *Item {
+	// Pick an armor from the list at random
+	i := rand.Intn(len(ArmorLib))
+	var item *Item
+	for name := range ArmorLib {
+		if i == 0 {
+			item = newArmor(name)
+		}
+		i--
+	}
+	randEnchant(item, 8, 20)
+	return item
 }
 
 // -----------------------------------------------------------------------
