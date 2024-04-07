@@ -100,7 +100,7 @@ func main() {
 			display.DrawMessageHistory(state.messages)
 			display.WaitForKeypress()
 		case CmdInventory:
-			display.DrawInventory(state.player)
+			display.InventoryScreen(state.player)
 			display.WaitForKeypress()
 		case CmdQuit:
 			done = true
@@ -153,16 +153,13 @@ func main() {
 				switch item.typ {
 				case Weapon:
 					if state.player.weapon != nil {
-						state.player.Pickup(state.player.weapon)
 						state.messages.Add("You return %v to your pack.", state.player.weapon)
 						state.player.weapon = nil
 					}
 					state.messages.Add("You are now wielding %v.", item)
 					state.player.weapon = item
-					state.player.RemoveItem(idx)
 				case Armor:
 					if state.player.armor != nil {
-						state.player.Pickup(state.player.armor)
 						state.messages.Add("You take off %v.", state.player.armor)
 						state.player.armor = nil
 					}
@@ -170,7 +167,6 @@ func main() {
 					state.messages.Add("You are now wearing %v.", item)
 					state.player.armor = item
 					state.player.AC = item.val1
-					state.player.RemoveItem(idx)
 				default:
 					state.messages.Add("You cannot equip that item.")
 				}

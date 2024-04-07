@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -252,28 +253,11 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawInventory(p *Player) {
+func (d *Display) InventoryScreen(p *Player) {
 	d.Clear()
-
-	equipCol := 60
-
-	if p.weapon != nil {
-		d.Printf(equipCol, 1, "Wpn: %v", p.weapon)
-	} else {
-		d.Printf(equipCol, 1, "Wpn:  (empty)")
-	}
-	if p.armor != nil {
-		d.Printf(equipCol, 2, "Arm: %v", p.armor)
-	} else {
-		d.Printf(equipCol, 2, "Arm:  (empty)")
-	}
-	d.Printf(equipCol, 3, "Lef:  (empty)")
-	d.Printf(equipCol, 4, "Rgt:  (empty)")
-
-	for i, item := range p.inventory {
-		d.Printf(0, 1+i, "%c) %v", 'a'+i, item)
-	}
-	d.Printf(0, 24, "Press any key to continue...")
+	d.Print(0, 0, "You are carrying:")
+	d.ListInventory(p)
+	d.Printf(0, 23, "Press any key to continue...")
 	d.Screen.HideCursor()
 	d.Show()
 }
@@ -282,22 +266,62 @@ func (d *Display) DrawInventory(p *Player) {
 func (d *Display) PromptInventory(prompt string, p *Player) int {
 	lo := 'a'
 	hi := rune(int(lo) + len(p.inventory) - 1)
-	//TODO: handle an empty inventory
-	str := fmt.Sprintf("%s (%c-%c, ? for list, ESC to cancel)", prompt, lo, hi)
+	str := fmt.Sprintf("%s (%c-%c, ? for list, ESC to cancel):", prompt, lo, hi)
 
+	d.Print(0, 0, strings.Repeat(" ", 80))
 	d.Print(0, 0, str)
 	d.Screen.ShowCursor(len(str), 0)
 	d.Show()
 
 	ch := d.PromptRune()
 	if ch == '?' {
-		d.DrawInventory(p)
+		d.ListInventory(p)
 		ch = d.PromptRune()
 	}
 	if ch >= lo && ch <= hi {
 		return int(ch - 'a')
 	}
 	return -1
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) ListInventory(p *Player) {
+
+	height := len(p.inventory)
+	if height <= 0 {
+		d.Print(0, 1, "Your inventory is empty.")
+		d.Show()
+		return
+	}
+
+	// determine strings to print and largest length
+	width := 0
+	strList := make([]string, height)
+	for i, item := range p.inventory {
+		equip := ""
+		if item == p.weapon {
+			equip = " (weapon in hand)"
+		}
+		if item == p.armor {
+			equip = " (being worn)"
+		}
+		str := fmt.Sprintf("%c) %v%s", 'a'+i, item, equip)
+		if check := len(str); check > width {
+			width = check
+		}
+		strList[i] = str
+	}
+
+	// make a blank recangle
+	for row := 0; row < height+1; row++ {
+		d.Print(0, row+1, strings.Repeat(" ", width+2))
+	}
+
+	// print the items
+	for i, str := range strList {
+		d.Print(0, 1+i, str)
+	}
+	d.Show()
 }
 
 // -----------------------------------------------------------------------------
