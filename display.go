@@ -11,7 +11,7 @@ import (
 var KeyCmdLookup = map[tcell.Key]GameCommand{
 	tcell.KeyCtrlD:  CmdDebug1,
 	tcell.KeyCtrlG:  CmdDebug2,
-	tcell.KeyCtrlM:  CmdDebug3,
+	tcell.KeyCtrlX:  CmdDebug3,
 	tcell.KeyCtrlP:  CmdDebug4,
 	tcell.KeyCtrlR:  CmdDebug5,
 	tcell.KeyEscape: CmdQuit,

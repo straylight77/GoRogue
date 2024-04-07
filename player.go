@@ -119,6 +119,33 @@ func (p *Player) RemoveItem(idx int) {
 }
 
 // -----------------------------------------------------------------------
+func (p *Player) Equip(item *Item, msg *MessageLog) bool {
+	//TODO return number of moves instead of bool (handle removing armor)
+	switch item.typ {
+	case Weapon:
+		if p.weapon != nil {
+			msg.Add("You return %v to your pack.", p.weapon)
+			p.weapon = nil
+		}
+		msg.Add("You are now wielding %v.", item)
+		p.weapon = item
+	case Armor:
+		if p.armor != nil {
+			msg.Add("You take off %v.", p.armor)
+			p.armor = nil
+		}
+
+		msg.Add("You are now wearing %v.", item)
+		p.armor = item
+		p.AC = item.val1
+	default:
+		msg.Add("You cannot equip that item.")
+		return false
+	}
+	return true
+}
+
+// -----------------------------------------------------------------------
 func (p *Player) AddXP(amt int) {
 	p.XP += amt
 }

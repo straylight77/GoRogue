@@ -27,9 +27,13 @@ func (gs *GameState) Init() {
 
 	gs.player.Init()
 	gs.player.Pickup(newRation())
-	gs.player.Pickup(newWeapon("mace"))
-	gs.player.Pickup(newArmor("leather armor"))
-	//TODO equip starting equipment (make an Equip function in Player)
+	var item *Item
+	item = newWeapon("mace")
+	gs.player.Pickup(item)
+	gs.player.Equip(item, gs.messages)
+	item = newArmor("leather armor")
+	gs.player.Pickup(item)
+	gs.player.Equip(item, gs.messages)
 	//gs.player.Pickup(randWeapon())
 	//gs.player.Pickup(randArmor())
 
@@ -37,6 +41,7 @@ func (gs *GameState) Init() {
 	gs.Pathfinding()
 	gs.UpdatePlayerFOV()
 
+	gs.messages.Clear() // equipping will create messages which we don't want here
 	gs.messages.Add("Welcome to the Dungeons of Doom!")
 }
 

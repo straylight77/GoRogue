@@ -150,27 +150,7 @@ func main() {
 			if idx != -1 {
 				item := state.player.inventory[idx]
 				//debug.Add("equip: %d %v", idx, item)
-				switch item.typ {
-				case Weapon:
-					if state.player.weapon != nil {
-						state.messages.Add("You return %v to your pack.", state.player.weapon)
-						state.player.weapon = nil
-					}
-					state.messages.Add("You are now wielding %v.", item)
-					state.player.weapon = item
-				case Armor:
-					if state.player.armor != nil {
-						state.messages.Add("You take off %v.", state.player.armor)
-						state.player.armor = nil
-					}
-
-					state.messages.Add("You are now wearing %v.", item)
-					state.player.armor = item
-					state.player.AC = item.val1
-				default:
-					state.messages.Add("You cannot equip that item.")
-				}
-				doUpdate = true
+				doUpdate = state.player.Equip(item, state.messages)
 			}
 
 		// Extra debugging and testing stuff
