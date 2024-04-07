@@ -12,24 +12,24 @@ type ItemType int
 const (
 	Gold ItemType = iota
 	Food
+	Weapon
+	Armor
 	Potion
 	Scroll
 	Ring
 	Stick
-	Weapon
-	Armor
 	Amulet
 )
 
-var itemRunes = map[ItemType]rune{
+var ItemRunes = map[ItemType]rune{
 	Gold:   '*',
 	Food:   '%',
+	Weapon: ')',
+	Armor:  ']',
 	Potion: '!',
 	Scroll: '?',
 	Ring:   '=',
 	Stick:  '/',
-	Weapon: ')',
-	Armor:  ']',
 	Amulet: '&',
 }
 
@@ -47,7 +47,7 @@ type Item struct {
 }
 
 func (item Item) Rune() rune {
-	ch, ok := itemRunes[item.typ]
+	ch, ok := ItemRunes[item.typ]
 	if !ok {
 		ch = '0' // shouldn't see this but here's a default just in case
 	}
@@ -57,7 +57,11 @@ func (item Item) Rune() rune {
 func (item Item) GndString() string {
 	switch item.typ {
 	case Gold:
-		return fmt.Sprintf("%d pieces of gold", item.val1)
+		if item.val1 == 1 {
+			return fmt.Sprintf("%d piece of gold", item.val1)
+		} else {
+			return fmt.Sprintf("%d pieces of gold", item.val1)
+		}
 	default:
 		return fmt.Sprintf("a %v", item.name)
 	}
@@ -71,7 +75,11 @@ func (item Item) String() string {
 
 	switch item.typ {
 	case Gold:
-		return fmt.Sprintf("%d pieces of gold", item.val1)
+		if item.val1 == 1 {
+			return fmt.Sprintf("%d piece of gold", item.val1)
+		} else {
+			return fmt.Sprintf("%d pieces of gold", item.val1)
+		}
 	case Weapon:
 		minDmg := item.val1 + item.ench
 		maxDmg := item.val2 + item.ench
@@ -243,4 +251,35 @@ type ItemList map[Coord]*Item
 
 func (list *ItemList) Clear() {
 	clear(*list)
+}
+
+// -----------------------------------------------------------------------
+// ITEM   PCT  CUMUL
+// Potion  27     27
+// Scroll  27     54
+// Food    18     72
+// Weapon   9     81
+// Armor    9     90
+// Ring     5     95
+// Stick    5    100
+func randItemType() ItemType {
+	roll := rand.Intn(100)
+	//debug.Add("rand item: roll=%d", roll)
+	switch {
+	case roll < 27:
+		return Potion
+	case roll < 54:
+		return Scroll
+	case roll < 72:
+		return Food
+	case roll < 81:
+		return Weapon
+	case roll < 90:
+		return Armor
+	case roll < 95:
+		return Ring
+	case roll < 100:
+		return Stick
+	}
+	return Food
 }

@@ -21,6 +21,7 @@ func generateRandomLevel(gs *GameState) {
 
 	gs.player.SetPos(pos)
 	gs.player.depth++
+	gs.spawnFoodTimer--
 
 	populateMonsters(gs)
 
@@ -62,22 +63,39 @@ func populateMonsters(gs *GameState) {
 
 // ----------------------------------------------------------------------------
 func populateItems(gs *GameState) {
-	// If no food has been spawned in three dungeon levels, then spawn food.
-	// Otherwise, there is an equal chance of the item being food, a potion,
-	// a scroll, a weapon, armor, ring, or stick.
 
-	gs.spawnFoodTimer--
+	for i := 0; i < 9; i++ {
 
-	if gs.spawnFoodTimer == 0 {
+		roll := rand.Intn(100)
+		if roll > 35 {
+			debug.Add("generate: no spawn (%d)", roll)
+			continue
+		}
+
+		var typ ItemType
+		// If no food has been spawned in three dungeon levels, then spawn food.
+		// Otherwise, there is an equal chance of the item being food, a potion,
+		// a scroll, a weapon, armor, ring, or stick.
+		if gs.spawnFoodTimer == 0 {
+			typ = Food
+		} else {
+			typ = randItemType()
+		}
+
 		pos := graph.RandLocation()
-		gs.items[pos] = newRation()
-		gs.spawnFoodTimer = 3
+		switch typ {
+		case Food:
+			gs.items[pos] = newRation()
+			gs.spawnFoodTimer = SpawnFood
+		case Weapon:
+			gs.items[pos] = randWeapon()
+		case Armor:
+			gs.items[pos] = randArmor()
+		default:
+			gs.items[pos] = newGold(1)
+		}
+		debug.Add("generate: (%d) %v", roll, gs.items[pos])
 	}
-
-	// for now just add another ration (for testing inventory)
-	pos := graph.RandLocation()
-	gs.items[pos] = newRation()
-
 }
 
 // ----------------------------------------------------------------------------

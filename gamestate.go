@@ -23,19 +23,23 @@ func (gs *GameState) Init() {
 	gs.items = ItemList{}
 	gs.messages = &MessageLog{}
 	gs.wander = WanderTimer
-	gs.spawnFoodTimer = 3
+	gs.spawnFoodTimer = SpawnFood
 
 	gs.player.Init()
-	gs.player.Pickup(newRation())
+
+	// Set up player's starting equipment
 	var item *Item
+	gs.player.Pickup(newRation())
+
 	item = newWeapon("mace")
+	randEnchant(item, 5, 0)
 	gs.player.Pickup(item)
 	gs.player.Equip(item, gs.messages)
+
 	item = newArmor("leather armor")
 	gs.player.Pickup(item)
+	randEnchant(item, 8, 0)
 	gs.player.Equip(item, gs.messages)
-	//gs.player.Pickup(randWeapon())
-	//gs.player.Pickup(randArmor())
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()

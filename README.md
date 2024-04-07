@@ -12,7 +12,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [X] Dungeon layout (3X3 Rogue-style)
     [X] Randomized monsters
     [X] Randomized gold
-    [ ] Randomized items
+    [X] Randomized items
     [ ] Traps
     [ ] Dark rooms
     [ ] Hidden doors
@@ -31,12 +31,13 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 [ ] Items
     [X] Gold
     [X] Food
+    [X] Weapons
+    [X] Armor
     [ ] Potions
     [ ] Scrolls
-    [ ] Weapons
-    [ ] Armor
     [ ] Rings
     [ ] Sticks
+    [ ] Cursed items and identification
 [ ] Gameplay
     [ ] Title screen
     [ ] End game screen with score 

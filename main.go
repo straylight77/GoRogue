@@ -21,6 +21,7 @@ const (
 	NutritionTime = 1300
 	HungerLimit   = 300
 	WeakLimit     = 150
+	SpawnFood     = 3 // Guarantee food spawns every 3 levels
 )
 
 type GameCommand int
