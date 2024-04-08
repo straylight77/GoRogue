@@ -14,9 +14,9 @@ const (
 	Food
 	Weapon
 	Armor
+	Ring
 	Potion
 	Scroll
-	Ring
 	Stick
 	Amulet
 )
@@ -26,9 +26,9 @@ var ItemRunes = map[ItemType]rune{
 	Food:   '%',
 	Weapon: ')',
 	Armor:  ']',
+	Ring:   '=',
 	Potion: '!',
 	Scroll: '?',
-	Ring:   '=',
 	Stick:  '/',
 	Amulet: '&',
 }
@@ -62,8 +62,16 @@ func (item Item) GndString() string {
 		} else {
 			return fmt.Sprintf("%d pieces of gold", item.val1)
 		}
+	case Potion:
+		return fmt.Sprintf("a %s potion", item.name)
+	case Scroll:
+		return fmt.Sprintf("a scroll titled '%s'", item.name)
+	case Ring:
+		return fmt.Sprintf("a %s ring", item.name)
+	case Stick:
+		return fmt.Sprintf("a %s wand", item.name)
 	default:
-		return fmt.Sprintf("a %v", item.name)
+		return fmt.Sprintf("a %s", item.name)
 	}
 }
 
@@ -83,29 +91,21 @@ func (item Item) String() string {
 	case Weapon:
 		minDmg := item.val1 + item.ench
 		maxDmg := item.val2 + item.ench
-		return fmt.Sprintf("%+d %s [%d-%d]%s", item.ench, item.name, minDmg, maxDmg, cursed)
+		return fmt.Sprintf("a %+d %s [%d-%d]%s", item.ench, item.name, minDmg, maxDmg, cursed)
 	case Armor:
 		prot := item.val1 - item.ench
-		return fmt.Sprintf("%+d %s [%d]%s", item.ench, item.name, prot, cursed)
+		return fmt.Sprintf("a %+d %s [%d]%s", item.ench, item.name, prot, cursed)
+	case Ring:
+		return fmt.Sprintf("a %s ring", item.name)
+	case Potion:
+		return fmt.Sprintf("a %s potion", item.name)
+	case Scroll:
+		return fmt.Sprintf("a scroll titled '%s'", item.name)
+	case Stick:
+		return fmt.Sprintf("a %s wand", item.name)
 	default:
-		return item.name
+		return fmt.Sprintf("a %s", item.name)
 	}
-}
-
-func (item Item) GoldQty() int {
-	return item.val1
-}
-
-func (item Item) Nutrition() int {
-	return item.val1
-}
-
-func (item Item) MeleeDamage() int {
-	sum := 0
-	for i := 0; i < item.val1; i++ {
-		sum += rand.Intn(item.val2)
-	}
-	return sum
 }
 
 func (item Item) IsMagical() bool {
@@ -121,6 +121,10 @@ func newGold(qty int) *Item {
 	return &Item{typ: Gold, val1: qty}
 }
 
+func (item Item) GoldQty() int {
+	return item.val1
+}
+
 func randGoldAmt(depth int) int {
 	return rand.Intn(50+10*depth) + 2
 }
@@ -134,17 +138,8 @@ func newRation() *Item {
 	}
 }
 
-func parseDiceStr(dice string) (int, int) {
-	parts := strings.Split(dice, "d")
-	v1, err := strconv.Atoi(parts[0])
-	if err != nil {
-		panic(err)
-	}
-	v2, err := strconv.Atoi(parts[1])
-	if err != nil {
-		panic(err)
-	}
-	return v1, v2
+func (item Item) Nutrition() int {
+	return item.val1
 }
 
 // -----------------------------------------------------------------------
@@ -203,6 +198,14 @@ func randEnchant(item *Item, enchantProb int, cursedProb int) {
 	}
 }
 
+func (item Item) MeleeDamage() int {
+	sum := 0
+	for i := 0; i < item.val1; i++ {
+		sum += rand.Intn(item.val2)
+	}
+	return sum
+}
+
 // -----------------------------------------------------------------------
 type ArmorTemplate struct {
 	AC    int
@@ -247,6 +250,54 @@ func randArmor() *Item {
 }
 
 // -----------------------------------------------------------------------
+func newPotion() *Item {
+	return &Item{
+		typ:  Potion,
+		name: "red",
+	}
+}
+
+func randPotion() *Item {
+	return newPotion()
+}
+
+// -----------------------------------------------------------------------
+func newScroll() *Item {
+	return &Item{
+		typ:  Scroll,
+		name: "ryfay in the airchay",
+	}
+}
+
+func randScroll() *Item {
+	return newScroll()
+}
+
+// -----------------------------------------------------------------------
+func newStick() *Item {
+	return &Item{
+		typ:  Stick,
+		name: "bamboo",
+	}
+}
+
+func randStick() *Item {
+	return newStick()
+}
+
+// -----------------------------------------------------------------------
+func newRing() *Item {
+	return &Item{
+		typ:  Ring,
+		name: "ruby",
+	}
+}
+
+func randRing() *Item {
+	return newRing()
+}
+
+// -----------------------------------------------------------------------
 type ItemList map[Coord]*Item
 
 func (list *ItemList) Clear() {
@@ -282,4 +333,17 @@ func randItemType() ItemType {
 		return Stick
 	}
 	return Food
+}
+
+func parseDiceStr(dice string) (int, int) {
+	parts := strings.Split(dice, "d")
+	v1, err := strconv.Atoi(parts[0])
+	if err != nil {
+		panic(err)
+	}
+	v2, err := strconv.Atoi(parts[1])
+	if err != nil {
+		panic(err)
+	}
+	return v1, v2
 }

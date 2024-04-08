@@ -91,6 +91,14 @@ func populateItems(gs *GameState) {
 			gs.items[pos] = randWeapon()
 		case Armor:
 			gs.items[pos] = randArmor()
+		case Potion:
+			gs.items[pos] = randPotion()
+		case Scroll:
+			gs.items[pos] = randScroll()
+		case Ring:
+			gs.items[pos] = randRing()
+		case Stick:
+			gs.items[pos] = randStick()
 		default:
 			gs.items[pos] = newGold(1)
 		}
