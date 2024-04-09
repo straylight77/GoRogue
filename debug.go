@@ -47,9 +47,9 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	//	d.Debugf(84, 9+i, "%d: %v", i, m.DebugString())
 	//}
 
-	for i, item := range gs.player.inventory {
-		d.Debugf(84, 9+i, "%c) %v", 'a'+i, item)
-	}
+	//for i, item := range gs.player.inventory {
+	//	d.Debugf(84, 9+i, "%c) %v", 'a'+i, item.InvString())
+	//}
 }
 
 // ----------------------------------------------------------------------------
@@ -90,8 +90,6 @@ func drawGenerateDebug(disp *Display) {
 	for i, p := range graph.corridors {
 		disp.Debug(35, 28+i, p)
 	}
-
-	debug.Draw(disp, 84, 5)
 
 	cell := 0
 	for row := 0; row < 3; row++ {

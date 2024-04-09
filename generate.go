@@ -68,7 +68,7 @@ func populateItems(gs *GameState) {
 
 		roll := rand.Intn(100)
 		if roll > 35 {
-			debug.Add("generate: no spawn (%d)", roll)
+			//debug.Add("generate: no spawn (%d)", roll)
 			continue
 		}
 
@@ -102,7 +102,7 @@ func populateItems(gs *GameState) {
 		default:
 			gs.items[pos] = newGold(1)
 		}
-		debug.Add("generate: (%d) %v", roll, gs.items[pos])
+		debug.Add("generate: (%2d) %v", roll, gs.items[pos].InvString())
 	}
 }
 

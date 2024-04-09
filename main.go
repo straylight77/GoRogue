@@ -137,9 +137,19 @@ func main() {
 				item := state.player.inventory[idx]
 				switch item.typ {
 				case Food:
-					state.messages.Add("You eat %v.", item)
+					state.messages.Add("You eat %v.", item.InvString())
 					state.player.AdjustFoodCount(item.Nutrition())
 					state.player.RemoveItem(idx)
+
+				case Potion:
+					doEffect(item.Effect(), &state)
+					state.messages.Add(item.ConsumeMsg())
+					if !item.IsIdentified() {
+						item.Identify()
+						state.messages.Add("It was %v!", item.InvString())
+					}
+					state.player.RemoveItem(idx)
+
 				default:
 					state.messages.Add("That's not an item you can consume.")
 				}

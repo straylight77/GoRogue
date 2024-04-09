@@ -35,15 +35,16 @@ var ItemRunes = map[ItemType]rune{
 
 // -----------------------------------------------------------------------
 type Item struct {
-	typ     ItemType
-	name    string
-	val1    int
-	val2    int
-	val3    int
-	val4    int
-	ench    int
-	magical bool
-	cursed  bool
+	typ        ItemType
+	name       string
+	identified bool
+	val1       int
+	val2       int
+	val3       int
+	val4       int
+	ench       int
+	magical    bool
+	cursed     bool
 }
 
 func (item Item) Rune() rune {
@@ -54,6 +55,7 @@ func (item Item) Rune() rune {
 	return ch
 }
 
+// Returns a string that describes the item as it appears on the ground
 func (item Item) GndString() string {
 	switch item.typ {
 	case Gold:
@@ -63,7 +65,11 @@ func (item Item) GndString() string {
 			return fmt.Sprintf("%d pieces of gold", item.val1)
 		}
 	case Potion:
-		return fmt.Sprintf("a %s potion", item.name)
+		if item.IsIdentified() {
+			return fmt.Sprintf("a %s", item.name)
+		} else {
+			return fmt.Sprintf("a %s potion", item.Descriptor())
+		}
 	case Scroll:
 		return fmt.Sprintf("a scroll titled '%s'", item.name)
 	case Ring:
@@ -75,7 +81,8 @@ func (item Item) GndString() string {
 	}
 }
 
-func (item Item) String() string {
+// Returns a string that describes the item in a player's inventory
+func (item Item) InvString() string {
 	cursed := ""
 	if item.IsCursed() {
 		cursed = " {cursed}"
@@ -98,13 +105,70 @@ func (item Item) String() string {
 	case Ring:
 		return fmt.Sprintf("a %s ring", item.name)
 	case Potion:
-		return fmt.Sprintf("a %s potion", item.name)
+		if item.IsIdentified() {
+			return fmt.Sprintf("a %s", item.name)
+		} else {
+			return fmt.Sprintf("a %s potion", item.Descriptor())
+		}
 	case Scroll:
 		return fmt.Sprintf("a scroll titled '%s'", item.name)
 	case Stick:
 		return fmt.Sprintf("a %s wand", item.name)
 	default:
 		return fmt.Sprintf("a %s", item.name)
+	}
+}
+
+// Return the color, material, stone or title of the item
+// Used for listing unidentified consumables
+func (item Item) Descriptor() string {
+	switch item.typ {
+	case Potion:
+		i := PotionLib[item.val1].color
+		return PotionColors[i]
+	default:
+		return "mysterious"
+	}
+}
+
+// Return the id of the effect the item has when triggered
+func (item Item) Effect() int {
+	switch item.typ {
+	case Potion:
+		return PotionLib[item.val1].effect
+	}
+	return -1
+}
+
+// If item is consumable, return if that type has been discovered. For
+// equipment, return if this particular instance has been identified.
+func (item Item) IsIdentified() bool {
+	switch item.typ {
+	case Potion:
+		return PotionLib[item.val1].discovered
+	default:
+		return item.identified
+	}
+}
+
+// See IsIdentified().  Set the appropriate flag.  We will only ever need
+// setting to true, never to false.
+func (item *Item) Identify() {
+	switch item.typ {
+	case Potion:
+		PotionLib[item.val1].discovered = true
+	default:
+		item.identified = true
+	}
+}
+
+// Returns the string to use as a game message after consuming the item.
+func (item Item) ConsumeMsg() string {
+	switch item.typ {
+	case Potion:
+		return PotionLib[item.val1].message
+	default:
+		return "Yum!"
 	}
 }
 
@@ -129,7 +193,7 @@ func randGoldAmt(depth int) int {
 	return rand.Intn(50+10*depth) + 2
 }
 
-// -----------------------------------------------------------------------
+// === FOOD ==============================================================
 func newRation() *Item {
 	return &Item{
 		typ:  Food,
@@ -142,7 +206,11 @@ func (item Item) Nutrition() int {
 	return item.val1
 }
 
-// -----------------------------------------------------------------------
+// === WEAPONS ===========================================================
+// name: the sub-type of weapons e.g. dagger, long sword
+// val1: the number of dice to roll for melee damage
+// val2: the die size to roll for melee damage
+
 type WeaponTemplate struct {
 	melee  string
 	thrown string
@@ -160,7 +228,7 @@ var WeaponLib = map[string]WeaponTemplate{
 func newWeapon(name string) *Item {
 	t, ok := WeaponLib[name]
 	if !ok {
-		panic(name)
+		panic("No weapon with the name " + name)
 	}
 	v1, v2 := parseDiceStr(t.melee)
 
@@ -206,7 +274,10 @@ func (item Item) MeleeDamage() int {
 	return sum
 }
 
-// -----------------------------------------------------------------------
+// === ARMOR =============================================================
+// name: the sub-type of armor e.g. chain mail
+// val1: the base armor class before enchantments
+
 type ArmorTemplate struct {
 	AC    int
 	worth int
@@ -225,7 +296,7 @@ var ArmorLib = map[string]ArmorTemplate{
 func newArmor(name string) *Item {
 	t, ok := ArmorLib[name]
 	if !ok {
-		panic(name)
+		panic("No armor with the name " + name)
 	}
 
 	return &Item{
@@ -249,19 +320,103 @@ func randArmor() *Item {
 	return item
 }
 
-// -----------------------------------------------------------------------
-func newPotion() *Item {
+// === POTIONS ==========================================================
+// name: full name of the potion once it's been identified
+// val1: index of PotionLib for this potion
+
+type PotionTemplate struct {
+	name       string
+	effect     int
+	color      int
+	discovered bool
+	message    string
+}
+
+var PotionLib = []PotionTemplate{
+	{"healing", E_Healing, 0, false, "You feel all warm and toasty."},
+	{"extra healing", E_ExtraHealing, 0, false, "You feel a warmth throughout your body."},
+	{"strength", E_Strength, 0, false, "You feel stronger."},
+	{"poison", E_Poison, 0, false, "Yuk! It tastes terrible!"},
+}
+
+var PotionColors = []string{"red", "yellow", "green", "blue", "purple"}
+
+func assignPotionColors() {
+	if len(PotionColors) < len(PotionLib) {
+		panic("Not enough potion colors to assign")
+	}
+	used := make(map[int]bool)
+	for pid := range PotionLib {
+		cid := rand.Intn(len(PotionColors))
+		for used[cid] {
+			cid = rand.Intn(len(PotionColors))
+		}
+		used[cid] = true
+		PotionLib[pid].color = cid
+		//debug.Add("assign %s -> %s", PotionLib[pid].name, PotionColors[cid])
+	}
+}
+
+func newPotion(name string) *Item {
+	ok := false
+	var templ PotionTemplate
+	var idx int
+	for i, t := range PotionLib {
+		if t.name == name {
+			ok = true
+			templ = t
+			idx = i
+			break
+		}
+	}
+	if !ok {
+		panic("No potion with the name " + name)
+	}
+
 	return &Item{
 		typ:  Potion,
-		name: "red",
+		name: fmt.Sprintf("potion of %s", templ.name),
+		val1: idx,
 	}
 }
 
 func randPotion() *Item {
-	return newPotion()
+	roll := rand.Intn(len(PotionLib))
+	return newPotion(PotionLib[roll].name)
 }
 
-// -----------------------------------------------------------------------
+// === EFFECTS ===========================================================
+// (move this to its own file effects.go)
+const (
+	E_Nothing = iota
+	E_Healing
+	E_ExtraHealing
+	E_Strength
+	E_Poison
+	E_Confusion
+	E_Blindness
+)
+
+func doEffect(effect int, gs *GameState) {
+	if effect == -1 {
+		panic("Unkown effect id")
+	}
+
+	switch effect {
+	case E_Healing:
+		gs.player.AdjustHP(gs.player.Level * 3)
+	case E_ExtraHealing:
+		gs.player.AdjustHP(gs.player.Level * 5)
+	case E_Strength:
+		gs.player.Str += 1
+		gs.player.maxStr += 1
+	case E_Poison:
+		gs.player.Str -= 1
+		gs.player.maxStr -= 1
+	}
+}
+
+// === SCROLLS ===========================================================
 func newScroll() *Item {
 	return &Item{
 		typ:  Scroll,

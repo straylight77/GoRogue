@@ -17,6 +17,8 @@ type GameState struct {
 // -----------------------------------------------------------------------
 func (gs *GameState) Init() {
 
+	assignPotionColors()
+
 	gs.dungeon = &DungeonMap{}
 	gs.player = &Player{}
 	gs.monsters = &MonsterList{}
@@ -40,6 +42,11 @@ func (gs *GameState) Init() {
 	gs.player.Pickup(item)
 	randEnchant(item, 8, 0)
 	gs.player.Equip(item, gs.messages)
+
+	//for testing
+	//PotionLib[0].discovered = true
+	//gs.player.Pickup(newPotion("healing"))
+	//gs.player.Pickup(newPotion("strength"))
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()
