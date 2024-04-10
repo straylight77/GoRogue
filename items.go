@@ -438,10 +438,10 @@ func doEffect(effect int, gs *GameState) {
 		//do nothing
 	case E_Healing:
 		gs.player.AdjustHP(gs.player.Level * 3)
-		// remove blindness
+		gs.player.blind = 0
 	case E_ExtraHealing:
 		gs.player.AdjustHP(gs.player.Level * 5)
-		// remove blindness
+		gs.player.blind = 0
 	case E_Strength:
 		gs.player.Str += 1
 		gs.player.maxStr += 1
