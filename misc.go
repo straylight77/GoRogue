@@ -8,6 +8,8 @@ type Entity interface {
 	Attack(Entity) string
 	Label() string
 	AdjustHP(amt int)
+	IsConfused() bool
+	IsBlind() bool
 }
 
 // -----------------------------------------------------------------------

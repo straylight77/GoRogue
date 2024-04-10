@@ -144,10 +144,10 @@ func main() {
 				case Potion:
 					doEffect(item.Effect(), &state)
 					state.messages.Add(item.ConsumeMsg())
-					if !item.IsIdentified() {
-						item.Identify()
-						state.messages.Add("It was %v!", item.InvString())
-					}
+					item.Identify()
+					//if !item.IsIdentified() {
+					//	state.messages.Add("It was %v!", item.InvString())
+					//}
 					state.player.RemoveItem(idx)
 
 				default:
@@ -180,7 +180,6 @@ func main() {
 			}
 		case CmdGenerate:
 			debug.Clear()
-			//generateRandomLevel(&state)
 			GenerateTestLevel(&state)
 		default:
 			state.messages.Add("Unknown command.")
@@ -206,21 +205,26 @@ func main() {
 
 // -----------------------------------------------------------------------
 func draw(display *Display, state *GameState) {
-	display.DrawMap(state.dungeon, debugFlag["main"])
+
+	if !state.player.IsBlind() {
+
+		display.DrawMap(state.dungeon, debugFlag["main"])
+
+		for pos, item := range state.items {
+			if state.dungeon.TileAt(pos).visible || debugFlag["main"] {
+				display.DrawItem(pos, item)
+			}
+		}
+
+		for _, m := range *state.monsters {
+			if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
+				display.DrawEntity(m)
+			}
+		}
+	}
 	display.DrawMessages(state.messages)
 	display.Print(0, 24, state.player.InfoString())
 
-	for pos, item := range state.items {
-		if state.dungeon.TileAt(pos).visible || debugFlag["main"] {
-			display.DrawItem(pos, item)
-		}
-	}
-
-	for _, m := range *state.monsters {
-		if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
-			display.DrawEntity(m)
-		}
-	}
 	display.DrawPlayer(state.player)
 }
 

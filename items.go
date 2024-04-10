@@ -96,9 +96,11 @@ func (item Item) InvString() string {
 			return fmt.Sprintf("%d pieces of gold", item.val1)
 		}
 	case Weapon:
-		minDmg := item.val1 + item.ench
-		maxDmg := item.val2 + item.ench
-		return fmt.Sprintf("a %+d %s [%d-%d]%s", item.ench, item.name, minDmg, maxDmg, cursed)
+		dice := fmt.Sprintf("%dd%d", item.val1, item.val2)
+		if item.ench != 0 {
+			dice = fmt.Sprintf("%dd%d%+d", item.val1, item.val2, item.ench)
+		}
+		return fmt.Sprintf("a %+d %s [%s]%s", item.ench, item.name, dice, cursed)
 	case Armor:
 		prot := item.val1 - item.ench
 		return fmt.Sprintf("a %+d %s [%d]%s", item.ench, item.name, prot, cursed)
@@ -333,13 +335,41 @@ type PotionTemplate struct {
 }
 
 var PotionLib = []PotionTemplate{
-	{"healing", E_Healing, 0, false, "You feel all warm and toasty."},
-	{"extra healing", E_ExtraHealing, 0, false, "You feel a warmth throughout your body."},
-	{"strength", E_Strength, 0, false, "You feel stronger."},
-	{"poison", E_Poison, 0, false, "Yuk! It tastes terrible!"},
+	{"thirst quenching", E_Nothing, 0, false, "Meh, tastes pretty dull."},
+	{"healing", E_Healing, 0, false, "You begin to feel better."},
+	{"extra healing", E_ExtraHealing, 0, false, "You begin to feel much better."},
+	{"strength", E_Strength, 0, false, "You feel stronger, what bulging muscles!"},
+	{"poison", E_Poison, 0, false, "You feel very sick now."},
+	{"blindness", E_Blindness, 0, false, "A cloak of darkness falls around you."},
+	{"confusion", E_Confusion, 0, false, "Wait, what's going on here. Huh? What? Who?"},
+	{"restore strength", E_Restore, 0, false, "Hey, this tastes great, it make you feel warm all over."},
 }
 
-var PotionColors = []string{"red", "yellow", "green", "blue", "purple"}
+var PotionColors = []string{
+	"black",
+	"blue",
+	"brown",
+	"clear",
+	"crimson",
+	"cyan",
+	"gold",
+	"green",
+	"grey",
+	"magenta",
+	"pink",
+	"plaid",
+	"purple",
+	"red",
+	"silver",
+	"tan",
+	"tangerine",
+	"topaz",
+	"turquoise",
+	"vermilion",
+	"violet",
+	"white",
+	"yellow",
+}
 
 func assignPotionColors() {
 	if len(PotionColors) < len(PotionLib) {
@@ -395,6 +425,7 @@ const (
 	E_Poison
 	E_Confusion
 	E_Blindness
+	E_Restore
 )
 
 func doEffect(effect int, gs *GameState) {
@@ -403,16 +434,29 @@ func doEffect(effect int, gs *GameState) {
 	}
 
 	switch effect {
+	case E_Nothing:
+		//do nothing
 	case E_Healing:
 		gs.player.AdjustHP(gs.player.Level * 3)
+		// remove blindness
 	case E_ExtraHealing:
 		gs.player.AdjustHP(gs.player.Level * 5)
+		// remove blindness
 	case E_Strength:
 		gs.player.Str += 1
 		gs.player.maxStr += 1
 	case E_Poison:
 		gs.player.Str -= 1
-		gs.player.maxStr -= 1
+	case E_Restore:
+		gs.player.Str = gs.player.maxStr
+	case E_Blindness:
+		// go blind for 850 moves
+		gs.player.blind = 850
+	case E_Confusion:
+		// become confused for 20-27 moves
+		gs.player.confused = 20 + rand.Intn(8)
+	default:
+		gs.messages.Add("This effect (%d) has not been implemented.", effect)
 	}
 }
 

@@ -47,6 +47,8 @@ type Player struct {
 	inventory []*Item
 	weapon    *Item
 	armor     *Item
+	confused  int
+	blind     int
 }
 
 func (p *Player) Init() {
@@ -89,9 +91,12 @@ func (p *Player) AdjustHP(amt int) {
 func (p *Player) Attack(m Entity) string {
 	dmg := 1
 	m.AdjustHP(-dmg)
-	msg := fmt.Sprintf("You hit %v for %d damage.", m.Label(), dmg)
 	p.healCount++ // this shouldn't decrement when fighting
-	return msg
+	if p.IsBlind() {
+		return fmt.Sprintf("You hit something for %d damage.", dmg)
+	} else {
+		return fmt.Sprintf("You hit %v for %d damage.", m.Label(), dmg)
+	}
 }
 
 func (p *Player) AdjustFoodCount(amt int) {
@@ -99,6 +104,14 @@ func (p *Player) AdjustFoodCount(amt int) {
 	if p.foodCount > NutritionTime {
 		p.foodCount = NutritionTime
 	}
+}
+
+func (p *Player) IsConfused() bool {
+	return p.confused > 0
+}
+
+func (p *Player) IsBlind() bool {
+	return p.blind > 0
 }
 
 // -----------------------------------------------------------------------
@@ -204,6 +217,15 @@ func (p *Player) Update(msg *MessageLog) {
 			p.AdjustHP(amt)
 		}
 		p.ResetHealCount()
+	}
+
+	p.confused--
+	if p.confused < 0 {
+		p.confused = 0
+	}
+	p.blind--
+	if p.blind < 0 {
+		p.blind = 0
 	}
 
 	p.moves++

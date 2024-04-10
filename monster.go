@@ -203,5 +203,19 @@ func (m *Monster) AdjustHP(amt int) {
 
 func (m *Monster) Attack(e Entity) string {
 	e.AdjustHP(-1)
-	return fmt.Sprintf("The %v attacks %s.", m, e.Label())
+	if e.IsBlind() {
+		return fmt.Sprintf("Something attacks %s.", e.Label())
+	} else {
+		return fmt.Sprintf("The %v attacks %s.", m, e.Label())
+	}
+}
+
+func (m *Monster) IsConfused() bool {
+	//TODO implement monster confusion
+	return false
+}
+
+func (m *Monster) IsBlind() bool {
+	//TODO implement monster blindness
+	return false
 }

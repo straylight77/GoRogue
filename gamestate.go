@@ -46,7 +46,8 @@ func (gs *GameState) Init() {
 	//for testing
 	//PotionLib[0].discovered = true
 	//gs.player.Pickup(newPotion("healing"))
-	//gs.player.Pickup(newPotion("strength"))
+	gs.player.Pickup(newPotion("confusion"))
+	gs.player.Pickup(newPotion("blindness"))
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()
@@ -58,6 +59,11 @@ func (gs *GameState) Init() {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
+
+	// Override the direction if the entity is confused
+	if e.IsConfused() {
+		delta = gs.dungeon.RandDirectionCoords(e.Pos())
+	}
 	dest := e.Pos().Sum(delta)
 
 	// Check edges of the map
@@ -140,7 +146,11 @@ func (gs *GameState) PruneMonsters() {
 	for i, m := range *gs.monsters {
 		if m.HP <= 0 {
 			gs.monsters.Remove(i)
-			gs.messages.Add("You defeated the %s!", m.Name)
+			if gs.player.IsBlind() {
+				gs.messages.Add("You defeated something!")
+			} else {
+				gs.messages.Add("You defeated the %s!", m.Name)
+			}
 			gs.player.AddXP(m.XP)
 		}
 	}
@@ -157,7 +167,6 @@ func (gs *GameState) MonstersAct() {
 		case StateDormant:
 			if m.isMean && gs.dungeon.CanSee(m) && rand.Intn(100) < 67 {
 				m.State = StateChase
-				gs.messages.Add("The %s wakes up.", m.Name)
 			}
 
 		case StateChase:
