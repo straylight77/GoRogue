@@ -47,8 +47,7 @@ type Player struct {
 	inventory []*Item
 	weapon    *Item
 	armor     *Item
-	confused  int
-	blind     int
+	timer     map[string]int
 }
 
 func (p *Player) Init() {
@@ -59,6 +58,7 @@ func (p *Player) Init() {
 	p.AC = 10
 	p.Level = 1
 	p.foodCount = NutritionTime
+	p.timer = make(map[string]int)
 	p.ResetHealCount()
 }
 
@@ -107,11 +107,11 @@ func (p *Player) AdjustFoodCount(amt int) {
 }
 
 func (p *Player) IsConfused() bool {
-	return p.confused > 0
+	return p.timer["confused"] > 0
 }
 
 func (p *Player) IsBlind() bool {
-	return p.blind > 0
+	return p.timer["blind"] > 0
 }
 
 // -----------------------------------------------------------------------
@@ -137,18 +137,18 @@ func (p *Player) Equip(item *Item, msg *MessageLog) bool {
 	switch item.typ {
 	case Weapon:
 		if p.weapon != nil {
-			msg.Add("You return %v to your pack.", p.weapon)
+			msg.Add("You return %v to your pack.", p.weapon.GndString())
 			p.weapon = nil
 		}
-		msg.Add("You are now wielding %v.", item)
+		msg.Add("You are now wielding %v.", item.GndString())
 		p.weapon = item
 	case Armor:
 		if p.armor != nil {
-			msg.Add("You take off %v.", p.armor)
+			msg.Add("You take off %v.", p.armor.GndString())
 			p.armor = nil
 		}
 
-		msg.Add("You are now wearing %v.", item)
+		msg.Add("You are now wearing %v.", item.GndString())
 		p.armor = item
 		p.AC = item.val1
 	default:
@@ -193,6 +193,14 @@ func (p *Player) ResetHealCount() {
 // -----------------------------------------------------------------------
 func (p *Player) Update(msg *MessageLog) {
 
+	// Decrement and timers that are set
+	for k := range p.timer {
+		p.timer[k]--
+		if p.timer[k] < 0 {
+			delete(p.timer, k)
+		}
+	}
+
 	// At 300 start being hungry, at 150 weak
 	// At 0, every turn 20% chance you faint which paralyzes for 4-11 turns
 	f1 := p.foodCount
@@ -219,16 +227,19 @@ func (p *Player) Update(msg *MessageLog) {
 		p.ResetHealCount()
 	}
 
-	p.confused--
-	if p.confused < 0 {
-		p.confused = 0
-	}
-	p.blind--
-	if p.blind < 0 {
-		p.blind = 0
-	}
-
 	p.moves++
+}
+
+func (p *Player) Timer(name string) int {
+	return p.timer[name]
+}
+
+func (p *Player) SetTimer(name string, val int) {
+	if val == 0 {
+		delete(p.timer, name)
+	} else {
+		p.timer[name] = val
+	}
 }
 
 // -----------------------------------------------------------------------

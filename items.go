@@ -175,7 +175,14 @@ func (item Item) ConsumeMsg() string {
 }
 
 func (item Item) IsMagical() bool {
-	return item.magical
+	switch item.typ {
+	case Potion, Scroll, Stick, Ring:
+		return true
+	case Weapon, Armor:
+		return item.ench > 0
+	default:
+		return false
+	}
 }
 
 func (item Item) IsCursed() bool {
@@ -343,6 +350,12 @@ var PotionLib = []PotionTemplate{
 	{"blindness", E_Blindness, 0, false, "A cloak of darkness falls around you."},
 	{"confusion", E_Confusion, 0, false, "Wait, what's going on here. Huh? What? Who?"},
 	{"restore strength", E_Restore, 0, false, "Hey, this tastes great, it make you feel warm all over."},
+	{"detect magic", E_DetMagic, 0, false, "You sense the presence of magic."},
+	{"monster detection", E_DetMonsters, 0, false, "You feel like you are not alone."},
+	{"raise level", E_LevelUp, 0, false, "You feel more experienced."},
+	{"paralysis", E_Paralyze, 0, false, "You can't move."},
+	//see invisible
+	//haste
 }
 
 var PotionColors = []string{
@@ -426,6 +439,10 @@ const (
 	E_Confusion
 	E_Blindness
 	E_Restore
+	E_DetMagic
+	E_DetMonsters
+	E_LevelUp
+	E_Paralyze
 )
 
 func doEffect(effect int, gs *GameState) {
@@ -438,23 +455,31 @@ func doEffect(effect int, gs *GameState) {
 		//do nothing
 	case E_Healing:
 		gs.player.AdjustHP(gs.player.Level * 3)
-		gs.player.blind = 0
+		gs.player.SetTimer("blind", 0)
+		gs.player.SetTimer("confusion", 0)
 	case E_ExtraHealing:
 		gs.player.AdjustHP(gs.player.Level * 5)
-		gs.player.blind = 0
+		gs.player.timer["blind"] = 0
+		gs.player.timer["confusion"] = 0
 	case E_Strength:
 		gs.player.Str += 1
 		gs.player.maxStr += 1
 	case E_Poison:
-		gs.player.Str -= 1
+		gs.player.Str -= rand.Intn(3) + 1
 	case E_Restore:
 		gs.player.Str = gs.player.maxStr
 	case E_Blindness:
-		// go blind for 850 moves
-		gs.player.blind = 850
+		gs.player.SetTimer("blind", 850)
 	case E_Confusion:
-		// become confused for 20-27 moves
-		gs.player.confused = 20 + rand.Intn(8)
+		gs.player.SetTimer("confused", 20+rand.Intn(8))
+	case E_DetMonsters:
+		gs.player.SetTimer("detMonsters", 850)
+	case E_DetMagic:
+		gs.player.SetTimer("detMagic", 850)
+	case E_LevelUp:
+		gs.player.XP = XPTable[gs.player.Level]
+	case E_Paralyze:
+		gs.player.SetTimer("paralyzed", 3)
 	default:
 		gs.messages.Add("This effect (%d) has not been implemented.", effect)
 	}

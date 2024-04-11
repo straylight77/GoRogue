@@ -305,7 +305,7 @@ func (d *Display) ListInventory(p *Player) {
 		if item == p.armor {
 			equip = " (being worn)"
 		}
-		str := fmt.Sprintf("%c) %v%s", 'a'+i, item.InvString(), equip)
+		str := fmt.Sprintf("%c) %c %v%s", 'a'+i, item.Rune(), item.InvString(), equip)
 		if check := len(str); check > width {
 			width = check
 		}

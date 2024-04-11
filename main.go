@@ -222,6 +222,23 @@ func draw(display *Display, state *GameState) {
 			}
 		}
 	}
+
+	// monster detection should work even if blind
+	if state.player.Timer("detMonsters") > 0 {
+		for _, m := range *state.monsters {
+			display.DrawEntity(m)
+		}
+	}
+
+	// if detect magic should work even if blind
+	if state.player.Timer("detMagic") > 0 {
+		for pos, item := range state.items {
+			if item.IsMagical() {
+				display.DrawItem(pos, item)
+			}
+		}
+	}
+
 	display.DrawMessages(state.messages)
 	display.Print(0, 24, state.player.InfoString())
 

@@ -37,13 +37,17 @@ func drawDebugFrame(d *Display, gs *GameState) {
 		gs.player.foodCount,
 		gs.wander,
 		gs.spawnFoodTimer)
-	d.Debugf(84, 4, "conf=%d, blind=%d", gs.player.confused, gs.player.blind)
-	d.Debugf(84, 5, "path1: %v", path1)
-	d.Debugf(84, 6, "path2: %v", path2)
+	d.Debugf(84, 4, "path1: %v", path1)
+	d.Debugf(84, 5, "path2: %v", path2)
 	if gs.dmap != nil {
-		d.Debugf(84, 7, "dmap: iter=%d", gs.dmap.iter)
+		d.Debugf(84, 6, "dmap: iter=%d", gs.dmap.iter)
 	}
 
+	row := 8
+	for k, v := range gs.player.timer {
+		d.Debugf(84, row, "timer[%s]: %d", k, v)
+		row++
+	}
 	//for i, m := range *gs.monsters {
 	//	d.Debugf(84, 9+i, "%d: %v", i, m.DebugString())
 	//}

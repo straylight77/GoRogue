@@ -33,7 +33,7 @@ func (gs *GameState) Init() {
 	var item *Item
 	gs.player.Pickup(newRation())
 
-	item = newWeapon("mace")
+	item = newWeapon("dagger")
 	randEnchant(item, 5, 0)
 	gs.player.Pickup(item)
 	gs.player.Equip(item, gs.messages)
@@ -57,6 +57,8 @@ func (gs *GameState) Init() {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
+
+	// TODO handle paralysis
 
 	// Override the direction if the entity is confused
 	if e.IsConfused() {
