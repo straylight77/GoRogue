@@ -114,6 +114,10 @@ func (p *Player) IsBlind() bool {
 	return p.timer["blind"] > 0
 }
 
+func (p *Player) IsParalyzed() bool {
+	return p.timer["paralyzed"] > 0
+}
+
 // -----------------------------------------------------------------------
 func (p *Player) Pickup(item *Item) bool {
 	switch item.typ {

@@ -132,36 +132,44 @@ func main() {
 			//messages.Add("You rest for a moment.")
 
 		case CmdConsume:
-			idx := display.PromptInventory("Consume what?", state.player)
-			if idx != -1 {
-				item := state.player.inventory[idx]
-				switch item.typ {
-				case Food:
-					state.messages.Add("You eat %v.", item.InvString())
-					state.player.AdjustFoodCount(item.Nutrition())
-					state.player.RemoveItem(idx)
+			if state.player.IsParalyzed() {
+				state.messages.Add("You cannot consume anything while paralyzed.")
+			} else {
+				idx := display.PromptInventory("Consume what?", state.player)
+				if idx != -1 {
+					item := state.player.inventory[idx]
+					switch item.typ {
+					case Food:
+						state.messages.Add("You eat %v.", item.InvString())
+						state.player.AdjustFoodCount(item.Nutrition())
+						state.player.RemoveItem(idx)
 
-				case Potion:
-					doEffect(item.Effect(), &state)
-					state.messages.Add(item.ConsumeMsg())
-					item.Identify()
-					//if !item.IsIdentified() {
-					//	state.messages.Add("It was %v!", item.InvString())
-					//}
-					state.player.RemoveItem(idx)
+					case Potion:
+						doEffect(item.Effect(), &state)
+						state.messages.Add(item.ConsumeMsg())
+						item.Identify()
+						//if !item.IsIdentified() {
+						//	state.messages.Add("It was %v!", item.InvString())
+						//}
+						state.player.RemoveItem(idx)
 
-				default:
-					state.messages.Add("That's not an item you can consume.")
+					default:
+						state.messages.Add("That's not an item you can consume.")
+					}
+					doUpdate = true
 				}
-				doUpdate = true
 			}
 
 		case CmdEquip:
-			idx := display.PromptInventory("Equip what?", state.player)
-			if idx != -1 {
-				item := state.player.inventory[idx]
-				//debug.Add("equip: %d %v", idx, item)
-				doUpdate = state.player.Equip(item, state.messages)
+			if state.player.IsParalyzed() {
+				state.messages.Add("You cannot equip anything while paralyzed.")
+			} else {
+				idx := display.PromptInventory("Equip what?", state.player)
+				if idx != -1 {
+					item := state.player.inventory[idx]
+					//debug.Add("equip: %d %v", idx, item)
+					doUpdate = state.player.Equip(item, state.messages)
+				}
 			}
 
 		// Extra debugging and testing stuff

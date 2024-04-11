@@ -46,6 +46,7 @@ func (gs *GameState) Init() {
 	//for testing
 	//PotionLib[1].discovered = true
 	//gs.player.Pickup(newPotion("healing"))
+	//gs.player.Pickup(newPotion("paralysis"))
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()
@@ -57,8 +58,6 @@ func (gs *GameState) Init() {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
-
-	// TODO handle paralysis
 
 	// Override the direction if the entity is confused
 	if e.IsConfused() {
@@ -89,6 +88,12 @@ func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
 		}
 
 	case *Player:
+		// Check if player is paralyzed
+		if gs.player.Timer("paralyzed") > 0 {
+			gs.messages.Add("You remain unable to move.")
+			return true
+		}
+
 		// If a monster is there, attack it
 		m := gs.monsters.MonsterAt(dest)
 		if m != nil {
@@ -109,6 +114,11 @@ func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) GoDownstairs() bool {
+	if gs.player.IsParalyzed() {
+		gs.messages.Add("You remain unable to move.")
+		return true
+	}
+
 	if gs.dungeon.TileTypeAt(gs.player.Pos()) == TileStairsDn || debugFlag["main"] {
 		gs.messages.Add("You descend the ancient stairs.")
 		generateRandomLevel(gs)
@@ -121,6 +131,11 @@ func (gs *GameState) GoDownstairs() bool {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) GoUpstairs() bool {
+	if gs.player.IsParalyzed() {
+		gs.messages.Add("You remain unable to move.")
+		return true
+	}
+
 	if gs.dungeon.TileTypeAt(gs.player.Pos()) == TileStairsUp {
 		gs.messages.Add("Your way is magically blocked.")
 	} else {

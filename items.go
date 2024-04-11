@@ -353,7 +353,7 @@ var PotionLib = []PotionTemplate{
 	{"detect magic", E_DetMagic, 0, false, "You sense the presence of magic."},
 	{"monster detection", E_DetMonsters, 0, false, "You feel like you are not alone."},
 	{"raise level", E_LevelUp, 0, false, "You feel more experienced."},
-	{"paralysis", E_Paralyze, 0, false, "You can't move."},
+	{"paralysis", E_Paralyze, 0, false, "You feel your body seizing up; you can't move!"},
 	//see invisible
 	//haste
 }
@@ -459,8 +459,8 @@ func doEffect(effect int, gs *GameState) {
 		gs.player.SetTimer("confusion", 0)
 	case E_ExtraHealing:
 		gs.player.AdjustHP(gs.player.Level * 5)
-		gs.player.timer["blind"] = 0
-		gs.player.timer["confusion"] = 0
+		gs.player.SetTimer("blind", 0)
+		gs.player.SetTimer("confusion", 0)
 	case E_Strength:
 		gs.player.Str += 1
 		gs.player.maxStr += 1
