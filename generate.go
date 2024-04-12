@@ -66,7 +66,7 @@ func populateItems(gs *GameState) {
 
 	for i := 0; i < 9; i++ {
 
-		roll := rand.Intn(100)
+		roll := rand.Intn(100) + 1
 		if roll > 35 {
 			//debug.Add("generate: no spawn (%d)", roll)
 			continue

@@ -138,7 +138,7 @@ func main() {
 				idx := display.PromptInventory("Consume what?", state.player)
 				if idx != -1 {
 					item := state.player.inventory[idx]
-					switch item.typ {
+					switch item.Type() {
 					case Food:
 						state.messages.Add("You eat %v.", item.InvString())
 						state.player.AdjustFoodCount(item.Nutrition())

@@ -44,8 +44,9 @@ func (gs *GameState) Init() {
 	gs.player.Equip(item, gs.messages)
 
 	//for testing
-	//PotionLib[1].discovered = true
-	//gs.player.Pickup(newPotion("healing"))
+	item = newPotion("healing")
+	item.Identify()
+	gs.player.Pickup(item)
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()

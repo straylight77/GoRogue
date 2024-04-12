@@ -124,7 +124,7 @@ func (p *Player) IsHasted() bool {
 
 // -----------------------------------------------------------------------
 func (p *Player) Pickup(item *Item) bool {
-	switch item.typ {
+	switch item.Type() {
 	case Gold:
 		p.Gold += item.GoldQty()
 		return true
@@ -142,13 +142,13 @@ func (p *Player) RemoveItem(idx int) {
 // -----------------------------------------------------------------------
 func (p *Player) Equip(item *Item, msg *MessageLog) bool {
 	//TODO return number of moves instead of bool (handle removing armor)
-	switch item.typ {
+	switch item.Type() {
 	case Weapon:
 		if p.weapon != nil {
 			msg.Add("You return %v to your pack.", p.weapon.GndString())
 			p.weapon = nil
 		}
-		msg.Add("You are now wielding %v.", item.GndString())
+		msg.Add("You are now wielding %v.", item.InvString())
 		p.weapon = item
 	case Armor:
 		if p.armor != nil {
@@ -156,7 +156,7 @@ func (p *Player) Equip(item *Item, msg *MessageLog) bool {
 			p.armor = nil
 		}
 
-		msg.Add("You are now wearing %v.", item.GndString())
+		msg.Add("You are now wearing %v.", item.InvString())
 		p.armor = item
 		p.AC = item.val1
 	default:
