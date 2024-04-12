@@ -46,7 +46,6 @@ func (gs *GameState) Init() {
 	//for testing
 	//PotionLib[1].discovered = true
 	//gs.player.Pickup(newPotion("healing"))
-	//gs.player.Pickup(newPotion("paralysis"))
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()
@@ -176,6 +175,7 @@ func (gs *GameState) PruneMonsters() {
 
 // -----------------------------------------------------------------------
 func (gs *GameState) MonstersAct() {
+
 	for _, m := range *gs.monsters {
 		switch m.State {
 
@@ -257,4 +257,8 @@ func (gs *GameState) WanderingMonsters() {
 			gs.wander = WanderTimer
 		}
 	}
+}
+
+func (gs *GameState) IsBonusMove() bool {
+	return gs.player.IsHasted() && gs.player.moves%2 == 0
 }

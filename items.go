@@ -353,7 +353,9 @@ var PotionLib = []PotionTemplate{
 	{"detect magic", E_DetMagic, 0, false, "You sense the presence of magic."},
 	{"monster detection", E_DetMonsters, 0, false, "You feel like you are not alone."},
 	{"raise level", E_LevelUp, 0, false, "You feel more experienced."},
-	{"paralysis", E_Paralyze, 0, false, "You feel your body seizing up; you can't move!"},
+	{"paralysis", E_Paralyze, 0, false, "You feel your body seizing up, you can't move!"},
+	{"haste", E_Haste, 0, false, "Tastes like coffee, everything seems to slow down."},
+	{"truesight", E_Truesight, 0, false, "Tastes like slime-mold juice."},
 	//see invisible
 	//haste
 }
@@ -443,6 +445,8 @@ const (
 	E_DetMonsters
 	E_LevelUp
 	E_Paralyze
+	E_Haste
+	E_Truesight
 )
 
 func doEffect(effect int, gs *GameState) {
@@ -480,6 +484,12 @@ func doEffect(effect int, gs *GameState) {
 		gs.player.XP = XPTable[gs.player.Level]
 	case E_Paralyze:
 		gs.player.SetTimer("paralyzed", 3)
+	case E_Haste:
+		// if already hasted, faint for 0-7 turns
+		gs.player.SetTimer("haste", rand.Intn(5)+10)
+	case E_Truesight:
+		gs.player.SetTimer("truesight", 850)
+		gs.player.SetTimer("blind", 0)
 	default:
 		gs.messages.Add("This effect (%d) has not been implemented.", effect)
 	}

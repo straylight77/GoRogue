@@ -202,9 +202,11 @@ func main() {
 
 		if doUpdate {
 			state.PruneMonsters()
-			state.MonstersAct()
 			state.player.Update(state.messages)
-			state.WanderingMonsters()
+			if !state.IsBonusMove() {
+				state.MonstersAct()
+				state.WanderingMonsters()
+			}
 		}
 	}
 	display.Quit()
