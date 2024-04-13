@@ -30,7 +30,6 @@ func (gs *GameState) Init() {
 	gs.player.Init()
 
 	// Set up player's starting equipment
-	//var item Object
 	gs.player.Pickup(newFood("ration"))
 	gs.player.Pickup(newWeapon("dagger"))
 	gs.player.Pickup(newArmor("leather armor"))

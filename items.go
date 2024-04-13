@@ -5,7 +5,7 @@ import (
 	"math/rand"
 )
 
-type Object interface {
+type Item interface {
 	Rune() rune
 	InvString() string
 	GndString() string
@@ -23,7 +23,7 @@ type Equipable interface {
 }
 
 // -----------------------------------------------------------------------
-type ItemList map[Coord]Object
+type ItemList map[Coord]Item
 
 func (list *ItemList) Clear() {
 	clear(*list)
@@ -39,7 +39,7 @@ func (list *ItemList) Clear() {
 // Ring     5     95
 // Stick    5    100
 
-func randItem() Object {
+func randItem() Item {
 	roll := rand.Intn(100) + 1
 	debug.Add("rand item: roll=%d", roll)
 	switch {

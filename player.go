@@ -44,8 +44,8 @@ type Player struct {
 	Gold      int
 	healCount int
 	foodCount int
-	inventory []Object
-	equiped   map[string]Object
+	inventory []Item
+	equiped   map[string]Item
 	timer     map[string]int
 }
 
@@ -58,7 +58,7 @@ func (p *Player) Init() {
 	p.Level = 1
 	p.foodCount = NutritionTime
 	p.timer = make(map[string]int)
-	p.equiped = map[string]Object{
+	p.equiped = map[string]Item{
 		"weapon": nil,
 		"armor":  nil,
 		"left":   nil,
@@ -128,7 +128,7 @@ func (p *Player) IsHasted() bool {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) Pickup(item Object) bool {
+func (p *Player) Pickup(item Item) bool {
 	switch item.(type) {
 	case *Gold:
 		p.Gold += item.(*Gold).qty

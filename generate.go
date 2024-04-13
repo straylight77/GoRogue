@@ -72,7 +72,7 @@ func populateItems(gs *GameState) {
 			continue
 		}
 
-		var item Object
+		var item Item
 		// If no food has been spawned in three dungeon levels, then spawn food.
 		// Otherwise, there is an equal chance of the item being food, a potion,
 		// a scroll, a weapon, armor, ring, or stick.

@@ -198,9 +198,9 @@ func (d *Display) DrawEntity(e Entity) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawItem(pos Coord, i Object) {
+func (d *Display) DrawItem(pos Coord, item Item) {
 	x, y := pos.XY()
-	d.Screen.SetContent(x, y+1, i.Rune(), nil, d.Style("default"))
+	d.Screen.SetContent(x, y+1, item.Rune(), nil, d.Style("default"))
 }
 
 // -----------------------------------------------------------------------------
