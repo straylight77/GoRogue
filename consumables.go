@@ -95,9 +95,10 @@ func (p Potion) String() string {
 }
 
 func (p *Potion) Consume(gs *GameState) bool {
-	gs.messages.Add("You quaff the %v.", p)
+	//gs.messages.Add("You quaff the %v.", p)
 	templ := PotionLib[p.id]
 	doEffect(templ.effect, gs)
+	gs.messages.Add(templ.message)
 	p.Identify()
 	return true
 }
@@ -178,28 +179,6 @@ func assignPotionColors() {
 	}
 }
 
-// *** DEPRECATED ********************************************************
-
 // === SCROLLS ===========================================================
-func newScroll() *Item {
-	return &Item{
-		typ:  Scroll,
-		name: "ryfay in the airchay",
-	}
-}
-
-func randScroll() *Item {
-	return newScroll()
-}
 
 // === STICKS ============================================================
-func newStick() *Item {
-	return &Item{
-		typ:  Stick,
-		name: "bamboo",
-	}
-}
-
-func randStick() *Item {
-	return newStick()
-}

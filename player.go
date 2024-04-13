@@ -139,46 +139,9 @@ func (p *Player) Pickup(item Object) bool {
 	}
 }
 
-//func (p *Player) Pickup(item *Item) bool {
-//	switch item.Type() {
-//	case Gold:
-//		p.Gold += item.GoldQty()
-//		return true
-//	default:
-//		p.inventory = append(p.inventory, item)
-//		return true
-//	}
-//}
-
 // -----------------------------------------------------------------------
 func (p *Player) RemoveItem(idx int) {
 	p.inventory = append(p.inventory[:idx], p.inventory[idx+1:]...)
-}
-
-// -----------------------------------------------------------------------
-func (p *Player) Equip(item *Item, msg *MessageLog) bool {
-	//switch item.Type() {
-	//case Weapon:
-	//	if p.weapon != nil {
-	//		msg.Add("You return %v to your pack.", p.weapon.GndString())
-	//		p.weapon = nil
-	//	}
-	//	msg.Add("You are now wielding %v.", item.InvString())
-	//	p.weapon = item
-	//case Armor:
-	//	if p.armor != nil {
-	//		msg.Add("You take off %v.", p.armor.GndString())
-	//		p.armor = nil
-	//	}
-
-	//	msg.Add("You are now wearing %v.", item.InvString())
-	//	p.armor = item
-	//	p.AC = item.val1
-	//default:
-	//	msg.Add("You cannot equip that item.")
-	//	return false
-	//}
-	return true
 }
 
 // -----------------------------------------------------------------------
