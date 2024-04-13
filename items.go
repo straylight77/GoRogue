@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strconv"
-	"strings"
 )
 
 type Object interface {
@@ -24,6 +22,13 @@ type Equipable interface {
 	//Identify()
 }
 
+// -----------------------------------------------------------------------
+type ItemList map[Coord]*Item
+
+func (list *ItemList) Clear() {
+	clear(*list)
+}
+
 // ***  DEPRECATED ********************************************************************
 
 type ItemType int
@@ -34,7 +39,7 @@ const (
 	//Weapon
 	//Armor
 	Ring
-	Potion
+	//Potion
 	Scroll
 	Stick
 	Amulet
@@ -45,8 +50,8 @@ var ItemRunes = map[ItemType]rune{
 	//Food: '%',
 	//Weapon: ')',
 	//Armor:  ']',
-	Ring:   '=',
-	Potion: '!',
+	Ring: '=',
+	//Potion: '!',
 	Scroll: '?',
 	Stick:  '/',
 	Amulet: '&',
@@ -80,8 +85,8 @@ func (item Item) Type() ItemType {
 
 func (item Item) TypeString() string {
 	switch item.Type() {
-	case Potion:
-		return "potion"
+	//case Potion:
+	//	return "potion"
 	case Scroll:
 		return "scroll"
 	case Ring:
@@ -102,7 +107,7 @@ func (item Item) GndString() string {
 		} else {
 			return fmt.Sprintf("%d pieces of gold", item.val1)
 		}
-	case Potion, Ring, Stick:
+	case Ring, Stick:
 		if item.IsIdentified() {
 			return fmt.Sprintf("a %s", item.name)
 		} else {
@@ -143,9 +148,9 @@ func (item Item) InvString() string {
 // Used for listing unidentified consumables
 func (item Item) Descriptor() string {
 	switch item.Type() {
-	case Potion:
-		i := PotionLib[item.val1].color
-		return PotionColors[i]
+	//case Potion:
+	//	i := PotionLib[item.val1].color
+	//	return PotionColors[i]
 	default:
 		return "mysterious"
 	}
@@ -154,8 +159,8 @@ func (item Item) Descriptor() string {
 // Return the id of the effect the item has when triggered
 func (item Item) Effect() int {
 	switch item.Type() {
-	case Potion:
-		return PotionLib[item.val1].effect
+	//case Potion:
+	//	return PotionLib[item.val1].effect
 	}
 	return -1
 }
@@ -163,38 +168,21 @@ func (item Item) Effect() int {
 // If item is consumable, return if that type has been discovered. For
 // equipment, return if this particular instance has been identified.
 func (item Item) IsIdentified() bool {
-	switch item.Type() {
-	case Potion:
-		return PotionLib[item.val1].discovered
-	default:
-		return item.identified
-	}
+	return false
 }
 
 // See IsIdentified().  Set the appropriate flag.  We will only ever need
 // setting to true, never to false.
-func (item *Item) Identify() {
-	switch item.Type() {
-	case Potion:
-		PotionLib[item.val1].discovered = true
-	default:
-		item.identified = true
-	}
-}
+func (item *Item) Identify() {}
 
 // Returns the string to use as a game message after consuming the item.
 func (item Item) ConsumeMsg() string {
-	switch item.Type() {
-	case Potion:
-		return PotionLib[item.val1].message
-	default:
-		return "Yum!"
-	}
+	return "Yum!"
 }
 
 func (item Item) IsMagical() bool {
 	switch item.Type() {
-	case Potion, Scroll, Stick, Ring:
+	case Scroll, Stick, Ring:
 		return true
 	//case Weapon, Armor:
 	//	return item.ench > 0
@@ -286,13 +274,6 @@ func doEffect(effect int, gs *GameState) {
 }
 
 // -----------------------------------------------------------------------
-type ItemList map[Coord]*Item
-
-func (list *ItemList) Clear() {
-	clear(*list)
-}
-
-// -----------------------------------------------------------------------
 // ITEM   PCT  CUMUL
 // Potion  27     27
 // Scroll  27     54
@@ -322,16 +303,3 @@ func (list *ItemList) Clear() {
 //	}
 //	//return Food
 //}
-
-func parseDiceStr(dice string) (int, int) {
-	parts := strings.Split(dice, "d")
-	v1, err := strconv.Atoi(parts[0])
-	if err != nil {
-		panic(err)
-	}
-	v2, err := strconv.Atoi(parts[1])
-	if err != nil {
-		panic(err)
-	}
-	return v1, v2
-}

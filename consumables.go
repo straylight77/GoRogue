@@ -6,6 +6,7 @@ import (
 )
 
 // === FOOD ==============================================================
+
 type Food struct {
 	name string
 	amt  int
@@ -33,11 +34,80 @@ func (f *Food) Consume(gs *GameState) bool {
 	return true
 }
 
-// *** DEPRECATED ********************************************************
-
 // === POTIONS ==========================================================
-// name: full name of the potion once it's been identified
-// val1: index of PotionLib for this potion
+
+type Potion struct {
+	id int
+}
+
+func newPotion(name string) *Potion {
+	ok := false
+	var idx int
+	for i, t := range PotionLib {
+		if t.name == name {
+			ok = true
+			idx = i
+			break
+		}
+	}
+	if !ok {
+		panic("No potion with the name " + name)
+	}
+
+	return &Potion{
+		id: idx,
+	}
+}
+
+func randPotion() *Potion {
+	roll := rand.Intn(100) + 1 //1-100
+	name := ""
+	for _, t := range PotionLib {
+		//debug.Add("rand potion: (%d) chance=%d", roll, t.chance)
+		if roll <= t.chance {
+			name = t.name
+			break
+		}
+	}
+	return newPotion(name)
+}
+
+func (p *Potion) Rune() rune {
+	return '!'
+}
+
+func (p *Potion) InvString() string {
+	return p.GndString()
+}
+
+func (p *Potion) GndString() string {
+	templ := PotionLib[p.id]
+	if templ.discovered {
+		return fmt.Sprintf("a potion of %s", templ.name)
+	} else {
+		color := PotionColors[templ.color]
+		return fmt.Sprintf("a %s potion", color)
+	}
+}
+
+func (p Potion) String() string {
+	return p.GndString()
+}
+
+func (p *Potion) Consume(gs *GameState) bool {
+	gs.messages.Add("You quaff the %v.", p)
+	templ := PotionLib[p.id]
+	doEffect(templ.effect, gs)
+	p.Identify()
+	return true
+}
+
+func (p *Potion) IsIdentified() bool {
+	return PotionLib[p.id].discovered
+}
+func (p *Potion) Identify() {
+	PotionLib[p.id].discovered = true
+}
 
 type PotionTemplate struct {
 	pct        int // probability of this potion being randomly generated
@@ -108,41 +178,7 @@ func assignPotionColors() {
 	}
 }
 
-func newPotion(name string) *Item {
-	ok := false
-	var templ PotionTemplate
-	var idx int
-	for i, t := range PotionLib {
-		if t.name == name {
-			ok = true
-			templ = t
-			idx = i
-			break
-		}
-	}
-	if !ok {
-		panic("No potion with the name " + name)
-	}
-
-	return &Item{
-		typ:  Potion,
-		name: fmt.Sprintf("potion of %s", templ.name),
-		val1: idx,
-	}
-}
-
-func randPotion() *Item {
-	roll := rand.Intn(100) + 1 //1-100
-	name := ""
-	for _, t := range PotionLib {
-		//debug.Add("rand potion: (%d) chance=%d", roll, t.chance)
-		if roll <= t.chance {
-			name = t.name
-			break
-		}
-	}
-	return newPotion(name)
-}
+// *** DEPRECATED ********************************************************
 
 // === SCROLLS ===========================================================
 func newScroll() *Item {

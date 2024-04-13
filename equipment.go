@@ -3,23 +3,11 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
 // === WEAPONS ===========================================================
-
-type WeaponTemplate struct {
-	melee  string
-	thrown string
-	worth  int
-}
-
-var WeaponLib = map[string]WeaponTemplate{
-	"mace":             {"2d4", "1d3", 9},
-	"long sword":       {"1d10", "1d2", 15},
-	"dagger":           {"1d6", "1d4", 2},
-	"two-handed sword": {"3d6", "1d2", 30},
-	"spear":            {"1d8", "1d6", 2},
-}
 
 type Weapon struct {
 	name    string
@@ -90,22 +78,21 @@ func (w Weapon) String() string {
 	return w.name
 }
 
+type WeaponTemplate struct {
+	melee  string
+	thrown string
+	worth  int
+}
+
+var WeaponLib = map[string]WeaponTemplate{
+	"mace":             {"2d4", "1d3", 9},
+	"long sword":       {"1d10", "1d2", 15},
+	"dagger":           {"1d6", "1d4", 2},
+	"two-handed sword": {"3d6", "1d2", 30},
+	"spear":            {"1d8", "1d6", 2},
+}
+
 // === ARMOR =============================================================
-
-type ArmorTemplate struct {
-	AC    int
-	worth int
-}
-
-var ArmorLib = map[string]ArmorTemplate{
-	"leather armor": {8, 0},
-	"ring mail":     {7, 0},
-	"scale mail":    {6, 3},
-	"chain mail":    {5, 75},
-	"splint mail":   {4, 80},
-	"banded mail":   {3, 90},
-	"plate armor":   {2, 440},
-}
 
 type Armor struct {
 	Name  string
@@ -167,6 +154,36 @@ func (a *Armor) InvString() string {
 
 func (a Armor) String() string {
 	return a.Name
+}
+
+type ArmorTemplate struct {
+	AC    int
+	worth int
+}
+
+var ArmorLib = map[string]ArmorTemplate{
+	"leather armor": {8, 0},
+	"ring mail":     {7, 0},
+	"scale mail":    {6, 3},
+	"chain mail":    {5, 75},
+	"splint mail":   {4, 80},
+	"banded mail":   {3, 90},
+	"plate armor":   {2, 440},
+}
+
+// -----------------------------------------------------------------------
+
+func parseDiceStr(dice string) (int, int) {
+	parts := strings.Split(dice, "d")
+	v1, err := strconv.Atoi(parts[0])
+	if err != nil {
+		panic(err)
+	}
+	v2, err := strconv.Atoi(parts[1])
+	if err != nil {
+		panic(err)
+	}
+	return v1, v2
 }
 
 func randEnchant(item Equipable, enchantProb int, cursedProb int) int {
