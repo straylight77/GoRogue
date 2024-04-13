@@ -235,9 +235,9 @@ func draw(display *Display, state *GameState) {
 	// if detect magic should work even if blind
 	if state.player.Timer("detMagic") > 0 {
 		for pos, item := range state.items {
-			if item.IsMagical() {
-				display.DrawItem(pos, item)
-			}
+			//if item.IsMagical() { //TODO
+			display.DrawItem(pos, item)
+			//}
 		}
 	}
 

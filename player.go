@@ -130,6 +130,9 @@ func (p *Player) IsHasted() bool {
 // -----------------------------------------------------------------------
 func (p *Player) Pickup(item Object) bool {
 	switch item.(type) {
+	case *Gold:
+		p.Gold += item.(*Gold).qty
+		return true
 	default:
 		p.inventory = append(p.inventory, item)
 		return true

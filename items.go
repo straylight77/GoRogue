@@ -23,10 +23,39 @@ type Equipable interface {
 }
 
 // -----------------------------------------------------------------------
-type ItemList map[Coord]*Item
+type ItemList map[Coord]Object
 
 func (list *ItemList) Clear() {
 	clear(*list)
+}
+
+// === GOLD ==============================================================
+type Gold struct {
+	qty int
+}
+
+func (g *Gold) Rune() rune {
+	return '*'
+}
+
+func (g *Gold) InvString() string {
+	return g.GndString()
+}
+
+func (g *Gold) GndString() string {
+	if g.qty == 1 {
+		return fmt.Sprintf("1 piece of gold")
+	} else {
+		return fmt.Sprintf("%d pieces of gold", g.qty)
+	}
+}
+
+func newGold(qty int) *Gold {
+	return &Gold{qty: qty}
+}
+
+func randGoldAmt(depth int) int {
+	return rand.Intn(50+10*depth) + 2
 }
 
 // ***  DEPRECATED ********************************************************************
@@ -34,11 +63,11 @@ func (list *ItemList) Clear() {
 type ItemType int
 
 const (
-	Gold ItemType = iota
+	//Gold
 	//Food
 	//Weapon
 	//Armor
-	Ring
+	Ring ItemType = iota
 	//Potion
 	Scroll
 	Stick
@@ -46,7 +75,7 @@ const (
 )
 
 var ItemRunes = map[ItemType]rune{
-	Gold: '*',
+	//Gold: '*',
 	//Food: '%',
 	//Weapon: ')',
 	//Armor:  ']',
@@ -101,12 +130,12 @@ func (item Item) TypeString() string {
 // Returns a string that describes the item as it appears on the ground
 func (item Item) GndString() string {
 	switch item.Type() {
-	case Gold:
-		if item.val1 == 1 {
-			return fmt.Sprintf("%d piece of gold", item.val1)
-		} else {
-			return fmt.Sprintf("%d pieces of gold", item.val1)
-		}
+	//case Gold:
+	//	if item.val1 == 1 {
+	//		return fmt.Sprintf("%d piece of gold", item.val1)
+	//	} else {
+	//		return fmt.Sprintf("%d pieces of gold", item.val1)
+	//	}
 	case Ring, Stick:
 		if item.IsIdentified() {
 			return fmt.Sprintf("a %s", item.name)
@@ -128,8 +157,8 @@ func (item Item) InvString() string {
 	//}
 
 	switch item.Type() {
-	case Gold:
-		return item.GndString()
+	//case Gold:
+	//	return item.GndString()
 	//case Weapon:
 	//	dice := fmt.Sprintf("%dd%d", item.val1, item.val2)
 	//	if item.ench != 0 {
@@ -193,19 +222,6 @@ func (item Item) IsMagical() bool {
 
 func (item Item) IsCursed() bool {
 	return item.cursed
-}
-
-// === GOLD ==============================================================
-func newGold(qty int) *Item {
-	return &Item{typ: Gold, val1: qty}
-}
-
-func (item Item) GoldQty() int {
-	return item.val1
-}
-
-func randGoldAmt(depth int) int {
-	return rand.Intn(50+10*depth) + 2
 }
 
 // === EFFECTS ===========================================================

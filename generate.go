@@ -23,7 +23,7 @@ func generateRandomLevel(gs *GameState) {
 	gs.player.depth++
 	gs.spawnFoodTimer--
 
-	//populateMonsters(gs)
+	populateMonsters(gs)
 
 	//populateItems(gs)
 }
