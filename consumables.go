@@ -5,26 +5,35 @@ import (
 	"math/rand"
 )
 
-type Consumable struct {
-	typ    ItemType
-	name   string
-	qty    int
-	effect int
-	val1   int
-}
-
 // === FOOD ==============================================================
-func newRation() *Item {
-	return &Item{
-		typ:  Food,
-		name: "ration",
-		val1: NutritionTime,
-	}
+type Food struct {
+	name string
+	amt  int
 }
 
-func (item Item) Nutrition() int {
-	return item.val1
+func newFood(name string) *Food {
+	return &Food{name, NutritionTime}
 }
+
+func (f *Food) Rune() rune {
+	return '%'
+}
+
+func (f *Food) InvString() string {
+	return f.GndString()
+}
+
+func (f *Food) GndString() string {
+	return fmt.Sprintf("a %s", f.name)
+}
+
+func (f *Food) Consume(gs *GameState) bool {
+	gs.messages.Add("You eat %v.", f.InvString())
+	gs.player.AdjustFoodCount(f.amt)
+	return true
+}
+
+// *** DEPRECATED ********************************************************
 
 // === POTIONS ==========================================================
 // name: full name of the potion once it's been identified

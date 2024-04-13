@@ -299,10 +299,10 @@ func (d *Display) ListInventory(p *Player) {
 	strList := make([]string, height)
 	for i, item := range p.inventory {
 		equip := ""
-		if item == p.weapon {
+		if item == p.equiped["weapon"] {
 			equip = " (weapon in hand)"
 		}
-		if item == p.armor {
+		if item == p.equiped["armor"] {
 			equip = " (being worn)"
 		}
 		str := fmt.Sprintf("%c) %c %v%s", 'a'+i, item.Rune(), item.InvString(), equip)

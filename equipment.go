@@ -1,21 +1,11 @@
 package main
 
-import "math/rand"
-
-type Equipment struct {
-	typ        ItemType
-	name       string
-	identified bool
-	cursed     bool
-	bonus      int
-	meleeRoll  int
-	meleeSize  int
-}
+import (
+	"fmt"
+	"math/rand"
+)
 
 // === WEAPONS ===========================================================
-// name: the sub-type of weapons e.g. dagger, long sword
-// val1: the number of dice to roll for melee damage
-// val2: the die size to roll for melee damage
 
 type WeaponTemplate struct {
 	melee  string
@@ -31,58 +21,76 @@ var WeaponLib = map[string]WeaponTemplate{
 	"spear":            {"1d8", "1d6", 2},
 }
 
-func newWeapon(name string) *Item {
+type Weapon struct {
+	name    string
+	dmgDice int
+	dmgSize int
+	bonus   int
+}
+
+func newWeapon(name string) *Weapon {
 	t, ok := WeaponLib[name]
 	if !ok {
 		panic("No weapon with the name " + name)
 	}
 	v1, v2 := parseDiceStr(t.melee)
 
-	return &Item{
-		typ:  Weapon,
-		name: name,
-		val1: v1,
-		val2: v2,
+	return &Weapon{
+		name:    name,
+		dmgDice: v1,
+		dmgSize: v2,
 	}
 }
 
-func randWeapon() *Item {
+func randWeapon() *Weapon {
 	// Pick a weapon from the list at random
 	i := rand.Intn(len(WeaponLib))
-	var item *Item
+	var w *Weapon
 	for name := range WeaponLib {
 		if i == 0 {
-			item = newWeapon(name)
+			w = newWeapon(name)
 		}
 		i--
 	}
-	randEnchant(item, 5, 10)
-	return item
+	//randEnchant(item, 5, 10)
+	return w
 }
 
-func randEnchant(item *Item, enchantProb int, cursedProb int) {
-	// 10% chance of a cursed weapon with -1 to -3 penalty, and a 5% chance
-	// of an enchanted weapon with a +1 to +3 bonus.
-	if rand.Intn(100) < enchantProb { // enchanted
-		item.magical = true
-		item.ench = rand.Intn(2) + 1
-	} else if rand.Intn(100) < cursedProb { // cursed
-		item.cursed = true
-		item.ench = -1 * (rand.Intn(2) + 1)
+func (w *Weapon) Equip(p *Player, msg *MessageLog) bool {
+	if p.equiped["weapon"] != nil {
+		msg.Add("You are already wielding %v.", p.equiped["weapon"].GndString())
+		return false
+	} else {
+		p.equiped["weapon"] = w
+		//TODO set the player's damage and to hit stats
+		msg.Add("You are now wielding the %v.", w)
+		return true
 	}
 }
 
-func (item Item) MeleeDamage() int {
-	sum := 0
-	for i := 0; i < item.val1; i++ {
-		sum += rand.Intn(item.val2)
-	}
-	return sum
+func (w *Weapon) Unequip(p *Player, msg *MessageLog) bool {
+	p.equiped["weapon"] = nil
+	msg.Add("You put the %v back into your pack.", w)
+	return true
+}
+
+func (w *Weapon) Rune() rune {
+	return ')'
+}
+
+func (w *Weapon) GndString() string {
+	return fmt.Sprintf("a %s", w)
+}
+
+func (w *Weapon) InvString() string {
+	return fmt.Sprintf("%+d %v [%dd%d]", w.bonus, w, w.dmgDice, w.dmgSize)
+}
+
+func (w Weapon) String() string {
+	return w.name
 }
 
 // === ARMOR =============================================================
-// name: the sub-type of armor e.g. chain mail
-// val1: the base armor class before enchantments
 
 type ArmorTemplate struct {
 	AC    int
@@ -99,41 +107,76 @@ var ArmorLib = map[string]ArmorTemplate{
 	"plate armor":   {2, 440},
 }
 
-func newArmor(name string) *Item {
+type Armor struct {
+	Name  string
+	AC    int
+	bonus int
+}
+
+func newArmor(name string) *Armor {
 	t, ok := ArmorLib[name]
 	if !ok {
 		panic("No armor with the name " + name)
 	}
 
-	return &Item{
-		typ:  Armor,
-		name: name,
-		val1: t.AC,
+	return &Armor{
+		Name: name,
+		AC:   t.AC,
 	}
 }
 
-func randArmor() *Item {
+func randArmor() *Armor {
 	// Pick an armor from the list at random
 	i := rand.Intn(len(ArmorLib))
-	var item *Item
+	var a *Armor
 	for name := range ArmorLib {
 		if i == 0 {
-			item = newArmor(name)
+			a = newArmor(name)
 		}
 		i--
 	}
-	randEnchant(item, 8, 20)
-	return item
+	//randEnchant(item, 8, 20)
+	return a
 }
 
-// === RINGS =============================================================
-func newRing() *Item {
-	return &Item{
-		typ:  Ring,
-		name: "ruby",
+func (a *Armor) Equip(p *Player, msg *MessageLog) bool {
+	p.equiped["armor"] = a
+	p.AC = a.AC
+	msg.Add("You are now wearing the %v.", a)
+	return true
+}
+
+func (a *Armor) Unequip(p *Player, msg *MessageLog) bool {
+	p.equiped["armor"] = nil
+	p.AC = 10
+	msg.Add("You take off the %v.", a)
+	return true
+}
+
+func (a *Armor) Rune() rune {
+	return ']'
+}
+
+func (a *Armor) GndString() string {
+	return fmt.Sprintf("some %s", a)
+}
+
+func (a *Armor) InvString() string {
+	return fmt.Sprintf("%+d %v [%d]", a.bonus, a, a.AC)
+}
+
+func (a Armor) String() string {
+	return a.Name
+}
+
+func randEnchant(item Equipable, enchantProb int, cursedProb int) int {
+	// 10% chance of a cursed weapon with -1 to -3 penalty, and a 5% chance
+	// of an enchanted weapon with a +1 to +3 bonus.
+	var ench int
+	if rand.Intn(100) < enchantProb { // enchanted
+		ench = rand.Intn(2) + 1
+	} else if rand.Intn(100) < cursedProb { // cursed
+		ench = -1 * (rand.Intn(2) + 1)
 	}
-}
-
-func randRing() *Item {
-	return newRing()
+	return ench
 }

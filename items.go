@@ -7,13 +7,32 @@ import (
 	"strings"
 )
 
+type Object interface {
+	Rune() rune
+	InvString() string
+	GndString() string
+}
+
+type Consumable interface {
+	Consume(*GameState) bool
+	//Identify()
+}
+
+type Equipable interface {
+	Equip(*Player, *MessageLog) bool
+	Unequip(*Player, *MessageLog) bool
+	//Identify()
+}
+
+// ***  DEPRECATED ********************************************************************
+
 type ItemType int
 
 const (
 	Gold ItemType = iota
-	Food
-	Weapon
-	Armor
+	//Food
+	//Weapon
+	//Armor
 	Ring
 	Potion
 	Scroll
@@ -22,10 +41,10 @@ const (
 )
 
 var ItemRunes = map[ItemType]rune{
-	Gold:   '*',
-	Food:   '%',
-	Weapon: ')',
-	Armor:  ']',
+	Gold: '*',
+	//Food: '%',
+	//Weapon: ')',
+	//Armor:  ']',
 	Ring:   '=',
 	Potion: '!',
 	Scroll: '?',
@@ -98,23 +117,23 @@ func (item Item) GndString() string {
 
 // Returns a string that describes the item in a player's inventory
 func (item Item) InvString() string {
-	cursed := ""
-	if item.IsCursed() {
-		cursed = " {cursed}"
-	}
+	//cursed := ""
+	//if item.IsCursed() {
+	//	cursed = " {cursed}"
+	//}
 
 	switch item.Type() {
 	case Gold:
 		return item.GndString()
-	case Weapon:
-		dice := fmt.Sprintf("%dd%d", item.val1, item.val2)
-		if item.ench != 0 {
-			dice = fmt.Sprintf("%dd%d%+d", item.val1, item.val2, item.ench)
-		}
-		return fmt.Sprintf("a %+d %s [%s]%s", item.ench, item.name, dice, cursed)
-	case Armor:
-		prot := item.val1 - item.ench
-		return fmt.Sprintf("a %+d %s [%d]%s", item.ench, item.name, prot, cursed)
+	//case Weapon:
+	//	dice := fmt.Sprintf("%dd%d", item.val1, item.val2)
+	//	if item.ench != 0 {
+	//		dice = fmt.Sprintf("%dd%d%+d", item.val1, item.val2, item.ench)
+	//	}
+	//	return fmt.Sprintf("a %+d %s [%s]%s", item.ench, item.name, dice, cursed)
+	//case Armor:
+	//	prot := item.val1 - item.ench
+	//	return fmt.Sprintf("a %+d %s [%d]%s", item.ench, item.name, prot, cursed)
 	default:
 		return item.GndString()
 	}
@@ -177,8 +196,8 @@ func (item Item) IsMagical() bool {
 	switch item.Type() {
 	case Potion, Scroll, Stick, Ring:
 		return true
-	case Weapon, Armor:
-		return item.ench > 0
+	//case Weapon, Armor:
+	//	return item.ench > 0
 	default:
 		return false
 	}
@@ -282,27 +301,27 @@ func (list *ItemList) Clear() {
 // Armor    9     90
 // Ring     5     95
 // Stick    5    100
-func randItemType() ItemType {
-	roll := rand.Intn(100) + 1
-	//debug.Add("rand item: roll=%d", roll)
-	switch {
-	case roll < 27:
-		return Potion
-	case roll < 54:
-		return Scroll
-	case roll < 72:
-		return Food
-	case roll < 81:
-		return Weapon
-	case roll < 90:
-		return Armor
-	case roll < 95:
-		return Ring
-	case roll < 100:
-		return Stick
-	}
-	return Food
-}
+//func randItemType() ItemType {
+//	roll := rand.Intn(100) + 1
+//	//debug.Add("rand item: roll=%d", roll)
+//	switch {
+//	case roll < 27:
+//		return Potion
+//	case roll < 54:
+//		return Scroll
+//	//case roll < 72:
+//	//	return Food
+//	//case roll < 81:
+//	//	return Weapon
+//	case roll < 90:
+//		return Armor
+//	case roll < 95:
+//		return Ring
+//	case roll < 100:
+//		return Stick
+//	}
+//	//return Food
+//}
 
 func parseDiceStr(dice string) (int, int) {
 	parts := strings.Split(dice, "d")

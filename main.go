@@ -5,7 +5,7 @@ import "fmt"
 var debug DebugMessageLog
 
 var debugFlag = map[string]bool{
-	"main":     false,
+	"main":     true,
 	"generate": false,
 	"dmap":     false,
 	"path":     false,
@@ -138,24 +138,32 @@ func main() {
 				idx := display.PromptInventory("Consume what?", state.player)
 				if idx != -1 {
 					item := state.player.inventory[idx]
-					switch item.Type() {
-					case Food:
-						state.messages.Add("You eat %v.", item.InvString())
-						state.player.AdjustFoodCount(item.Nutrition())
+					switch item.(type) {
+					case Consumable:
+						item.(Consumable).Consume(&state)
 						state.player.RemoveItem(idx)
-
-					case Potion:
-						doEffect(item.Effect(), &state)
-						state.messages.Add(item.ConsumeMsg())
-						item.Identify()
-						//if !item.IsIdentified() {
-						//	state.messages.Add("It was %v!", item.InvString())
-						//}
-						state.player.RemoveItem(idx)
-
 					default:
-						state.messages.Add("That's not an item you can consume.")
+						state.messages.Add("You cannot consume that item.")
 					}
+
+					//switch item.Type() {
+					//case Food:
+					//	state.messages.Add("You eat %v.", item.InvString())
+					//	state.player.AdjustFoodCount(item.Nutrition())
+					//	state.player.RemoveItem(idx)
+
+					//case Potion:
+					//	doEffect(item.Effect(), &state)
+					//	state.messages.Add(item.ConsumeMsg())
+					//	item.Identify()
+					//	//if !item.IsIdentified() {
+					//	//	state.messages.Add("It was %v!", item.InvString())
+					//	//}
+					//	state.player.RemoveItem(idx)
+
+					//default:
+					//	state.messages.Add("That's not an item you can consume.")
+					//}
 					doUpdate = true
 				}
 			}
@@ -167,9 +175,20 @@ func main() {
 				idx := display.PromptInventory("Equip what?", state.player)
 				if idx != -1 {
 					item := state.player.inventory[idx]
-					//debug.Add("equip: %d %v", idx, item)
-					doUpdate = state.player.Equip(item, state.messages)
+					switch item.(type) {
+					case Equipable:
+						doUpdate = item.(Equipable).Equip(state.player, state.messages)
+					default:
+						state.messages.Add("You cannot equip that item.")
+					}
 				}
+
+				//idx := display.PromptInventory("Equip what?", state.player)
+				//if idx != -1 {
+				//	item := state.player.inventory[idx]
+				//	//debug.Add("equip: %d %v", idx, item)
+				//	doUpdate = state.player.Equip(item, state.messages)
+				//}
 			}
 
 		// Extra debugging and testing stuff
@@ -295,7 +314,7 @@ func GenerateTestLevel(gs *GameState) {
 
 	c := Coord{2, 1}
 	gs.items[p1.Sum(c)] = newGold(randGoldAmt(gs.player.depth))
-	gs.items[p3.Sum(c)] = randWeapon()
-	gs.items[p2.Sum(c)] = randWeapon()
+	//gs.items[p3.Sum(c)] = randWeapon()
+	//gs.items[p2.Sum(c)] = randWeapon()
 	//gs.player.depth++
 }
