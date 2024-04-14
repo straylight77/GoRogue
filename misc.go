@@ -1,11 +1,11 @@
 package main
 
 // -----------------------------------------------------------------------
-type Entity interface {
+type Actor interface {
 	Pos() Coord
 	SetPos(Coord)
 	Rune() rune
-	Attack(Entity) string
+	Attack(Actor) string
 	Label() string
 	AdjustHP(amt int)
 	IsConfused() bool

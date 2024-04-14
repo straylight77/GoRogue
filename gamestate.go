@@ -44,13 +44,13 @@ func (gs *GameState) Init() {
 }
 
 // -----------------------------------------------------------------------
-func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
+func (gs *GameState) MoveActor(a Actor, delta Coord) bool {
 
 	// Override the direction if the entity is confused
-	if e.IsConfused() {
-		delta = gs.dungeon.RandDirectionCoords(e.Pos())
+	if a.IsConfused() {
+		delta = gs.dungeon.RandDirectionCoords(a.Pos())
 	}
-	dest := e.Pos().Sum(delta)
+	dest := a.Pos().Sum(delta)
 
 	// Check edges of the map
 	if gs.dungeon.IsOutOfBounds(dest) {
@@ -59,12 +59,12 @@ func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
 	}
 
 	// Slightly different logic between monsters and the player
-	switch e.(type) {
+	switch a.(type) {
 
 	case *Monster:
 		// If player is there attack them
 		if dest == gs.player.Pos() {
-			gs.messages.Add(e.Attack(gs.player))
+			gs.messages.Add(a.Attack(gs.player))
 			return true
 		}
 
@@ -84,15 +84,15 @@ func (gs *GameState) MoveEntity(e Entity, delta Coord) bool {
 		// If a monster is there, attack it
 		m := gs.monsters.MonsterAt(dest)
 		if m != nil {
-			gs.messages.Add(e.Attack(m))
+			gs.messages.Add(a.Attack(m))
 			m.State = StateChase
 			return true
 		}
 	}
 
 	// Finally, check if the dungeon tile blocks movement or not
-	if gs.dungeon.IsWalkable(e.Pos(), dest) {
-		e.SetPos(dest)
+	if gs.dungeon.IsWalkable(a.Pos(), dest) {
+		a.SetPos(dest)
 		return true
 	}
 
@@ -177,13 +177,13 @@ func (gs *GameState) MonstersAct() {
 			if m.randMove > rand.Intn(100) {
 				// Move randomly randMove% of the time (e.g. bats)
 				delta := gs.dungeon.RandDirectionCoords(m.Pos())
-				gs.MoveEntity(m, delta)
+				gs.MoveActor(m, delta)
 
 			} else {
 				// Pathfinding to the player is already calculated with the dmap
 				m.nextStep = gs.dmap.NextStep(m.Pos())
 				delta := m.DirectionCoordsTo(m.nextStep)
-				gs.MoveEntity(m, delta)
+				gs.MoveActor(m, delta)
 
 				// For testing, store the next step
 				m.nextStep = gs.dmap.NextStep(Coord{m.X, m.Y})

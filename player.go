@@ -67,7 +67,7 @@ func (p *Player) Init() {
 	p.ResetHealCount()
 }
 
-// implement the Entity interface
+// implement the Actor interface
 
 func (p *Player) SetPos(newPos Coord) {
 	p.X = newPos.X
@@ -93,7 +93,7 @@ func (p *Player) AdjustHP(amt int) {
 	}
 }
 
-func (p *Player) Attack(m Entity) string {
+func (p *Player) Attack(m Actor) string {
 	dmg := 1
 	m.AdjustHP(-dmg)
 	p.healCount++ // this shouldn't decrement when fighting

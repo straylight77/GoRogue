@@ -95,7 +95,6 @@ func (p Potion) String() string {
 }
 
 func (p *Potion) Consume(gs *GameState) bool {
-	//gs.messages.Add("You quaff the %v.", p)
 	templ := PotionLib[p.id]
 	doEffect(templ.effect, gs)
 	gs.messages.Add(templ.message)

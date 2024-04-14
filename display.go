@@ -192,9 +192,9 @@ func (d *Display) DrawVLine(col int, from, to int, styleName string) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) DrawEntity(e Entity) {
-	x, y := e.Pos().XY()
-	d.Screen.SetContent(x, y+1, e.Rune(), nil, d.Style("default"))
+func (d *Display) DrawActor(a Actor) {
+	x, y := a.Pos().XY()
+	d.Screen.SetContent(x, y+1, a.Rune(), nil, d.Style("default"))
 }
 
 // -----------------------------------------------------------------------------

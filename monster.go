@@ -108,7 +108,7 @@ func (ml MonsterList) MonsterAt(pos Coord) *Monster {
 
 /*************************************************************************
  * Monster
- * implements Entity interface
+ * implements Actor interface
  */
 
 type Monster struct {
@@ -178,7 +178,7 @@ func (m Monster) String() string {
 	return m.Name
 }
 
-// Implement the Entity interface
+// Implement the Actor interface
 
 func (m *Monster) SetPos(newPos Coord) {
 	m.X = newPos.X
@@ -201,12 +201,12 @@ func (m *Monster) AdjustHP(amt int) {
 	m.HP += amt
 }
 
-func (m *Monster) Attack(e Entity) string {
-	e.AdjustHP(-1)
-	if e.IsBlind() {
-		return fmt.Sprintf("Something attacks %s.", e.Label())
+func (m *Monster) Attack(a Actor) string {
+	a.AdjustHP(-1)
+	if a.IsBlind() {
+		return fmt.Sprintf("Something attacks %s.", a.Label())
 	} else {
-		return fmt.Sprintf("The %v attacks %s.", m, e.Label())
+		return fmt.Sprintf("The %v attacks %s.", m, a.Label())
 	}
 }
 

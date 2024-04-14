@@ -108,21 +108,21 @@ func main() {
 
 		// Commands that do increment time
 		case CmdNorth:
-			doUpdate = state.MoveEntity(state.player, Coord{0, -1})
+			doUpdate = state.MoveActor(state.player, Coord{0, -1})
 		case CmdNorthEast:
-			doUpdate = state.MoveEntity(state.player, Coord{1, -1})
+			doUpdate = state.MoveActor(state.player, Coord{1, -1})
 		case CmdEast:
-			doUpdate = state.MoveEntity(state.player, Coord{1, 0})
+			doUpdate = state.MoveActor(state.player, Coord{1, 0})
 		case CmdSouthEast:
-			doUpdate = state.MoveEntity(state.player, Coord{1, 1})
+			doUpdate = state.MoveActor(state.player, Coord{1, 1})
 		case CmdSouth:
-			doUpdate = state.MoveEntity(state.player, Coord{0, 1})
+			doUpdate = state.MoveActor(state.player, Coord{0, 1})
 		case CmdSouthWest:
-			doUpdate = state.MoveEntity(state.player, Coord{-1, 1})
+			doUpdate = state.MoveActor(state.player, Coord{-1, 1})
 		case CmdWest:
-			doUpdate = state.MoveEntity(state.player, Coord{-1, 0})
+			doUpdate = state.MoveActor(state.player, Coord{-1, 0})
 		case CmdNorthWest:
-			doUpdate = state.MoveEntity(state.player, Coord{-1, -1})
+			doUpdate = state.MoveActor(state.player, Coord{-1, -1})
 		case CmdDown:
 			doUpdate = state.GoDownstairs()
 		case CmdUp:
@@ -220,7 +220,7 @@ func draw(display *Display, state *GameState) {
 
 		for _, m := range *state.monsters {
 			if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
-				display.DrawEntity(m)
+				display.DrawActor(m)
 			}
 		}
 	}
@@ -228,7 +228,7 @@ func draw(display *Display, state *GameState) {
 	// monster detection should work even if blind
 	if state.player.Timer("detMonsters") > 0 {
 		for _, m := range *state.monsters {
-			display.DrawEntity(m)
+			display.DrawActor(m)
 		}
 	}
 

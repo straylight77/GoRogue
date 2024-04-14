@@ -41,7 +41,7 @@ func (list *ItemList) Clear() {
 
 func randItem() Item {
 	roll := rand.Intn(100) + 1
-	debug.Add("rand item: roll=%d", roll)
+	//debug.Add("rand item: roll=%d", roll)
 	switch {
 	case roll <= 27:
 		return randPotion()
