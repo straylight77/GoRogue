@@ -46,7 +46,7 @@ func randWeapon() *Weapon {
 
 func (w *Weapon) Equip(p *Player, msg *MessageLog) bool {
 	if p.equiped["weapon"] != nil {
-		msg.Add("You are already wielding %v, unequip it first", p.equiped["weapon"].GndString())
+		msg.Add("You are already wielding a %v, unequip it first", p.equiped["weapon"])
 		return false
 	} else {
 		p.equiped["weapon"] = w

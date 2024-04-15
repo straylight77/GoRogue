@@ -30,10 +30,17 @@ func (gs *GameState) Init() {
 	gs.player.Init()
 
 	// Set up player's starting equipment
+	var item Equipable
+	//gs.player.Pickup(newPotion("healing"))
 	gs.player.Pickup(newFood("ration"))
-	gs.player.Pickup(newWeapon("dagger"))
-	gs.player.Pickup(newArmor("leather armor"))
-	gs.player.Pickup(newPotion("healing"))
+
+	item = newWeapon("dagger")
+	gs.player.Pickup(item)
+	item.Equip(gs.player, gs.messages)
+
+	item = newArmor("leather armor")
+	gs.player.Pickup(item)
+	item.Equip(gs.player, gs.messages)
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()

@@ -12,11 +12,19 @@ type Item interface {
 }
 
 type Consumable interface {
+	Rune() rune
+	InvString() string
+	GndString() string
+
 	Consume(*GameState) bool
 	//Identify()
 }
 
 type Equipable interface {
+	Rune() rune
+	InvString() string
+	GndString() string
+
 	Equip(*Player, *MessageLog) bool
 	Unequip(*Player, *MessageLog) bool
 	//Identify()

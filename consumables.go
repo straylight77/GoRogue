@@ -64,7 +64,7 @@ func randPotion() *Potion {
 	name := ""
 	for _, t := range PotionLib {
 		//debug.Add("rand potion: (%d) chance=%d", roll, t.chance)
-		if roll <= t.chance {
+		if roll <= t.cumPct {
 			name = t.name
 			break
 		}
@@ -111,7 +111,7 @@ func (p *Potion) Identify() {
 
 type PotionTemplate struct {
 	pct        int // probability of this potion being randomly generated
-	chance     int // cumulative probability
+	cumPct     int // cumulative probability
 	name       string
 	effect     int
 	color      int

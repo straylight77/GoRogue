@@ -45,7 +45,7 @@ type Player struct {
 	healCount int
 	foodCount int
 	inventory []Item
-	equiped   map[string]Item
+	equiped   map[string]Equipable
 	timer     map[string]int
 }
 
@@ -58,7 +58,7 @@ func (p *Player) Init() {
 	p.Level = 1
 	p.foodCount = NutritionTime
 	p.timer = make(map[string]int)
-	p.equiped = map[string]Item{
+	p.equiped = map[string]Equipable{
 		"weapon": nil,
 		"armor":  nil,
 		"left":   nil,

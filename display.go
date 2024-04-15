@@ -256,7 +256,28 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 func (d *Display) InventoryScreen(p *Player) {
 	d.Clear()
 	d.Print(0, 0, "You are carrying:")
-	d.ListInventory(p)
+	d.ListInventory(p, 0)
+
+	label := map[string]string{
+		"weapon": "W",
+		"armor":  "A",
+		"left":   "L",
+		"right":  "R",
+	}
+	order := []string{"weapon", "armor", "left", "right"}
+
+	// Display the player's stats
+	col := 60
+	row := 1
+	for _, slot := range order {
+		if p.equiped[slot] == nil {
+			d.Printf(col, row, "%s: -none-", label[slot])
+		} else {
+			d.Printf(col, row, "%s: %v", label[slot], p.equiped[slot].InvString())
+		}
+		row++
+	}
+
 	d.Printf(0, 23, "Press any key to continue...")
 	d.Screen.HideCursor()
 	d.Show()
@@ -275,7 +296,7 @@ func (d *Display) PromptInventory(prompt string, p *Player) int {
 
 	ch := d.PromptRune()
 	if ch == '?' {
-		d.ListInventory(p)
+		d.ListInventory(p, len(str))
 		ch = d.PromptRune()
 	}
 	if ch >= lo && ch <= hi {
@@ -285,7 +306,7 @@ func (d *Display) PromptInventory(prompt string, p *Player) int {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) ListInventory(p *Player) {
+func (d *Display) ListInventory(p *Player, startWidth int) {
 
 	height := len(p.inventory)
 	if height <= 0 {
@@ -295,7 +316,7 @@ func (d *Display) ListInventory(p *Player) {
 	}
 
 	// determine strings to print and largest length
-	width := 0
+	width := startWidth
 	strList := make([]string, height)
 	for i, item := range p.inventory {
 		equip := ""
@@ -306,6 +327,7 @@ func (d *Display) ListInventory(p *Player) {
 			equip = " (being worn)"
 		}
 		str := fmt.Sprintf("%c) %c %v%s", 'a'+i, item.Rune(), item.InvString(), equip)
+
 		if check := len(str); check > width {
 			width = check
 		}
