@@ -14,8 +14,10 @@ type Weapon struct {
 	dmgDice int
 	dmgSize int
 	bonus   int
+	cursed  bool
 }
 
+// -----------------------------------------------------------------------
 func newWeapon(name string) *Weapon {
 	t, ok := WeaponLib[name]
 	if !ok {
@@ -30,6 +32,7 @@ func newWeapon(name string) *Weapon {
 	}
 }
 
+// -----------------------------------------------------------------------
 func randWeapon() *Weapon {
 	// Pick a weapon from the list at random
 	i := rand.Intn(len(WeaponLib))
@@ -40,28 +43,43 @@ func randWeapon() *Weapon {
 		}
 		i--
 	}
-	//randEnchant(item, 5, 10)
+	w.bonus, w.cursed = randEnchant(5, 10)
+
 	return w
 }
 
+// -----------------------------------------------------------------------
 func (w *Weapon) Equip(p *Player, msg *MessageLog) bool {
-	if p.equiped["weapon"] != nil {
-		msg.Add("You are already wielding a %v, unequip it first", p.equiped["weapon"])
+	if p.equiped["weapon"] == w {
+		w.Unequip(p, msg)
 		return false
-	} else {
-		p.equiped["weapon"] = w
-		//TODO set the player's damage and to hit stats
-		msg.Add("You are now wielding the %v.", w)
-		return true
 	}
-}
-
-func (w *Weapon) Unequip(p *Player, msg *MessageLog) bool {
-	p.equiped["weapon"] = nil
-	msg.Add("You put the %v back into your pack.", w)
+	if p.equiped["weapon"] != nil {
+		msg.Add("You need to put away the %v first.", p.equiped["weapon"])
+		return false
+	}
+	p.equiped["weapon"] = w
+	//TODO set the player's damage and to hit stats
+	msg.Add("You are now wielding the %v.", w)
 	return true
 }
 
+// -----------------------------------------------------------------------
+func (w *Weapon) Unequip(p *Player, msg *MessageLog) bool {
+	if p.equiped["weapon"] == nil {
+		msg.Add("You aren't wielding the %v.", w)
+		return false
+	}
+	if w.cursed {
+		msg.Add("You cannot put away the %v, it's cursed!", w)
+		return false
+	}
+	p.equiped["weapon"] = nil
+	msg.Add("You put away the %v.", w)
+	return true
+}
+
+// -----------------------------------------------------------------------
 func (w *Weapon) Rune() rune {
 	return ')'
 }
@@ -71,13 +89,18 @@ func (w *Weapon) GndString() string {
 }
 
 func (w *Weapon) InvString() string {
-	return fmt.Sprintf("%+d %v [%dd%d]", w.bonus, w, w.dmgDice, w.dmgSize)
+	cursed := ""
+	if w.cursed {
+		cursed = " {cursed}"
+	}
+	return fmt.Sprintf("%+d %v [%dd%d]%s", w.bonus, w, w.dmgDice, w.dmgSize, cursed)
 }
 
 func (w Weapon) String() string {
 	return w.name
 }
 
+// -----------------------------------------------------------------------
 type WeaponTemplate struct {
 	melee  string
 	thrown string
@@ -95,11 +118,13 @@ var WeaponLib = map[string]WeaponTemplate{
 // === ARMOR =============================================================
 
 type Armor struct {
-	Name  string
-	AC    int
-	bonus int
+	Name   string
+	AC     int
+	bonus  int
+	cursed bool
 }
 
+// -----------------------------------------------------------------------
 func newArmor(name string) *Armor {
 	t, ok := ArmorLib[name]
 	if !ok {
@@ -112,6 +137,7 @@ func newArmor(name string) *Armor {
 	}
 }
 
+// -----------------------------------------------------------------------
 func randArmor() *Armor {
 	// Pick an armor from the list at random
 	i := rand.Intn(len(ArmorLib))
@@ -122,24 +148,43 @@ func randArmor() *Armor {
 		}
 		i--
 	}
-	//randEnchant(item, 8, 20)
+	a.bonus, a.cursed = randEnchant(8, 20)
 	return a
 }
 
+// -----------------------------------------------------------------------
 func (a *Armor) Equip(p *Player, msg *MessageLog) bool {
+	if p.equiped["armor"] == a {
+		a.Unequip(p, msg)
+		return false
+	}
+	if p.equiped["armor"] != nil {
+		msg.Add("You need to take off the %v first.", p.equiped["armor"])
+		return false
+	}
 	p.equiped["armor"] = a
 	p.AC = a.AC
 	msg.Add("You are now wearing the %v.", a)
 	return true
 }
 
+// -----------------------------------------------------------------------
 func (a *Armor) Unequip(p *Player, msg *MessageLog) bool {
+	if p.equiped["armor"] == nil {
+		msg.Add("You aren't wearing the %v.", a)
+		return false
+	}
+	if a.cursed {
+		msg.Add("You cannot take off the %v, it's cursed!", a)
+		return false
+	}
 	p.equiped["armor"] = nil
 	p.AC = 10
 	msg.Add("You take off the %v.", a)
 	return true
 }
 
+// -----------------------------------------------------------------------
 func (a *Armor) Rune() rune {
 	return ']'
 }
@@ -149,13 +194,18 @@ func (a *Armor) GndString() string {
 }
 
 func (a *Armor) InvString() string {
-	return fmt.Sprintf("%+d %v [%d]", a.bonus, a, a.AC)
+	cursed := ""
+	if a.cursed {
+		cursed = " {cursed}"
+	}
+	return fmt.Sprintf("%+d %v [%d]%s", a.bonus, a, a.AC, cursed)
 }
 
 func (a Armor) String() string {
 	return a.Name
 }
 
+// -----------------------------------------------------------------------
 type ArmorTemplate struct {
 	AC    int
 	worth int
@@ -171,7 +221,7 @@ var ArmorLib = map[string]ArmorTemplate{
 	"plate armor":   {2, 440},
 }
 
-// -----------------------------------------------------------------------
+// =======================================================================
 
 func parseDiceStr(dice string) (int, int) {
 	parts := strings.Split(dice, "d")
@@ -186,7 +236,7 @@ func parseDiceStr(dice string) (int, int) {
 	return v1, v2
 }
 
-func randEnchant(item Equipable, enchantProb int, cursedProb int) int {
+func randEnchant(enchantProb int, cursedProb int) (int, bool) {
 	// 10% chance of a cursed weapon with -1 to -3 penalty, and a 5% chance
 	// of an enchanted weapon with a +1 to +3 bonus.
 	var ench int
@@ -195,5 +245,9 @@ func randEnchant(item Equipable, enchantProb int, cursedProb int) int {
 	} else if rand.Intn(100) < cursedProb { // cursed
 		ench = -1 * (rand.Intn(2) + 1)
 	}
-	return ench
+	cursed := false
+	if ench < 0 {
+		cursed = true
+	}
+	return ench, cursed
 }

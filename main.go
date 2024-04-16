@@ -152,7 +152,7 @@ func main() {
 			if state.player.IsParalyzed() {
 				state.messages.Add("You cannot equip anything while paralyzed.")
 			} else {
-				idx := display.PromptInventory("Equip what?", state.player)
+				idx := display.PromptInventory("Equip or unequip what?", state.player)
 				if idx != -1 {
 					item := state.player.inventory[idx]
 					switch item.(type) {
