@@ -44,9 +44,8 @@ type Player struct {
 	Gold      int
 	healCount int
 	foodCount int
-	inventory []*Item
-	weapon    *Item
-	armor     *Item
+	inventory []Item
+	equiped   map[string]Equipable
 	timer     map[string]int
 }
 
@@ -59,10 +58,16 @@ func (p *Player) Init() {
 	p.Level = 1
 	p.foodCount = NutritionTime
 	p.timer = make(map[string]int)
+	p.equiped = map[string]Equipable{
+		"weapon": nil,
+		"armor":  nil,
+		"left":   nil,
+		"right":  nil,
+	}
 	p.ResetHealCount()
 }
 
-// implement the Entity interface
+// implement the Actor interface
 
 func (p *Player) SetPos(newPos Coord) {
 	p.X = newPos.X
@@ -88,7 +93,7 @@ func (p *Player) AdjustHP(amt int) {
 	}
 }
 
-func (p *Player) Attack(m Entity) string {
+func (p *Player) Attack(m Actor) string {
 	dmg := 1
 	m.AdjustHP(-dmg)
 	p.healCount++ // this shouldn't decrement when fighting
@@ -123,10 +128,10 @@ func (p *Player) IsHasted() bool {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) Pickup(item *Item) bool {
-	switch item.typ {
-	case Gold:
-		p.Gold += item.GoldQty()
+func (p *Player) Pickup(item Item) bool {
+	switch item.(type) {
+	case *Gold:
+		p.Gold += item.(*Gold).qty
 		return true
 	default:
 		p.inventory = append(p.inventory, item)
@@ -137,33 +142,6 @@ func (p *Player) Pickup(item *Item) bool {
 // -----------------------------------------------------------------------
 func (p *Player) RemoveItem(idx int) {
 	p.inventory = append(p.inventory[:idx], p.inventory[idx+1:]...)
-}
-
-// -----------------------------------------------------------------------
-func (p *Player) Equip(item *Item, msg *MessageLog) bool {
-	//TODO return number of moves instead of bool (handle removing armor)
-	switch item.typ {
-	case Weapon:
-		if p.weapon != nil {
-			msg.Add("You return %v to your pack.", p.weapon.GndString())
-			p.weapon = nil
-		}
-		msg.Add("You are now wielding %v.", item.GndString())
-		p.weapon = item
-	case Armor:
-		if p.armor != nil {
-			msg.Add("You take off %v.", p.armor.GndString())
-			p.armor = nil
-		}
-
-		msg.Add("You are now wearing %v.", item.GndString())
-		p.armor = item
-		p.AC = item.val1
-	default:
-		msg.Add("You cannot equip that item.")
-		return false
-	}
-	return true
 }
 
 // -----------------------------------------------------------------------

@@ -44,17 +44,17 @@ func drawDebugFrame(d *Display, gs *GameState) {
 	}
 
 	row := 8
-	for k, v := range gs.player.timer {
-		d.Debugf(84, row, "timer[%s]: %d", k, v)
-		row++
-	}
+	//for k, v := range gs.player.timer {
+	//	d.Debugf(84, row, "timer[%s]: %d", k, v)
+	//	row++
+	//}
 	//for i, m := range *gs.monsters {
 	//	d.Debugf(84, 9+i, "%d: %v", i, m.DebugString())
 	//}
 
-	//for i, item := range gs.player.inventory {
-	//	d.Debugf(84, 9+i, "%c) %v", 'a'+i, item.InvString())
-	//}
+	for i, item := range gs.player.inventory {
+		d.Debugf(84, row+i, "%c) %v", 'a'+i, item.InvString())
+	}
 }
 
 // ----------------------------------------------------------------------------

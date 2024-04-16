@@ -66,42 +66,25 @@ func populateItems(gs *GameState) {
 
 	for i := 0; i < 9; i++ {
 
-		roll := rand.Intn(100)
+		roll := rand.Intn(100) + 1
 		if roll > 35 {
 			//debug.Add("generate: no spawn (%d)", roll)
 			continue
 		}
 
-		var typ ItemType
+		var item Item
 		// If no food has been spawned in three dungeon levels, then spawn food.
 		// Otherwise, there is an equal chance of the item being food, a potion,
 		// a scroll, a weapon, armor, ring, or stick.
 		if gs.spawnFoodTimer == 0 {
-			typ = Food
+			item = newFood("ration")
+			gs.spawnFoodTimer = SpawnFood
 		} else {
-			typ = randItemType()
+			item = randItem()
 		}
 
 		pos := graph.RandLocation()
-		switch typ {
-		case Food:
-			gs.items[pos] = newRation()
-			gs.spawnFoodTimer = SpawnFood
-		case Weapon:
-			gs.items[pos] = randWeapon()
-		case Armor:
-			gs.items[pos] = randArmor()
-		case Potion:
-			gs.items[pos] = randPotion()
-		case Scroll:
-			gs.items[pos] = randScroll()
-		case Ring:
-			gs.items[pos] = randRing()
-		case Stick:
-			gs.items[pos] = randStick()
-		default:
-			gs.items[pos] = newGold(1)
-		}
+		gs.items[pos] = item
 		debug.Add("generate: (%2d) %v", roll, gs.items[pos].InvString())
 	}
 }

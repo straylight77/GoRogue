@@ -5,7 +5,7 @@ import "fmt"
 var debug DebugMessageLog
 
 var debugFlag = map[string]bool{
-	"main":     false,
+	"main":     true,
 	"generate": false,
 	"dmap":     false,
 	"path":     false,
@@ -108,21 +108,21 @@ func main() {
 
 		// Commands that do increment time
 		case CmdNorth:
-			doUpdate = state.MoveEntity(state.player, Coord{0, -1})
+			doUpdate = state.MoveActor(state.player, Coord{0, -1})
 		case CmdNorthEast:
-			doUpdate = state.MoveEntity(state.player, Coord{1, -1})
+			doUpdate = state.MoveActor(state.player, Coord{1, -1})
 		case CmdEast:
-			doUpdate = state.MoveEntity(state.player, Coord{1, 0})
+			doUpdate = state.MoveActor(state.player, Coord{1, 0})
 		case CmdSouthEast:
-			doUpdate = state.MoveEntity(state.player, Coord{1, 1})
+			doUpdate = state.MoveActor(state.player, Coord{1, 1})
 		case CmdSouth:
-			doUpdate = state.MoveEntity(state.player, Coord{0, 1})
+			doUpdate = state.MoveActor(state.player, Coord{0, 1})
 		case CmdSouthWest:
-			doUpdate = state.MoveEntity(state.player, Coord{-1, 1})
+			doUpdate = state.MoveActor(state.player, Coord{-1, 1})
 		case CmdWest:
-			doUpdate = state.MoveEntity(state.player, Coord{-1, 0})
+			doUpdate = state.MoveActor(state.player, Coord{-1, 0})
 		case CmdNorthWest:
-			doUpdate = state.MoveEntity(state.player, Coord{-1, -1})
+			doUpdate = state.MoveActor(state.player, Coord{-1, -1})
 		case CmdDown:
 			doUpdate = state.GoDownstairs()
 		case CmdUp:
@@ -138,25 +138,13 @@ func main() {
 				idx := display.PromptInventory("Consume what?", state.player)
 				if idx != -1 {
 					item := state.player.inventory[idx]
-					switch item.typ {
-					case Food:
-						state.messages.Add("You eat %v.", item.InvString())
-						state.player.AdjustFoodCount(item.Nutrition())
+					switch item.(type) {
+					case Consumable:
+						doUpdate = item.(Consumable).Consume(&state)
 						state.player.RemoveItem(idx)
-
-					case Potion:
-						doEffect(item.Effect(), &state)
-						state.messages.Add(item.ConsumeMsg())
-						item.Identify()
-						//if !item.IsIdentified() {
-						//	state.messages.Add("It was %v!", item.InvString())
-						//}
-						state.player.RemoveItem(idx)
-
 					default:
-						state.messages.Add("That's not an item you can consume.")
+						state.messages.Add("You cannot consume that item.")
 					}
-					doUpdate = true
 				}
 			}
 
@@ -164,11 +152,15 @@ func main() {
 			if state.player.IsParalyzed() {
 				state.messages.Add("You cannot equip anything while paralyzed.")
 			} else {
-				idx := display.PromptInventory("Equip what?", state.player)
+				idx := display.PromptInventory("Equip or unequip what?", state.player)
 				if idx != -1 {
 					item := state.player.inventory[idx]
-					//debug.Add("equip: %d %v", idx, item)
-					doUpdate = state.player.Equip(item, state.messages)
+					switch item.(type) {
+					case Equipable:
+						doUpdate = item.(Equipable).Equip(state.player, state.messages)
+					default:
+						state.messages.Add("You cannot equip that item.")
+					}
 				}
 			}
 
@@ -228,7 +220,7 @@ func draw(display *Display, state *GameState) {
 
 		for _, m := range *state.monsters {
 			if state.dungeon.TileAt(m.Pos()).visible || debugFlag["main"] {
-				display.DrawEntity(m)
+				display.DrawActor(m)
 			}
 		}
 	}
@@ -236,16 +228,16 @@ func draw(display *Display, state *GameState) {
 	// monster detection should work even if blind
 	if state.player.Timer("detMonsters") > 0 {
 		for _, m := range *state.monsters {
-			display.DrawEntity(m)
+			display.DrawActor(m)
 		}
 	}
 
 	// if detect magic should work even if blind
 	if state.player.Timer("detMagic") > 0 {
 		for pos, item := range state.items {
-			if item.IsMagical() {
-				display.DrawItem(pos, item)
-			}
+			//if item.IsMagical() { //TODO
+			display.DrawItem(pos, item)
+			//}
 		}
 	}
 
@@ -295,7 +287,7 @@ func GenerateTestLevel(gs *GameState) {
 
 	c := Coord{2, 1}
 	gs.items[p1.Sum(c)] = newGold(randGoldAmt(gs.player.depth))
-	gs.items[p3.Sum(c)] = randWeapon()
-	gs.items[p2.Sum(c)] = randWeapon()
+	//gs.items[p3.Sum(c)] = randWeapon()
+	//gs.items[p2.Sum(c)] = randWeapon()
 	//gs.player.depth++
 }

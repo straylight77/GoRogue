@@ -196,8 +196,8 @@ func (dm *DungeonMap) getWalkableNeighbours(pos Coord) []Coord {
 }
 
 // -----------------------------------------------------------------------
-func (d *DungeonMap) CanSee(e Entity) bool {
-	return d.TileAt(e.Pos()).visible
+func (d *DungeonMap) CanSee(a Actor) bool {
+	return d.TileAt(a.Pos()).visible
 }
 
 // -----------------------------------------------------------------------
