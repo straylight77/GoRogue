@@ -33,7 +33,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [X] Food
     [X] Weapons
     [X] Armor
-    [ ] Potions
+    [X] Potions
     [ ] Scrolls
     [ ] Rings
     [ ] Sticks
