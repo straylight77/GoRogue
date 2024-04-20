@@ -28,6 +28,10 @@ func (f *Food) GndString() string {
 	return fmt.Sprintf("a %s", f.name)
 }
 
+func (f *Food) Worth() int {
+	return 2
+}
+
 func (f *Food) Consume(gs *GameState) bool {
 	gs.messages.Add("You eat %v.", f.InvString())
 	gs.player.AdjustFoodCount(f.amt)
@@ -88,6 +92,10 @@ func (p *Potion) GndString() string {
 		color := PotionColors[templ.color]
 		return fmt.Sprintf("a %s potion", color)
 	}
+}
+
+func (p *Potion) Worth() int {
+	return 2
 }
 
 func (p Potion) String() string {

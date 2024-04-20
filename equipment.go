@@ -12,6 +12,7 @@ type Weapon struct {
 	damage Dice
 	ench   int
 	cursed bool
+	worth  int
 }
 
 // -----------------------------------------------------------------------
@@ -24,6 +25,7 @@ func newWeapon(name string) *Weapon {
 	return &Weapon{
 		name:   name,
 		damage: parseDice(t.melee),
+		worth:  t.worth,
 	}
 }
 
@@ -91,6 +93,10 @@ func (w *Weapon) InvString() string {
 	return fmt.Sprintf("%+d %v [%s]%s", w.ench, w, w.damage, cursed)
 }
 
+func (w *Weapon) Worth() int {
+	return w.worth
+}
+
 func (w Weapon) String() string {
 	return w.name
 }
@@ -117,6 +123,7 @@ type Armor struct {
 	AC     int
 	bonus  int
 	cursed bool
+	worth  int
 }
 
 // -----------------------------------------------------------------------
@@ -127,8 +134,9 @@ func newArmor(name string) *Armor {
 	}
 
 	return &Armor{
-		Name: name,
-		AC:   t.AC,
+		Name:  name,
+		AC:    t.AC,
+		worth: t.worth,
 	}
 }
 
@@ -196,6 +204,10 @@ func (a *Armor) InvString() string {
 	return fmt.Sprintf("%+d %v [%d]%s", a.bonus, a, a.AC, cursed)
 }
 
+func (a *Armor) Worth() int {
+	return a.worth
+}
+
 func (a Armor) String() string {
 	return a.Name
 }
@@ -207,8 +219,8 @@ type ArmorTemplate struct {
 }
 
 var ArmorLib = map[string]ArmorTemplate{
-	"leather armor": {8, 0},
-	"ring mail":     {7, 0},
+	"leather armor": {8, 5},
+	"ring mail":     {7, 30},
 	"scale mail":    {6, 3},
 	"chain mail":    {5, 75},
 	"banded mail":   {4, 90},

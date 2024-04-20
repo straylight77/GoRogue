@@ -9,12 +9,14 @@ type Item interface {
 	Rune() rune
 	InvString() string
 	GndString() string
+	Worth() int
 }
 
 type Consumable interface {
 	Rune() rune
 	InvString() string
 	GndString() string
+	Worth() int
 
 	Consume(*GameState) bool
 	//Identify()
@@ -24,6 +26,7 @@ type Equipable interface {
 	Rune() rune
 	InvString() string
 	GndString() string
+	Worth() int
 
 	Equip(*Player, *MessageLog) bool
 	Unequip(*Player, *MessageLog) bool
@@ -90,6 +93,10 @@ func (g *Gold) GndString() string {
 	} else {
 		return fmt.Sprintf("%d pieces of gold", g.qty)
 	}
+}
+
+func (g *Gold) Worth() int {
+	return g.qty
 }
 
 func newGold(qty int) *Gold {

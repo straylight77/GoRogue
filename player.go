@@ -126,13 +126,6 @@ func (p *Player) IsBlind() bool {
 
 // -----------------------------------------------------------------------
 
-func (p *Player) AdjustFoodCount(amt int) {
-	p.foodCount += amt
-	if p.foodCount > NutritionTime {
-		p.foodCount = NutritionTime
-	}
-}
-
 func (p *Player) IsParalyzed() bool {
 	return p.timer["paralyzed"] > 0
 }
@@ -247,6 +240,13 @@ func (p *Player) ResetHealCount() {
 	}
 }
 
+func (p *Player) AdjustFoodCount(amt int) {
+	p.foodCount += amt
+	if p.foodCount > NutritionTime {
+		p.foodCount = NutritionTime
+	}
+}
+
 // -----------------------------------------------------------------------
 func (p *Player) Update(msg *MessageLog) {
 
@@ -313,6 +313,8 @@ func (p *Player) InfoString() string {
 		condition = "Confused"
 	case p.IsBlind():
 		condition = "Blind"
+	case p.IsHasted():
+		condition = "Haste"
 	}
 
 	return fmt.Sprintf(
@@ -361,4 +363,12 @@ func (p *Player) StatsStrings() []string {
 		fmt.Sprintf("XP:     %d", p.XP),
 		fmt.Sprintf("Next:   %d", XPTable[p.Level]),
 	}
+}
+
+func (p *Player) Score() int {
+	sum := p.Gold
+	for _, item := range p.inventory {
+		sum += item.Worth()
+	}
+	return sum
 }

@@ -44,7 +44,7 @@ func (gs *GameState) Init() {
 
 	//gs.player.Pickup(newPotion("confusion"))
 	//gs.player.Pickup(newPotion("blindness"))
-	//gs.player.Pickup(newPotion("paralysis"))
+	//gs.player.Pickup(newPotion("haste"))
 
 	generateRandomLevel(gs)
 	gs.Pathfinding()

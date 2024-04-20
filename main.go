@@ -202,6 +202,7 @@ func main() {
 		}
 	}
 	display.Quit()
+	fmt.Printf("Your final score is %d.\n", state.player.Score())
 	fmt.Println("Thanks for playing!")
 }
 

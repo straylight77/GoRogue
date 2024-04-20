@@ -31,7 +31,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
 [ ] Items
     [X] Gold
     [X] Food
-    [X] Weapons
+    [/] Weapons
     [X] Armor
     [X] Potions
     [ ] Scrolls
@@ -39,8 +39,9 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [ ] Sticks
     [/] Cursed items and identification
 [ ] Gameplay
+    [/] Player score
     [ ] Title screen
-    [ ] End game screen with score 
+    [ ] End game screen
     [ ] Tracking high scores
     [ ] Amulet of Yendor
 ```
