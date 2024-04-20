@@ -42,6 +42,10 @@ func (gs *GameState) Init() {
 	gs.player.Pickup(item)
 	item.Equip(gs.player, gs.messages)
 
+	//gs.player.Pickup(newPotion("confusion"))
+	//gs.player.Pickup(newPotion("blindness"))
+	//gs.player.Pickup(newPotion("paralysis"))
+
 	generateRandomLevel(gs)
 	gs.Pathfinding()
 	gs.UpdatePlayerFOV()

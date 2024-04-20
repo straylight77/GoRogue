@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strconv"
-	"strings"
 )
 
 var XPTable = [21]int{
@@ -32,79 +30,6 @@ var XPTable = [21]int{
 }
 
 // -----------------------------------------------------------------------
-type Dice struct {
-	num, size, bonus int
-}
-
-func (d Dice) String() string {
-	return fmt.Sprintf("%dd%d%+d", d.num, d.size, d.bonus)
-}
-
-func (d Dice) Min() int {
-	return d.num + d.bonus
-}
-
-func (d Dice) Max() int {
-	return (d.num * d.size) + d.bonus
-}
-
-func (d Dice) Add(amt int) Dice {
-	return Dice{d.num, d.size, d.bonus + amt}
-}
-
-func (d Dice) Roll() int {
-	sum := d.bonus
-	rolls := make([]int, d.num)
-	for i := 0; i < d.num; i++ {
-		roll := rand.Intn(d.size) + 1
-		rolls[i] = roll
-		sum += roll
-	}
-	debug.Add("Roll: %v, rolls=%v, sum=%d", d, rolls, sum)
-	return sum
-}
-
-// TODO combine Roll() and rollDice()?
-func rollDice(num, size, bonus int) int {
-	sum := bonus
-	rolls := make([]int, num)
-	for i := 0; i < num; i++ {
-		roll := rand.Intn(size) + 1
-		rolls[i] = roll
-		sum += roll
-	}
-	debug.Add("rollDice: %dd%d+%d, rolls=%v, sum=%d", num, size, bonus, rolls, sum)
-	return sum
-}
-
-func parseDiceStr(dice string) (int, int) {
-	parts := strings.Split(dice, "d")
-	v1, err := strconv.Atoi(parts[0])
-	if err != nil {
-		panic(err)
-	}
-	v2, err := strconv.Atoi(parts[1])
-	if err != nil {
-		panic(err)
-	}
-	return v1, v2
-}
-
-func attackHits(toHit int, targetAC int) bool {
-	roll := rand.Intn(20) + 1
-
-	target := toHit - targetAC
-	isHit := roll >= target
-	debug.Add("hit? roll=%d target=%d (%d-%d)  -> %v", roll, target, toHit, targetAC, isHit)
-
-	//check := roll + toHit
-	//isHit := check >= targetAC
-	//debug.Add("hit? roll=%d (%d%+d) AC=%d  -> %v", roll, toHit, check, targetAC, isHit)
-
-	return isHit
-}
-
-// -----------------------------------------------------------------------
 type Player struct {
 	X, Y      int
 	Symbol    rune
@@ -126,6 +51,7 @@ type Player struct {
 	timer     map[string]int
 }
 
+// -----------------------------------------------------------------------
 func (p *Player) Init() {
 	p.Str = 16
 	p.maxStr = 16
@@ -144,23 +70,20 @@ func (p *Player) Init() {
 	p.ResetHealCount()
 }
 
+// -----------------------------------------------------------------------
 // implement the Actor interface
+
+func (p *Player) Pos() Coord {
+	return Coord{p.X, p.Y}
+}
 
 func (p *Player) SetPos(newPos Coord) {
 	p.X = newPos.X
 	p.Y = newPos.Y
 }
 
-func (p *Player) Pos() Coord {
-	return Coord{p.X, p.Y}
-}
-
 func (p *Player) Rune() rune {
 	return p.Symbol
-}
-
-func (p *Player) Label() string {
-	return "you"
 }
 
 func (p *Player) AdjustHP(amt int) {
@@ -170,11 +93,27 @@ func (p *Player) AdjustHP(amt int) {
 	}
 }
 
-func (p *Player) AdjustFoodCount(amt int) {
-	p.foodCount += amt
-	if p.foodCount > NutritionTime {
-		p.foodCount = NutritionTime
+func (p *Player) Attack(m Actor) string {
+
+	var label string
+	if p.IsBlind() {
+		label = "something"
+	} else {
+		label = fmt.Sprintf("the %v", m)
 	}
+
+	if attackHits(p.ToHit(), m.ArmorClass()) {
+		dmg := p.RollDamage()
+		m.AdjustHP(-dmg)
+		p.healCount++ // this shouldn't decrement when fighting
+		return fmt.Sprintf("You hit %v for %d damage.", label, dmg)
+	}
+	return fmt.Sprintf("You miss %v.", label)
+
+}
+
+func (p *Player) ArmorClass() int {
+	return p.AC
 }
 
 func (p *Player) IsConfused() bool {
@@ -183,6 +122,15 @@ func (p *Player) IsConfused() bool {
 
 func (p *Player) IsBlind() bool {
 	return p.timer["blind"] > 0
+}
+
+// -----------------------------------------------------------------------
+
+func (p *Player) AdjustFoodCount(amt int) {
+	p.foodCount += amt
+	if p.foodCount > NutritionTime {
+		p.foodCount = NutritionTime
+	}
 }
 
 func (p *Player) IsParalyzed() bool {
@@ -194,33 +142,6 @@ func (p *Player) IsHasted() bool {
 }
 
 // -----------------------------------------------------------------------
-func (p *Player) Attack(m Actor) string {
-
-	var label string
-
-	if p.IsBlind() {
-		label = "something"
-	} else {
-		label = fmt.Sprintf("%v", m.Label())
-	}
-
-	if attackHits(p.ToHit(), m.ArmorClass()) {
-		dmg := p.RollDamage()
-		m.AdjustHP(-dmg)
-		p.healCount++ // this shouldn't decrement when fighting
-		return fmt.Sprintf("You hit %v for %d damage.", label, dmg)
-	}
-	return fmt.Sprintf("You miss the %v.", label)
-
-}
-
-func (p *Player) ArmorClass() int {
-	return p.AC
-}
-
-func (p *Player) RollDamage() int {
-	return p.DamageDice().Roll()
-}
 
 func (p *Player) StrAttackBonus() int {
 	switch {
@@ -262,8 +183,11 @@ func (p *Player) StrDamageBonus() int {
 }
 
 func (p *Player) ToHit() int {
-	//return p.Level + p.StrAttackBonus()
 	return 21 - p.Level - p.StrAttackBonus()
+}
+
+func (p *Player) RollDamage() int {
+	return p.DamageDice().Roll()
 }
 
 func (p *Player) DamageDice() Dice {
@@ -271,6 +195,7 @@ func (p *Player) DamageDice() Dice {
 }
 
 // -----------------------------------------------------------------------
+
 func (p *Player) Pickup(item Item) bool {
 	switch item.(type) {
 	case *Gold:
@@ -282,17 +207,16 @@ func (p *Player) Pickup(item Item) bool {
 	}
 }
 
-// -----------------------------------------------------------------------
 func (p *Player) RemoveItem(idx int) {
 	p.inventory = append(p.inventory[:idx], p.inventory[idx+1:]...)
 }
 
 // -----------------------------------------------------------------------
+
 func (p *Player) AddXP(amt int) {
 	p.XP += amt
 }
 
-// -----------------------------------------------------------------------
 func (p *Player) CheckLevel() string {
 	msg := ""
 	level := 0
@@ -363,6 +287,8 @@ func (p *Player) Update(msg *MessageLog) {
 	p.moves++
 }
 
+// -----------------------------------------------------------------------
+
 func (p *Player) Timer(name string) int {
 	return p.timer[name]
 }
@@ -377,8 +303,20 @@ func (p *Player) SetTimer(name string, val int) {
 
 // -----------------------------------------------------------------------
 func (p *Player) InfoString() string {
+	condition := ""
+	switch {
+	case p.IsParalyzed():
+		condition = "Paralyzed"
+	case p.foodCount <= HungerLimit:
+		condition = "Hungry"
+	case p.IsConfused():
+		condition = "Confused"
+	case p.IsBlind():
+		condition = "Blind"
+	}
+
 	return fmt.Sprintf(
-		"Depth:%-2d  Gold:%-5d  Hp:%2d(%2d)  Str:%-2d  Hit:%-2d  Arm:%-2d  Lvl:%d/%d",
+		"Depth:%-2d  Gold:%-5d  Hp:%2d(%2d)  Str:%-2d  Hit:%-2d  Arm:%-2d  Lvl:%d/%-6d %s",
 		p.depth,
 		p.Gold,
 		p.HP,
@@ -388,6 +326,7 @@ func (p *Player) InfoString() string {
 		p.ArmorClass(),
 		p.Level,
 		p.XP,
+		condition,
 	)
 }
 
@@ -412,8 +351,8 @@ func (p *Player) StatsStrings() []string {
 		"",
 		fmt.Sprintf("Hit Points: %d / %d", p.HP, p.maxHP),
 		"",
-		fmt.Sprintf("THAC0:  %d", p.ToHit()),
-		fmt.Sprintf("Damage: %d-%d", dice.Min(), dice.Max()),
+		fmt.Sprintf("THAC0:  %d    (%+d)", p.ToHit(), p.StrAttackBonus()),
+		fmt.Sprintf("Damage: %d-%-2d  (%+d)", dice.Min(), dice.Max(), p.StrDamageBonus()),
 		fmt.Sprintf("Armor:  %d", p.AC),
 		"",
 		fmt.Sprintf("Poison: %d", savePoison),

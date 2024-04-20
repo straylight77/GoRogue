@@ -118,7 +118,7 @@ type Monster struct {
 	Level    int
 	HP       int
 	AC       int
-	Dmg      string
+	Dmg      Dice
 	XP       int
 	State    int
 	isMean   bool // once visible, start chasing player
@@ -138,12 +138,11 @@ const (
 func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
 	m := &Monster{
-		Name:  mt.Name,
-		Level: mt.Level,
-		HP:    mt.Level * (rand.Intn(8) + 1),
-		//AC:       20 - mt.AC, // until we convert to modern AC values
-		AC:       mt.AC, // until we convert to modern AC values
-		Dmg:      mt.Dmg,
+		Name:     mt.Name,
+		Level:    mt.Level,
+		HP:       mt.Level * (rand.Intn(8) + 1),
+		AC:       mt.AC,
+		Dmg:      parseDice(mt.Dmg),
 		XP:       mt.XP,
 		Symbol:   mt.Symbol,
 		isMean:   mt.isMean,
@@ -187,23 +186,20 @@ func (m Monster) String() string {
 	return m.Name
 }
 
+// ----------------------------------------------------------------------
 // Implement the Actor interface
+
+func (m *Monster) Pos() Coord {
+	return Coord{m.X, m.Y}
+}
 
 func (m *Monster) SetPos(newPos Coord) {
 	m.X = newPos.X
 	m.Y = newPos.Y
 }
 
-func (m *Monster) Pos() Coord {
-	return Coord{m.X, m.Y}
-}
-
 func (m *Monster) Rune() rune {
 	return m.Symbol
-}
-
-func (m *Monster) Label() string {
-	return "the " + m.Name
 }
 
 func (m *Monster) AdjustHP(amt int) {
@@ -213,31 +209,22 @@ func (m *Monster) AdjustHP(amt int) {
 func (m *Monster) Attack(a Actor) string {
 
 	var label string
-
 	if a.IsBlind() {
-		label = "something"
+		label = "Something"
 	} else {
-		label = fmt.Sprintf("%v", m)
+		label = fmt.Sprintf("The %v", m)
 	}
 
 	if attackHits(m.ToHit(), a.ArmorClass()) {
 		dmg := m.RollDamage()
 		a.AdjustHP(-dmg)
-		return fmt.Sprintf("The %v hits you for %d damage.", label, dmg)
+		return fmt.Sprintf("%v hits you for %d damage.", label, dmg)
 	}
-	return fmt.Sprintf("The %v misses you.", label)
+	return fmt.Sprintf("%v misses you.", label)
 }
 
 func (m *Monster) ArmorClass() int {
 	return m.AC
-}
-func (m *Monster) ToHit() int {
-	return 21 - m.Level
-}
-
-func (m *Monster) RollDamage() int {
-	num, dice := parseDiceStr(m.Dmg)
-	return rollDice(num, dice, 0)
 }
 
 func (m *Monster) IsConfused() bool {
@@ -248,4 +235,14 @@ func (m *Monster) IsConfused() bool {
 func (m *Monster) IsBlind() bool {
 	//TODO implement monster blindness
 	return false
+}
+
+// ----------------------------------------------------------------------
+
+func (m *Monster) ToHit() int {
+	return 21 - m.Level
+}
+
+func (m *Monster) RollDamage() int {
+	return m.Dmg.Roll()
 }

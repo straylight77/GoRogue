@@ -8,11 +8,10 @@ import (
 // === WEAPONS ===========================================================
 
 type Weapon struct {
-	name    string
-	dmgDice int
-	dmgSize int
-	bonus   int
-	cursed  bool
+	name   string
+	damage Dice
+	ench   int
+	cursed bool
 }
 
 // -----------------------------------------------------------------------
@@ -21,12 +20,10 @@ func newWeapon(name string) *Weapon {
 	if !ok {
 		panic("No weapon with the name " + name)
 	}
-	v1, v2 := parseDiceStr(t.melee)
 
 	return &Weapon{
-		name:    name,
-		dmgDice: v1,
-		dmgSize: v2,
+		name:   name,
+		damage: parseDice(t.melee),
 	}
 }
 
@@ -41,7 +38,7 @@ func randWeapon() *Weapon {
 		}
 		i--
 	}
-	w.bonus, w.cursed = randEnchant(5, 10)
+	w.ench, w.cursed = randEnchant(5, 10)
 
 	return w
 }
@@ -57,7 +54,7 @@ func (w *Weapon) Equip(p *Player, msg *MessageLog) bool {
 		return false
 	}
 	p.equiped["weapon"] = w
-	p.Melee = Dice{w.dmgDice, w.dmgSize, w.bonus}
+	p.Melee = w.damage
 	msg.Add("You are now wielding the %v.", w)
 	return true
 }
@@ -91,7 +88,7 @@ func (w *Weapon) InvString() string {
 	if w.cursed {
 		cursed = " {cursed}"
 	}
-	return fmt.Sprintf("%+d %v [%dd%d]%s", w.bonus, w, w.dmgDice, w.dmgSize, cursed)
+	return fmt.Sprintf("%+d %v [%s]%s", w.ench, w, w.damage, cursed)
 }
 
 func (w Weapon) String() string {
