@@ -22,12 +22,12 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [X] Random movement (e.g. bats or confusion) 
     [X] Chasing the player (pathfinding)
     [X] Spawning wandering monsters 
-[ ] Player
+[X] Player
     [X] Awarding XP and leveling up
     [X] Natural healing
     [X] Hunger
     [X] Inventory
-    [ ] Combat (original AD&D rules)
+    [X] Combat (AD&D 2nd edition rules)
 [ ] Items
     [X] Gold
     [X] Food
@@ -37,7 +37,7 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [ ] Scrolls
     [ ] Rings
     [ ] Sticks
-    [ ] Cursed items and identification
+    [/] Cursed items and identification
 [ ] Gameplay
     [ ] Title screen
     [ ] End game screen with score 
