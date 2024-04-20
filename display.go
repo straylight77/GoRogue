@@ -269,12 +269,20 @@ func (d *Display) InventoryScreen(p *Player) {
 	// Display the player's stats
 	col := 60
 	row := 1
+	d.Printf(col, 0, "Equipment")
 	for _, slot := range order {
 		if p.equiped[slot] == nil {
-			d.Printf(col, row, "%s: -none-", label[slot])
+			d.Printf(col, row, "%s) -none-", label[slot])
 		} else {
-			d.Printf(col, row, "%s: %v", label[slot], p.equiped[slot].InvString())
+			d.Printf(col, row, "%s) %v", label[slot], p.equiped[slot].InvString())
 		}
+		row++
+	}
+
+	stats := p.StatsStrings()
+	row++
+	for _, str := range stats {
+		d.Printf(col, row, str)
 		row++
 	}
 

@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strconv"
-	"strings"
 )
 
 // === WEAPONS ===========================================================
@@ -59,7 +57,7 @@ func (w *Weapon) Equip(p *Player, msg *MessageLog) bool {
 		return false
 	}
 	p.equiped["weapon"] = w
-	//TODO set the player's damage and to hit stats
+	p.Melee = Dice{w.dmgDice, w.dmgSize, w.bonus}
 	msg.Add("You are now wielding the %v.", w)
 	return true
 }
@@ -163,7 +161,7 @@ func (a *Armor) Equip(p *Player, msg *MessageLog) bool {
 		return false
 	}
 	p.equiped["armor"] = a
-	p.AC = a.AC
+	p.AC = 10 + a.AC
 	msg.Add("You are now wearing the %v.", a)
 	return true
 }
@@ -212,29 +210,15 @@ type ArmorTemplate struct {
 }
 
 var ArmorLib = map[string]ArmorTemplate{
-	"leather armor": {8, 0},
-	"ring mail":     {7, 0},
-	"scale mail":    {6, 3},
+	"leather armor": {2, 0},
+	"ring mail":     {3, 0},
+	"scale mail":    {4, 3},
 	"chain mail":    {5, 75},
-	"splint mail":   {4, 80},
-	"banded mail":   {3, 90},
-	"plate armor":   {2, 440},
+	"banded mail":   {6, 90},
+	"plate mail":    {7, 440},
 }
 
 // =======================================================================
-
-func parseDiceStr(dice string) (int, int) {
-	parts := strings.Split(dice, "d")
-	v1, err := strconv.Atoi(parts[0])
-	if err != nil {
-		panic(err)
-	}
-	v2, err := strconv.Atoi(parts[1])
-	if err != nil {
-		panic(err)
-	}
-	return v1, v2
-}
 
 func randEnchant(enchantProb int, cursedProb int) (int, bool) {
 	// 10% chance of a cursed weapon with -1 to -3 penalty, and a 5% chance

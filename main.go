@@ -5,7 +5,7 @@ import "fmt"
 var debug DebugMessageLog
 
 var debugFlag = map[string]bool{
-	"main":     true,
+	"main":     false,
 	"generate": false,
 	"dmap":     false,
 	"path":     false,

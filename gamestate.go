@@ -34,11 +34,11 @@ func (gs *GameState) Init() {
 	//gs.player.Pickup(newPotion("healing"))
 	gs.player.Pickup(newFood("ration"))
 
-	item = newWeapon("dagger")
+	item = newWeapon("mace")
 	gs.player.Pickup(item)
 	item.Equip(gs.player, gs.messages)
 
-	item = newArmor("leather armor")
+	item = newArmor("ring mail")
 	gs.player.Pickup(item)
 	item.Equip(gs.player, gs.messages)
 

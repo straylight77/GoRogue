@@ -85,7 +85,7 @@ func populateItems(gs *GameState) {
 
 		pos := graph.RandLocation()
 		gs.items[pos] = item
-		debug.Add("generate: (%2d) %v", roll, gs.items[pos].InvString())
+		//debug.Add("generate: (%2d) %v", roll, gs.items[pos].InvString())
 	}
 }
 

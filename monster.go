@@ -115,7 +115,10 @@ type Monster struct {
 	X, Y     int
 	Symbol   rune
 	Name     string
+	Level    int
 	HP       int
+	AC       int
+	Dmg      string
 	XP       int
 	State    int
 	isMean   bool // once visible, start chasing player
@@ -136,7 +139,10 @@ func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
 	m := &Monster{
 		Name:     mt.Name,
-		HP:       mt.Level + 1,
+		Level:    mt.Level,
+		HP:       mt.Level * (rand.Intn(8) + 1),
+		AC:       20 - mt.AC, // until we convert to modern AC values
+		Dmg:      mt.Dmg,
 		XP:       mt.XP,
 		Symbol:   mt.Symbol,
 		isMean:   mt.isMean,
@@ -202,12 +208,33 @@ func (m *Monster) AdjustHP(amt int) {
 }
 
 func (m *Monster) Attack(a Actor) string {
-	a.AdjustHP(-1)
+
+	var label string
+
 	if a.IsBlind() {
-		return fmt.Sprintf("Something attacks %s.", a.Label())
+		label = "something"
 	} else {
-		return fmt.Sprintf("The %v attacks %s.", m, a.Label())
+		label = fmt.Sprintf("%v", m)
 	}
+
+	if attackHits(m.ToHit(), a.ArmorClass()) {
+		dmg := m.RollDamage()
+		a.AdjustHP(-dmg)
+		return fmt.Sprintf("The %v hits you for %d damage.", label, dmg)
+	}
+	return fmt.Sprintf("The %v misses you.", label)
+}
+
+func (m *Monster) ArmorClass() int {
+	return m.AC
+}
+func (m *Monster) ToHit() int {
+	return m.Level
+}
+
+func (m *Monster) RollDamage() int {
+	num, dice := parseDiceStr(m.Dmg)
+	return rollDice(num, dice, 0)
 }
 
 func (m *Monster) IsConfused() bool {

@@ -6,6 +6,7 @@ type Actor interface {
 	SetPos(Coord)
 	Rune() rune
 	Attack(Actor) string
+	ArmorClass() int
 	Label() string
 	AdjustHP(amt int)
 	IsConfused() bool
