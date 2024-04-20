@@ -93,9 +93,13 @@ func parseDiceStr(dice string) (int, int) {
 func attackHits(toHit int, targetAC int) bool {
 	roll := rand.Intn(20) + 1
 
-	check := roll + toHit
-	isHit := check >= targetAC
-	debug.Add("hit? roll=%d (%d%+d) AC=%d  -> %v", roll, toHit, check, targetAC, isHit)
+	target := toHit - targetAC
+	isHit := roll >= target
+	debug.Add("hit? roll=%d target=%d (%d-%d)  -> %v", roll, target, toHit, targetAC, isHit)
+
+	//check := roll + toHit
+	//isHit := check >= targetAC
+	//debug.Add("hit? roll=%d (%d%+d) AC=%d  -> %v", roll, toHit, check, targetAC, isHit)
 
 	return isHit
 }
@@ -258,7 +262,8 @@ func (p *Player) StrDamageBonus() int {
 }
 
 func (p *Player) ToHit() int {
-	return p.Level + p.StrAttackBonus()
+	//return p.Level + p.StrAttackBonus()
+	return 21 - p.Level - p.StrAttackBonus()
 }
 
 func (p *Player) DamageDice() Dice {
@@ -373,7 +378,7 @@ func (p *Player) SetTimer(name string, val int) {
 // -----------------------------------------------------------------------
 func (p *Player) InfoString() string {
 	return fmt.Sprintf(
-		"Depth:%-2d  Gold:%-5d  Hp:%2d(%2d)  Str:%-2d  Hit:%+2d  Arm:%-2d  Lvl:%d/%d",
+		"Depth:%-2d  Gold:%-5d  Hp:%2d(%2d)  Str:%-2d  Hit:%-2d  Arm:%-2d  Lvl:%d/%d",
 		p.depth,
 		p.Gold,
 		p.HP,
@@ -389,26 +394,32 @@ func (p *Player) InfoString() string {
 // -----------------------------------------------------------------------
 func (p *Player) StatsStrings() []string {
 
-	savePoison := (7 + p.Level/2) * 5
-	saveMagic := (4 + p.Level/2) * 5
+	//savePoison := (7 + p.Level/2) * 5
+	//saveMagic := (4 + p.Level/2) * 5
+
+	savePoison := (7 + p.Level/2)
+	saveMagic := (4 + p.Level/2)
 	dice := p.DamageDice()
 
 	return []string{
-		fmt.Sprintf("Strength: %d (%+d,%+d)",
-			p.Str,
-			p.StrAttackBonus(),
-			p.StrDamageBonus(),
-		),
+
+		fmt.Sprintf("Level:  %d", p.Level),
 		"",
-		fmt.Sprintf("Attack:  %+d", p.ToHit()),
-		fmt.Sprintf("Damage:  %d-%d", dice.Min(), dice.Max()),
-		fmt.Sprintf("Armor:   %d", p.AC),
+		fmt.Sprintf("Strength:   %d / %d", p.Str, p.maxStr),
+		//fmt.Sprintf("(%+d hit, %d dmg)", p.StrAttackBonus(), p.StrDamageBonus()),
+		fmt.Sprintf(" %+d hit", p.StrAttackBonus()),
+		fmt.Sprintf(" %+d dmg", p.StrDamageBonus()),
 		"",
-		fmt.Sprintf("Poison:  %d", savePoison),
-		fmt.Sprintf("Magic:   %d", saveMagic),
+		fmt.Sprintf("Hit Points: %d / %d", p.HP, p.maxHP),
 		"",
-		fmt.Sprintf("Level:   %d", p.Level),
-		fmt.Sprintf("XP:      %d", p.XP),
-		fmt.Sprintf("Next:    %d", XPTable[p.Level]),
+		fmt.Sprintf("THAC0:  %d", p.ToHit()),
+		fmt.Sprintf("Damage: %d-%d", dice.Min(), dice.Max()),
+		fmt.Sprintf("Armor:  %d", p.AC),
+		"",
+		fmt.Sprintf("Poison: %d", savePoison),
+		fmt.Sprintf("Magic:  %d", saveMagic),
+		"",
+		fmt.Sprintf("XP:     %d", p.XP),
+		fmt.Sprintf("Next:   %d", XPTable[p.Level]),
 	}
 }

@@ -161,7 +161,7 @@ func (a *Armor) Equip(p *Player, msg *MessageLog) bool {
 		return false
 	}
 	p.equiped["armor"] = a
-	p.AC = 10 + a.AC
+	p.AC = a.AC
 	msg.Add("You are now wearing the %v.", a)
 	return true
 }
@@ -210,12 +210,12 @@ type ArmorTemplate struct {
 }
 
 var ArmorLib = map[string]ArmorTemplate{
-	"leather armor": {2, 0},
-	"ring mail":     {3, 0},
-	"scale mail":    {4, 3},
+	"leather armor": {8, 0},
+	"ring mail":     {7, 0},
+	"scale mail":    {6, 3},
 	"chain mail":    {5, 75},
-	"banded mail":   {6, 90},
-	"plate mail":    {7, 440},
+	"banded mail":   {4, 90},
+	"plate mail":    {3, 440},
 }
 
 // =======================================================================

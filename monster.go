@@ -138,10 +138,11 @@ const (
 func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
 	m := &Monster{
-		Name:     mt.Name,
-		Level:    mt.Level,
-		HP:       mt.Level * (rand.Intn(8) + 1),
-		AC:       20 - mt.AC, // until we convert to modern AC values
+		Name:  mt.Name,
+		Level: mt.Level,
+		HP:    mt.Level * (rand.Intn(8) + 1),
+		//AC:       20 - mt.AC, // until we convert to modern AC values
+		AC:       mt.AC, // until we convert to modern AC values
 		Dmg:      mt.Dmg,
 		XP:       mt.XP,
 		Symbol:   mt.Symbol,
@@ -154,13 +155,15 @@ func newMonster(id int) *Monster {
 
 func (m *Monster) DebugString() string {
 	return fmt.Sprintf(
-		"%c (%d,%d) hp=%d state=%d, step=%v",
+		"%c (%2d,%2d) hp=%-2d ac=%-2d thac0=%-2d s=%d step=%v",
 		m.Symbol,
-		m.X,
-		m.Y,
+		m.X, m.Y,
 		m.HP,
+		m.AC,
+		m.ToHit(),
 		m.State,
-		m.nextStep)
+		m.nextStep,
+	)
 }
 
 func (m *Monster) DirectionCoordsTo(pos Coord) Coord {
@@ -229,7 +232,7 @@ func (m *Monster) ArmorClass() int {
 	return m.AC
 }
 func (m *Monster) ToHit() int {
-	return m.Level
+	return 21 - m.Level
 }
 
 func (m *Monster) RollDamage() int {

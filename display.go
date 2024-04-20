@@ -258,29 +258,31 @@ func (d *Display) InventoryScreen(p *Player) {
 	d.Print(0, 0, "You are carrying:")
 	d.ListInventory(p, 0)
 
-	label := map[string]string{
-		"weapon": "W",
-		"armor":  "A",
-		"left":   "L",
-		"right":  "R",
-	}
-	order := []string{"weapon", "armor", "left", "right"}
-
-	// Display the player's stats
 	col := 60
 	row := 1
-	d.Printf(col, 0, "Equipment")
-	for _, slot := range order {
-		if p.equiped[slot] == nil {
-			d.Printf(col, row, "%s) -none-", label[slot])
-		} else {
-			d.Printf(col, row, "%s) %v", label[slot], p.equiped[slot].InvString())
-		}
-		row++
-	}
 
+	//label := map[string]string{
+	//	"weapon": "W",
+	//	"armor":  "A",
+	//	"left":   "L",
+	//	"right":  "R",
+	//}
+	//order := []string{"weapon", "armor", "left", "right"}
+
+	//// Display the player's stats
+	//d.Printf(col, 0, "Equipment")
+	//for _, slot := range order {
+	//	if p.equiped[slot] == nil {
+	//		d.Printf(col, row, "%s) -none-", label[slot])
+	//	} else {
+	//		d.Printf(col, row, "%s) %v", label[slot], p.equiped[slot].InvString())
+	//	}
+	//	row++
+	//}
+
+	d.Printf(col, row, "       STATS")
+	row += 2
 	stats := p.StatsStrings()
-	row++
 	for _, str := range stats {
 		d.Printf(col, row, str)
 		row++
