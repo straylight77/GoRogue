@@ -94,7 +94,7 @@ func (p *Player) AdjustHP(amt int) {
 	}
 }
 
-func (p *Player) Attack(m Actor) string {
+func (p *Player) Attack(m Actor, msg *MessageLog) {
 
 	var label string
 	if p.IsBlind() {
@@ -107,10 +107,10 @@ func (p *Player) Attack(m Actor) string {
 		dmg := p.RollDamage()
 		m.AdjustHP(-dmg)
 		p.healCount++ // this shouldn't decrement when fighting
-		return fmt.Sprintf("You hit %v for %d damage.", label, dmg)
+		msg.Add("You hit %v for %d damage.", label, dmg)
+	} else {
+		msg.Add("You miss %v.", label)
 	}
-	return fmt.Sprintf("You miss %v.", label)
-
 }
 
 func (p *Player) ArmorClass() int {

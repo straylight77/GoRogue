@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 )
 
 /*************************************************************************
@@ -10,16 +11,17 @@ import (
  *
  */
 type MonsterTemplate struct {
-	Symbol   rune
-	Carry    int
-	XP       int
-	Level    int
-	AC       int
-	Dmg      string
-	Name     string
-	isMean   bool
-	noWander bool
-	randMove int // chance that it will move randomly (percentage)
+	Symbol      rune
+	Carry       int
+	XP          int
+	Level       int
+	AC          int
+	Attacks     string
+	AttackVerbs string
+	Name        string
+	isMean      bool
+	noWander    bool
+	randMove    int // chance that it will move randomly (percentage)
 }
 
 // Index is used as difficulty of the monsters
@@ -30,32 +32,32 @@ type MonsterTemplate struct {
 // (apparently called "vorpalness" in original Rogue source code)
 // https://datadrivengamer.blogspot.com/2019/05/identifying-mechanics-of-rogue.html
 var MonsterLib = []MonsterTemplate{
-	{'K', 0, 2, 1, 7, "1d4", "kobold", true, false, 0},
-	{'J', 0, 2, 1, 7, "1d2", "jackal", true, false, 0},
-	{'B', 0, 1, 1, 3, "1d2", "bat", false, false, 50}, // 50% chance to move randomly
-	{'S', 0, 3, 1, 5, "1d3", "snake", true, false, 0},
-	{'H', 0, 3, 1, 5, "1d8", "hobgoblin", true, false, 0},
-	{'E', 0, 5, 1, 9, "0d0", "floating eye", false, true, 0}, // paralyzes 2-3 turns
-	{'A', 0, 10, 2, 3, "1d6", "giant ant", true, false, 0},   // decrease str
-	{'O', 15, 5, 1, 6, "1d7", "orc", true, false, 0},
-	{'Z', 0, 7, 2, 8, "1d8", "zombie", true, false, 0},
-	{'G', 10, 8, 1, 5, "1d6", "gnome", false, false, 0},
-	{'L', 0, 10, 3, 8, "1d1", "leprechaun", false, true, 0}, // steal gold unless save vs magic
-	{'C', 15, 15, 4, 4, "1d6/1d6", "centaur", false, false, 0},
-	{'R', 0, 25, 5, 2, "0d0/0d0", "rust monster", true, false, 0}, // -1 to armor being worn
-	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "quasit", true, false, 0},
-	{'N', 100, 40, 3, 9, "0d0", "nymph", false, true, 0}, // steals random magic item from inventory
-	{'Y', 30, 50, 4, 6, "1d6/1d6", "yeti", false, false, 0},
-	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "troll", true, true, 0},
-	{'W', 0, 55, 5, 4, "1d6", "wraith", true, false, 0},              // 15% chance to drain level and 1d10 max hp
-	{'F', 0, 85, 8, 3, "0d0", "violet fungi", true, true, 0},         // grapple, damage is 1 then 2 then 3 etc.
-	{'I', 0, 120, 8, 3, "4d4", "invisible stalker", true, false, 20}, // 20% chance to move randomly
-	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "xorn", true, false, 0},
-	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "umber hulk", true, false, 0}, // confuses for 20-39 turns, only once
-	{'M', 30, 140, 7, 7, "3d4", "mimic", false, true, 0},
-	{'V', 30, 380, 8, 1, "1d10", "vampire", true, false, 0},
-	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "dragon", false, true, 0},
-	{'P', 70, 7000, 15, 6, "2d12/2d4", "purple worm", false, true, 0},
+	{'K', 0, 2, 1, 7, "1d4", "swings at", "kobold", true, false, 0},
+	{'J', 0, 2, 1, 7, "1d2", "bites", "jackal", true, false, 0},
+	{'B', 0, 1, 1, 3, "1d2", "bites", "bat", false, false, 50}, // 50% chance to move randomly
+	{'S', 0, 3, 1, 5, "1d3", "bites", "snake", true, false, 0},
+	{'H', 0, 3, 1, 5, "1d8", "swings at", "hobgoblin", true, false, 0},
+	{'E', 0, 5, 1, 9, "0d0", "gazes at", "floating eye", false, true, 0}, // paralyzes 2-3 turns
+	{'A', 0, 10, 2, 3, "1d6", "stings", "giant ant", true, false, 0},     // decrease str
+	{'O', 15, 5, 1, 6, "1d7", "attacks", "orc", true, false, 0},
+	{'Z', 0, 7, 2, 8, "1d8", "slams", "zombie", true, false, 0},
+	{'G', 10, 8, 1, 5, "1d6", "attacks", "gnome", false, false, 0},
+	{'L', 0, 10, 3, 8, "1d1", "pickpockets", "leprechaun", false, true, 0}, // steal gold unless save vs magic
+	{'C', 15, 15, 4, 4, "1d6/1d6", "kicks/kicks", "centaur", false, false, 0},
+	{'R', 0, 25, 5, 2, "0d0/0d0", "bites/bites", "rust monster", true, false, 0}, // -1 to armor being worn
+	{'Q', 30, 35, 3, 2, "1d2/1d2/1d4", "claws/claws/bites", "quasit", true, false, 0},
+	{'N', 100, 40, 3, 9, "0d0", "pickpockets", "nymph", false, true, 0}, // steals random magic item from inventory
+	{'Y', 30, 50, 4, 6, "1d6/1d6", "swings/swings", "yeti", false, false, 0},
+	{'T', 50, 55, 6, 4, "1d8/1d8/2d6", "claws/claws/bites", "troll", true, true, 0},
+	{'W', 0, 55, 5, 4, "1d6", "touches", "wraith", true, false, 0},                // 15% chance to drain level and 1d10 max hp
+	{'F', 0, 85, 8, 3, "0d0", "sqeezes", "violet fungi", true, true, 0},           // grapple, damage is 1 then 2 then 3 etc.
+	{'I', 0, 120, 8, 3, "4d4", "swings at", "invisible stalker", true, false, 20}, // 20% chance to move randomly
+	{'X', 0, 120, 7, -2, "1d3/1d3/1d3/4d6", "claws/claws/claws/bites", "xorn", true, false, 0},
+	{'U', 40, 130, 8, 2, "3d4/3d4/2d5", "claws/claws/bites", "umber hulk", true, false, 0}, // confuses for 20-39 turns, only once
+	{'M', 30, 140, 7, 7, "3d4", "bites", "mimic", false, true, 0},
+	{'V', 30, 380, 8, 1, "1d10", "bites", "vampire", true, false, 0},
+	{'D', 100, 9000, 10, -1, "1d8/1d8/3d10", "claws/claws/bites", "dragon", false, true, 0},
+	{'P', 70, 7000, 15, 6, "2d12/2d4", "bites/stings", "purple worm", false, true, 0},
 }
 
 // Uses public variable MonsterLib
@@ -112,20 +114,21 @@ func (ml MonsterList) MonsterAt(pos Coord) *Monster {
  */
 
 type Monster struct {
-	X, Y     int
-	Symbol   rune
-	Name     string
-	Level    int
-	HP       int
-	AC       int
-	Dmg      Dice
-	XP       int
-	State    int
-	isMean   bool // once visible, start chasing player
-	isGreedy bool // move towards any nearby gold
-	noWander bool
-	randMove int
-	nextStep Coord
+	X, Y        int
+	Symbol      rune
+	Name        string
+	Level       int
+	HP          int
+	AC          int
+	Attacks     []Dice
+	AttackVerbs []string
+	XP          int
+	State       int
+	isMean      bool // once visible, start chasing player
+	isGreedy    bool // move towards any nearby gold
+	noWander    bool
+	randMove    int
+	nextStep    Coord
 }
 
 const (
@@ -137,17 +140,19 @@ const (
 
 func newMonster(id int) *Monster {
 	mt := MonsterLib[id]
+
 	m := &Monster{
-		Name:     mt.Name,
-		Level:    mt.Level,
-		HP:       mt.Level * (rand.Intn(8) + 1),
-		AC:       mt.AC,
-		Dmg:      parseDice(mt.Dmg),
-		XP:       mt.XP,
-		Symbol:   mt.Symbol,
-		isMean:   mt.isMean,
-		noWander: mt.noWander,
-		randMove: mt.randMove,
+		Name:        mt.Name,
+		Level:       mt.Level,
+		HP:          mt.Level * (rand.Intn(8) + 1),
+		AC:          mt.AC,
+		Attacks:     parseDice(mt.Attacks),
+		AttackVerbs: strings.Split(mt.AttackVerbs, "/"),
+		XP:          mt.XP,
+		Symbol:      mt.Symbol,
+		isMean:      mt.isMean,
+		noWander:    mt.noWander,
+		randMove:    mt.randMove,
 	}
 	return m
 }
@@ -206,7 +211,7 @@ func (m *Monster) AdjustHP(amt int) {
 	m.HP += amt
 }
 
-func (m *Monster) Attack(a Actor) string {
+func (m *Monster) Attack(a Actor, msg *MessageLog) {
 
 	var label string
 	if a.IsBlind() {
@@ -215,12 +220,16 @@ func (m *Monster) Attack(a Actor) string {
 		label = fmt.Sprintf("The %v", m)
 	}
 
-	if attackHits(m.ToHit(), a.ArmorClass()) {
-		dmg := m.RollDamage()
-		a.AdjustHP(-dmg)
-		return fmt.Sprintf("%v hits you for %d damage.", label, dmg)
+	//debug.Add("attack: %v", m.Attacks)
+	for i, atk := range m.Attacks {
+		if attackHits(m.ToHit(), a.ArmorClass()) {
+			dmg := atk.Roll()
+			a.AdjustHP(-dmg)
+			msg.Add("%v %s you for %d damage.", label, m.AttackVerbs[i], dmg)
+		} else {
+			msg.Add("%v misses you.", label)
+		}
 	}
-	return fmt.Sprintf("%v misses you.", label)
 }
 
 func (m *Monster) ArmorClass() int {
@@ -244,5 +253,6 @@ func (m *Monster) ToHit() int {
 }
 
 func (m *Monster) RollDamage() int {
-	return m.Dmg.Roll()
+	//return m.Dmg.Roll()
+	return 1
 }

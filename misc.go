@@ -13,7 +13,7 @@ type Actor interface {
 	SetPos(Coord)
 	Rune() rune
 	AdjustHP(amt int)
-	Attack(Actor) string
+	Attack(Actor, *MessageLog)
 	ArmorClass() int
 	IsConfused() bool
 	IsBlind() bool
@@ -33,18 +33,29 @@ type Dice struct {
 	num, size, bonus int
 }
 
-func parseDice(dice string) Dice {
-	parts := strings.Split(dice, "d")
-	num, err := strconv.Atoi(parts[0])
-	if err != nil {
-		panic(err)
+// Dice rolls given in the format: "1d8/1d6/1d6"
+func parseDice(fullStr string) []Dice {
+
+	attacks := strings.Split(fullStr, "/")
+	dice := []Dice{}
+	for _, str := range attacks {
+
+		parts := strings.Split(str, "d")
+		num, err := strconv.Atoi(parts[0])
+		if err != nil {
+			panic(err)
+		}
+		size, err := strconv.Atoi(parts[1])
+		if err != nil {
+			panic(err)
+		}
+
+		//TODO handle bonus part
+		dice = append(dice, Dice{num, size, 0})
+		//debug.Add("parse:   %v", dice)
 	}
-	size, err := strconv.Atoi(parts[1])
-	if err != nil {
-		panic(err)
-	}
-	//TODO handle bonus part
-	return Dice{num, size, 0}
+
+	return dice
 }
 
 func (d Dice) String() string {
@@ -75,7 +86,7 @@ func (d Dice) Roll() int {
 		rolls[i] = roll
 		sum += roll
 	}
-	//debug.Add("Roll: %v, rolls=%v, sum=%d", d, rolls, sum)
+	debug.Add("Roll: %v, rolls=%v, sum=%d", d, rolls, sum)
 	return sum
 }
 

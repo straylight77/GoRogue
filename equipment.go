@@ -24,7 +24,7 @@ func newWeapon(name string) *Weapon {
 
 	return &Weapon{
 		name:   name,
-		damage: parseDice(t.melee),
+		damage: parseDice(t.melee)[0],
 		worth:  t.worth,
 	}
 }

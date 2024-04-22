@@ -74,7 +74,7 @@ func (gs *GameState) MoveActor(a Actor, delta Coord) bool {
 	case *Monster:
 		// If player is there attack them
 		if dest == gs.player.Pos() {
-			gs.messages.Add(a.Attack(gs.player))
+			a.Attack(gs.player, gs.messages)
 			if gs.player.HP <= 0 {
 				gs.player.killedBy = "a " + a.(*Monster).String()
 			}
@@ -97,7 +97,7 @@ func (gs *GameState) MoveActor(a Actor, delta Coord) bool {
 		// If a monster is there, attack it
 		m := gs.monsters.MonsterAt(dest)
 		if m != nil {
-			gs.messages.Add(a.Attack(m))
+			a.Attack(m, gs.messages)
 			m.State = StateChase
 			return true
 		}
