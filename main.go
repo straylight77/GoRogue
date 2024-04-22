@@ -201,34 +201,32 @@ func main() {
 			}
 		}
 
+		// check for game over
 		if state.player.HP <= 0 {
-			state.messages.Add("You have died. [Press space]")
+			done = true
+			state.messages.Add("You have died. [Press SPACE]")
 			draw(&display, &state)
 			display.Show()
-			ch := display.PromptRune()
-			for ch != ' ' {
-				ch = display.PromptRune()
+			display.WaitForKeypress()
+
+			for _, item := range state.player.inventory {
+				switch item.(type) {
+				case Consumable:
+					item.(Consumable).Identify()
+				}
 			}
-			display.GameOverScreen(&state)
-			done = true
+
+			display.Clear()
+			draw(&display, &state)
+			display.Printf(0, 0, "Treasure acquired: [Press SPACE]")
+			display.ListInventory(state.player, 0, true)
+			display.WaitForKeypress()
+
+			display.TombstoneScreen(&state)
 		}
 	}
 	display.Quit()
-
-	//Identify player's inventory and show scoring
-	fmt.Println("Treasure acquired:")
-	for _, item := range state.player.inventory {
-		switch item.(type) {
-		case Consumable:
-			item.(Consumable).Identify()
-		}
-		fmt.Printf("  %-30v %4d\n", item.InvString(), item.Worth())
-	}
-	gold := fmt.Sprintf("%d pieces of gold", state.player.Gold)
-	fmt.Printf("  %-30v %4d\n", gold, state.player.Gold)
-	fmt.Println()
-	fmt.Printf("%-32v %4d\n", "Final score:", state.player.Score())
-	fmt.Println()
+	fmt.Printf("Your final score: %d\n", state.player.Score())
 	fmt.Println("Thanks for playing!")
 }
 

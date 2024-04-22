@@ -247,7 +247,7 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 	for i, m := range log.Last(22) {
 		d.Printf(0, i, "%v", m)
 	}
-	d.Printf(0, 24, "Press any key to continue...")
+	d.Printf(0, 24, "Press space to continue...")
 	d.Screen.HideCursor()
 	d.Show()
 }
@@ -256,7 +256,7 @@ func (d *Display) DrawMessageHistory(log *MessageLog) {
 func (d *Display) InventoryScreen(p *Player) {
 	d.Clear()
 	d.Print(0, 0, "You are carrying:")
-	d.ListInventory(p, 0)
+	d.ListInventory(p, 0, false)
 
 	col := 60
 	row := 1
@@ -286,7 +286,7 @@ func (d *Display) InventoryScreen(p *Player) {
 		row++
 	}
 
-	d.Printf(0, 23, "Press any key to continue...")
+	d.Printf(0, 23, "Press space to continue...")
 	d.Screen.HideCursor()
 	d.Show()
 }
@@ -304,7 +304,7 @@ func (d *Display) PromptInventory(prompt string, p *Player) int {
 
 	ch := d.PromptRune()
 	if ch == '?' {
-		d.ListInventory(p, len(str))
+		d.ListInventory(p, len(str), false)
 		ch = d.PromptRune()
 	}
 	if ch >= lo && ch <= hi {
@@ -314,7 +314,7 @@ func (d *Display) PromptInventory(prompt string, p *Player) int {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) ListInventory(p *Player, startWidth int) {
+func (d *Display) ListInventory(p *Player, startWidth int, showWorth bool) {
 
 	height := len(p.inventory)
 	if height <= 0 {
@@ -343,13 +343,20 @@ func (d *Display) ListInventory(p *Player, startWidth int) {
 	}
 
 	// make a blank recangle
-	for row := 0; row < height+1; row++ {
+	for row := 0; row < height; row++ {
 		d.Print(0, row+1, strings.Repeat(" ", width+2))
 	}
 
 	// print the items
 	for i, str := range strList {
 		d.Print(0, 1+i, str)
+	}
+
+	// show worth of each item if showWorth is true
+	if showWorth {
+		for i, item := range p.inventory {
+			d.Printf(width+1, 1+i, "%4d ", item.Worth())
+		}
 	}
 	d.Show()
 }
@@ -371,7 +378,11 @@ func (d *Display) PromptRune() rune {
 
 // -----------------------------------------------------------------------------
 func (d *Display) WaitForKeypress() {
-	d.Screen.PollEvent() // blocks until input from user
+	//d.Screen.PollEvent() // blocks until input from user
+	ch := d.PromptRune()
+	for ch != ' ' {
+		ch = d.PromptRune()
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -413,7 +424,7 @@ func (d *Display) GetCommand(msg *MessageLog) (cmd GameCommand) {
 }
 
 // -----------------------------------------------------------------------------
-func (d *Display) GameOverScreen(gs *GameState) {
+func (d *Display) TombstoneScreen(gs *GameState) {
 
 	tombstone := []string{
 		"              __________",
@@ -426,12 +437,15 @@ func (d *Display) GameOverScreen(gs *GameState) {
 		"         |                  |",
 		"         |     killed by    |",
 		"         |                  |",
+		"         |  with the score  |",
+		"         |                  |",
+		"         |                  |",
 		"         |       1980       |",
 		"         |                  |",
 		"        *|     *  *  *      | *",
 		"________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______",
 		"  ",
-		"       Press space to continue...",
+		"       Press SPACE to continue...",
 	}
 
 	length := 0
@@ -448,16 +462,15 @@ func (d *Display) GameOverScreen(gs *GameState) {
 		d.Print(col, row, str)
 		row++
 	}
-	name := "Nameless One"
-	d.Print(40-(len(name)/2), 24-10, name) //name
+	name := "Nameless Hero"
+	d.Print(40-(len(name)/2), 24-13, name)
 	killedBy := gs.player.killedBy
-	d.Print(40-(len(killedBy)/2), 24-7, killedBy) //killed by
+	d.Print(40-(len(killedBy)/2), 24-10, killedBy)
+	scoreStr := fmt.Sprintf("%d", gs.player.Score())
+	d.Print(40-(len(scoreStr)/2), 24-8, scoreStr)
 	d.Screen.HideCursor()
 	d.Show()
-	ch := d.PromptRune()
-	for ch != ' ' {
-		ch = d.PromptRune()
-	}
+	d.WaitForKeypress()
 }
 
 // ============================================================================
