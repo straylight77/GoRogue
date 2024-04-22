@@ -202,6 +202,13 @@ func main() {
 		}
 
 		if state.player.HP <= 0 {
+			state.messages.Add("You have died. [Press space]")
+			draw(&display, &state)
+			display.Show()
+			ch := display.PromptRune()
+			for ch != ' ' {
+				ch = display.PromptRune()
+			}
 			display.GameOverScreen(&state)
 			done = true
 		}
