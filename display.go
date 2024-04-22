@@ -324,7 +324,7 @@ func (d *Display) ListInventory(p *Player, startWidth int, showWorth bool) {
 	}
 
 	// determine strings to print and largest length
-	width := startWidth
+	width := 0
 	strList := make([]string, height)
 	for i, item := range p.inventory {
 		equip := ""
@@ -342,9 +342,12 @@ func (d *Display) ListInventory(p *Player, startWidth int, showWorth bool) {
 		strList[i] = str
 	}
 
-	// make a blank recangle
-	for row := 0; row < height; row++ {
-		d.Print(0, row+1, strings.Repeat(" ", width+2))
+	// make a blank rectangle
+	boxWidth := max(startWidth, width+3) + 1
+	if showWorth {
+	}
+	for row := 0; row < height+1; row++ {
+		d.Print(0, row+1, strings.Repeat(" ", boxWidth))
 	}
 
 	// print the items

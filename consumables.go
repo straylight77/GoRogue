@@ -96,7 +96,7 @@ func (p *Potion) GndString() string {
 	templ := PotionLib[p.id]
 	color := PotionColors[templ.color]
 	if templ.discovered {
-		return fmt.Sprintf("a potion of %s (%s)", templ.name, color)
+		return fmt.Sprintf("a potion of %s [%s]", templ.name, color)
 	} else {
 		return fmt.Sprintf("a %s potion", color)
 	}

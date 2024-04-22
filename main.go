@@ -105,6 +105,7 @@ func main() {
 			display.WaitForKeypress()
 		case CmdQuit:
 			done = true
+			state.player.killedBy = "quitting"
 
 		// Commands that do increment time
 		case CmdNorth:
@@ -204,22 +205,27 @@ func main() {
 		// check for game over
 		if state.player.HP <= 0 {
 			done = true
-			state.messages.Add("You have died. [Press SPACE]")
+			state.messages.Add("You have died (press SPACE to continue).")
+			display.Clear()
 			draw(&display, &state)
 			display.Show()
 			display.WaitForKeypress()
 
+		}
+
+		if done {
 			for _, item := range state.player.inventory {
 				switch item.(type) {
 				case Consumable:
 					item.(Consumable).Identify()
 				}
 			}
-
 			display.Clear()
 			draw(&display, &state)
-			display.Printf(0, 0, "Treasure acquired: [Press SPACE]")
-			display.ListInventory(state.player, 0, true)
+			msg := "Your inventory (press SPACE to continue):"
+			display.Printf(0, 0, msg)
+			display.Screen.ShowCursor(len(msg), 0)
+			display.ListInventory(state.player, len(msg), true)
 			display.WaitForKeypress()
 
 			display.TombstoneScreen(&state)
