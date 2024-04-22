@@ -200,9 +200,28 @@ func main() {
 				state.WanderingMonsters()
 			}
 		}
+
+		if state.player.HP <= 0 {
+			display.GameOverScreen(&state)
+			done = true
+		}
 	}
 	display.Quit()
-	fmt.Printf("Your final score is %d.\n", state.player.Score())
+
+	//Identify player's inventory and show scoring
+	fmt.Println("Treasure acquired:")
+	for _, item := range state.player.inventory {
+		switch item.(type) {
+		case Consumable:
+			item.(Consumable).Identify()
+		}
+		fmt.Printf("  %-30v %4d\n", item.InvString(), item.Worth())
+	}
+	gold := fmt.Sprintf("%d pieces of gold", state.player.Gold)
+	fmt.Printf("  %-30v %4d\n", gold, state.player.Gold)
+	fmt.Println()
+	fmt.Printf("%-32v %4d\n", "Final score:", state.player.Score())
+	fmt.Println()
 	fmt.Println("Thanks for playing!")
 }
 

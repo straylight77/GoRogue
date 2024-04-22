@@ -30,18 +30,17 @@ func (gs *GameState) Init() {
 	gs.player.Init()
 
 	// Set up player's starting equipment
-	var item Equipable
-	//gs.player.Pickup(newPotion("healing"))
 	gs.player.Pickup(newFood("ration"))
 
-	item = newWeapon("mace")
-	gs.player.Pickup(item)
-	item.Equip(gs.player, gs.messages)
+	weap := newWeapon("mace")
+	gs.player.Pickup(weap)
+	weap.Equip(gs.player, gs.messages)
 
-	item = newArmor("ring mail")
-	gs.player.Pickup(item)
-	item.Equip(gs.player, gs.messages)
+	armor := newArmor("ring mail")
+	gs.player.Pickup(armor)
+	armor.Equip(gs.player, gs.messages)
 
+	//gs.player.Pickup(newPotion("healing"))
 	//gs.player.Pickup(newPotion("confusion"))
 	//gs.player.Pickup(newPotion("blindness"))
 	//gs.player.Pickup(newPotion("haste"))
@@ -76,6 +75,9 @@ func (gs *GameState) MoveActor(a Actor, delta Coord) bool {
 		// If player is there attack them
 		if dest == gs.player.Pos() {
 			gs.messages.Add(a.Attack(gs.player))
+			if gs.player.HP <= 0 {
+				gs.player.killedBy = "a " + a.(*Monster).String()
+			}
 			return true
 		}
 

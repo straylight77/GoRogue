@@ -268,8 +268,6 @@ func (d *Display) InventoryScreen(p *Player) {
 	//	"right":  "R",
 	//}
 	//order := []string{"weapon", "armor", "left", "right"}
-
-	//// Display the player's stats
 	//d.Printf(col, 0, "Equipment")
 	//for _, slot := range order {
 	//	if p.equiped[slot] == nil {
@@ -412,6 +410,54 @@ func (d *Display) GetCommand(msg *MessageLog) (cmd GameCommand) {
 		}
 	}
 	return cmd
+}
+
+// -----------------------------------------------------------------------------
+func (d *Display) GameOverScreen(gs *GameState) {
+
+	tombstone := []string{
+		"              __________",
+		"             /          \\",
+		"            /    REST    \\",
+		"           /      IN      \\",
+		"          /     PEACE      \\",
+		"         /                  \\",
+		"         |                  |",
+		"         |                  |",
+		"         |     killed by    |",
+		"         |                  |",
+		"         |       1980       |",
+		"         |                  |",
+		"        *|     *  *  *      | *",
+		"________)/\\\\_//(\\/(/\\)/\\//\\/|_)_______",
+		"  ",
+		"       Press space to continue...",
+	}
+
+	length := 0
+	for _, str := range tombstone {
+		if len(str) > length {
+			length = len(str)
+		}
+	}
+	col := 40 - (length / 2)
+	row := 24 - len(tombstone)
+
+	d.Clear()
+	for _, str := range tombstone {
+		d.Print(col, row, str)
+		row++
+	}
+	name := "Nameless One"
+	d.Print(40-(len(name)/2), 24-10, name) //name
+	killedBy := gs.player.killedBy
+	d.Print(40-(len(killedBy)/2), 24-7, killedBy) //killed by
+	d.Screen.HideCursor()
+	d.Show()
+	ch := d.PromptRune()
+	for ch != ' ' {
+		ch = d.PromptRune()
+	}
 }
 
 // ============================================================================

@@ -32,6 +32,14 @@ func (f *Food) Worth() int {
 	return 2
 }
 
+func (f *Food) String() string {
+	return f.GndString()
+}
+
+func (f *Food) Identify() {
+	return
+}
+
 func (f *Food) Consume(gs *GameState) bool {
 	gs.messages.Add("You eat %v.", f.InvString())
 	gs.player.AdjustFoodCount(f.amt)
@@ -86,16 +94,17 @@ func (p *Potion) InvString() string {
 
 func (p *Potion) GndString() string {
 	templ := PotionLib[p.id]
+	color := PotionColors[templ.color]
 	if templ.discovered {
-		return fmt.Sprintf("a potion of %s", templ.name)
+		return fmt.Sprintf("a potion of %s (%s)", templ.name, color)
 	} else {
-		color := PotionColors[templ.color]
 		return fmt.Sprintf("a %s potion", color)
 	}
 }
 
 func (p *Potion) Worth() int {
-	return 2
+	templ := PotionLib[p.id]
+	return templ.worth
 }
 
 func (p Potion) String() string {
@@ -122,26 +131,27 @@ type PotionTemplate struct {
 	cumPct     int // cumulative probability
 	name       string
 	effect     int
+	worth      int
 	color      int
 	discovered bool
 	message    string
 }
 
 var PotionLib = []PotionTemplate{
-	{15, 15, "healing", E_Healing, 0, false, "You begin to feel better."},
-	{15, 30, "strength", E_Strength, 0, false, "You feel stronger, what bulging muscles!"},
-	{14, 44, "restore strength", E_Restore, 0, false, "Hey, this tastes great, it make you feel warm all over."},
-	{10, 54, "paralysis", E_Paralyze, 0, false, "You feel your body seizing up, you can't move!"},
-	{8, 62, "confusion", E_Confusion, 0, false, "Wait, what's going on here. Huh? What? Who?"},
-	{8, 70, "poison", E_Poison, 0, false, "You feel very sick now."},
-	{6, 76, "monster detection", E_DetMonsters, 0, false, "You feel like you are not alone."},
-	{6, 82, "detect magic", E_DetMagic, 0, false, "You sense the presence of magic."},
-	{5, 87, "extra healing", E_ExtraHealing, 0, false, "You begin to feel much better."},
-	{4, 91, "haste", E_Haste, 0, false, "Tastes like coffee, everything seems to slow down."},
-	{4, 95, "blindness", E_Blindness, 0, false, "A cloak of darkness falls around you."},
-	{2, 97, "raise level", E_LevelUp, 0, false, "You feel more experienced."},
-	{2, 99, "truesight", E_Truesight, 0, false, "Tastes like slime-mold juice."},
-	{1, 100, "thirst quenching", E_Nothing, 0, false, "Meh, tastes pretty dull."},
+	{15, 15, "healing", E_Healing, 130, 0, false, "You begin to feel better."},
+	{15, 30, "strength", E_Strength, 150, 0, false, "You feel stronger, what bulging muscles!"},
+	{14, 44, "restore strength", E_Restore, 120, 0, false, "Hey, this tastes great, it make you feel warm all over."},
+	{10, 54, "paralysis", E_Paralyze, 50, 0, false, "You feel your body seizing up, you can't move!"},
+	{8, 62, "confusion", E_Confusion, 50, 0, false, "Wait, what's going on here. Huh? What? Who?"},
+	{8, 70, "poison", E_Poison, 50, 0, false, "You feel very sick now."},
+	{6, 76, "monster detection", E_DetMonsters, 120, 0, false, "You feel like you are not alone."},
+	{6, 82, "detect magic", E_DetMagic, 105, 0, false, "You sense the presence of magic."},
+	{5, 87, "extra healing", E_ExtraHealing, 180, 0, false, "You begin to feel much better."},
+	{4, 91, "haste", E_Haste, 200, 0, false, "Tastes like coffee, everything seems to slow down."},
+	{4, 95, "blindness", E_Blindness, 50, 0, false, "A cloak of darkness falls around you."},
+	{2, 97, "raise level", E_LevelUp, 220, 0, false, "You feel more experienced."},
+	{2, 99, "truesight", E_Truesight, 170, 0, false, "Tastes like slime-mold juice."},
+	{1, 100, "thirst quenching", E_Nothing, 50, 0, false, "Meh, tastes pretty dull."},
 }
 
 var PotionColors = []string{

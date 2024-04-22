@@ -39,9 +39,9 @@ Why?  To teach myself Go, to develop my own framework for future roguelike games
     [ ] Sticks
     [/] Cursed items and identification
 [ ] Gameplay
-    [/] Player score
+    [X] Player score
     [ ] Title screen
-    [ ] End game screen
+    [X] End game screen
     [ ] Tracking high scores
     [ ] Amulet of Yendor
 ```

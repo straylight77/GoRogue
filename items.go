@@ -19,7 +19,7 @@ type Consumable interface {
 	Worth() int
 
 	Consume(*GameState) bool
-	//Identify()
+	Identify()
 }
 
 type Equipable interface {

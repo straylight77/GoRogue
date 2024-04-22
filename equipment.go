@@ -94,7 +94,11 @@ func (w *Weapon) InvString() string {
 }
 
 func (w *Weapon) Worth() int {
-	return w.worth
+	if w.ench < 0 {
+		return 0
+	} else {
+		return (1 + (10 * w.ench)) * w.worth
+	}
 }
 
 func (w Weapon) String() string {
@@ -121,7 +125,7 @@ var WeaponLib = map[string]WeaponTemplate{
 type Armor struct {
 	Name   string
 	AC     int
-	bonus  int
+	ench   int
 	cursed bool
 	worth  int
 }
@@ -151,7 +155,7 @@ func randArmor() *Armor {
 		}
 		i--
 	}
-	a.bonus, a.cursed = randEnchant(8, 20)
+	a.ench, a.cursed = randEnchant(8, 20)
 	return a
 }
 
@@ -166,7 +170,7 @@ func (a *Armor) Equip(p *Player, msg *MessageLog) bool {
 		return false
 	}
 	p.equiped["armor"] = a
-	p.AC = a.AC
+	p.AC = a.AC - a.ench
 	msg.Add("You are now wearing the %v.", a)
 	return true
 }
@@ -201,11 +205,15 @@ func (a *Armor) InvString() string {
 	if a.cursed {
 		cursed = " {cursed}"
 	}
-	return fmt.Sprintf("%+d %v [%d]%s", a.bonus, a, a.AC, cursed)
+	return fmt.Sprintf("%+d %v [%d]%s", a.ench, a, a.AC-a.ench, cursed)
 }
 
 func (a *Armor) Worth() int {
-	return a.worth
+	if a.ench < 0 {
+		return 0
+	} else {
+		return (1 + (10 * a.ench)) * a.worth
+	}
 }
 
 func (a Armor) String() string {

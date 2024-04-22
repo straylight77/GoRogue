@@ -49,6 +49,7 @@ type Player struct {
 	inventory []Item
 	equiped   map[string]Equipable
 	timer     map[string]int
+	killedBy  string
 }
 
 // -----------------------------------------------------------------------
@@ -346,12 +347,12 @@ func (p *Player) StatsStrings() []string {
 
 		fmt.Sprintf("Level:  %d", p.Level),
 		"",
+		fmt.Sprintf("Hit Points: %d / %d", p.HP, p.maxHP),
+		"",
 		fmt.Sprintf("Strength:   %d / %d", p.Str, p.maxStr),
 		//fmt.Sprintf("(%+d hit, %d dmg)", p.StrAttackBonus(), p.StrDamageBonus()),
 		fmt.Sprintf(" %+d hit", p.StrAttackBonus()),
 		fmt.Sprintf(" %+d dmg", p.StrDamageBonus()),
-		"",
-		fmt.Sprintf("Hit Points: %d / %d", p.HP, p.maxHP),
 		"",
 		fmt.Sprintf("THAC0:  %d    (%+d)", p.ToHit(), p.StrAttackBonus()),
 		fmt.Sprintf("Damage: %d-%-2d  (%+d)", dice.Min(), dice.Max(), p.StrDamageBonus()),
